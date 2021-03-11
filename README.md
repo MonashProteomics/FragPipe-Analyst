@@ -94,4 +94,55 @@ at least 2 out of three replicates)
 
 ### Local installation
 
-The current version of LFQ-Analyst is hosted on **R - 3.4.3**. The detailed dependency information for `R 3.6.0` in **dev branch** can be found in the `dependencies.txt` file.
+The current version of LFQ-Analyst is hosted on `R - 3.4.3`. The detailed dependency information can be found in the `dependencies.txt` file.
+
+Once installed all the dependencies following steps to run the server locally.
+
+- Using git and Rstudio
+```
+## Clone the repository
+git clone https://github.com/MonashBioinformaticsPlatform/LFQ-Analyst.git
+
+## Move to the folder
+cd LFQ-Analyst
+
+## Inside R console or R studio
+> library("shiny")
+
+> runApp()
+
+```
+
+- Using Docker
+
+Install & start Docker demon on your PC
+
+```
+## Clone the repository
+git clone https://github.com/MonashBioinformaticsPlatform/LFQ-Analyst.git
+
+## Move to the folder
+cd LFQ-Analyst
+
+## Build LFQ-Analyst (Any name after -t)
+> docker build -f Dockerfile -t LFQ-Analyst .
+
+## Run LFQ-Analyst (From terminal)
+
+> docker run -p 3838:3838 LFQ-Analyst
+
+## Open local interface
+
+https://localhost:3838/LFQ-Analyst
+
+
+```
+
+
+
+If you are using more recent versions of R i.e `R  3.6.0`, please clone the **dev** branch. 
+
+```
+# cloning single branch
+git clone https://github.com/MonashBioinformaticsPlatform/LFQ-Analyst.git -b dev --single-branch /your_folder/location/
+```
