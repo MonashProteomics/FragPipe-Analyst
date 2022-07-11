@@ -252,14 +252,16 @@ server <- function(input, output, session) {
      
      
      message(exp_design())
-     if(grepl('+',maxquant_data()$Reverse)){
+     # print(maxquant_data()$Reverse)
+     # print(grepl('+',maxquant_data()$Reverse))
+     if(any(grepl('+',maxquant_data()$Reverse))){
      filtered_data<-dplyr::filter(maxquant_data(),Reverse!="+")
      }
      else{filtered_data<-maxquant_data()}
-     if(grepl('+',filtered_data$Potential.contaminant)){
+     if(any(grepl('+',filtered_data$Potential.contaminant))){
        filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
      }
-     if(grepl('+',filtered_data$Only.identified.by.site)){
+     if(any(grepl('+',filtered_data$Only.identified.by.site))){
        filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+") 
      }
      if(input$single_peptide==TRUE){
@@ -1408,6 +1410,7 @@ imputed_data_dm<-reactive({
  
  #### Data table
  output$contents_dm <- DT::renderDataTable({
+   print("before")
    df<- data_result_dm()
    return(df)
  },
