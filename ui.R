@@ -2,7 +2,7 @@
 ui <- function(request){shinyUI(
   dashboardPage(
     skin = "blue",
-    dashboardHeader(title = "LFQ-Analyst"),
+    dashboardHeader(title = "LFQ-Analyst-FP"),
     # disable = TRUE),# Disable title bar
     dashboardSidebar(
       useShinyalert(),
@@ -12,13 +12,13 @@ ui <- function(request){shinyUI(
         convertMenuItem(menuItem("Analysis",  tabName="analysis", icon=icon("flask"),
                  #menuItem("Input Files", tabName="file", icon=icon("file"), #selected = TRUE,
                           fileInput('file1',
-                                    'Upload MaxQuant ProteinGroups.txt',
+                                    'Upload FragPipe combined_protein.tsv',
                                     accept=c('text/csv',
                                              'text/comma-separated-values,text/plain',
                                              '.csv')),
                         
                           fileInput('file2',
-                                    'Upload Experimental Design Matrix',
+                                    'Upload Manifest',
                                     accept=c('text/csv',
                                              'text/comma-separated-values,text/plain',
                                              '.csv')),
@@ -56,17 +56,17 @@ ui <- function(request){shinyUI(
                actionButton("analyze", "Start Analysis"),
                tags$hr(),
                p(a("Example LFQ data", target= "_blank",
-                   href="data/proteinGroups_example.txt", 
-                   download="proteinGroups_example.txt")),
-               p(a("Example Experimental Design file", target= "_blank",
-                 href="data/experimental_design_example.txt", 
-                 download="experimental_design_example.txt"))
+                   href="data/combined_protein.tsv", 
+                   download="combined_protein.tsv")),
+               p(a("Example Manifest", target= "_blank",
+                 href="data/lfq_manifest.fp-manifest", 
+                 download="lfq_manifest.fp-manifest"))
               
                   #,
                   #actionButton("load_data", "Load example data")
                  ), tabName = 'analysis'),
                   
-        convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),
+        # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),
        convertMenuItem(menuItem('User Guide', icon=icon("question"), 
 		#href = "https://monashbioinformaticsplatform.github.io/LFQ-Analyst/", 
 		tabName = "info"), tabName = "info")
@@ -96,8 +96,7 @@ ui <- function(request){shinyUI(
              fluidRow( 
                box(
                 title = "Overview",
-                  h3("LFQ-Analyst: An easy-to-use interactive web-platform to analyze and visualize proteomics data 
-                     preprocessed with MaxQuant."),
+                  h3("LFQ-Analyst-FP: An customized version of LFQ-Analyst for FragPipe."),
                 p("LFQ-Analyst is an easy-to-use, interactive web application developed to perform 
                   differential expression analysis with “one click” and to visualize label-free quantitative proteomic 
                   datasets preprocessed with MaxQuant.  LFQ-Analyst provides a wealth of user-analytic features 
@@ -109,7 +108,7 @@ ui <- function(request){shinyUI(
                 h4("Sidebar tabs"),
                 tags$ul(
                 tags$li(tags$b("Analysis: "),"perform your own analysis"), 
-                tags$li(tags$b("Demo: "),"familiarise yourself with LFQ-Analyst by browsing through pre-analysed results"), 
+                # tags$li(tags$b("Demo: "),"familiarise yourself with LFQ-Analyst by browsing through pre-analysed results"), 
                 tags$li(tags$b("User Guide: "), "download an in-depth manual") 
                 ),
                 width = 12,
@@ -355,7 +354,7 @@ ui <- function(request){shinyUI(
 #                    div(p(HTML(paste0('A detail online user manual can be accessed ',
 # 			a(href = 'https://monashbioinformaticsplatform.github.io/LFQ-Analyst/', 
 #                                       target='_blank', 'here'))))),
-			   div(p(HTML(paste0("A detailed user manual can be accessed",
+			   div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
 			                            a(href = './LFQ-Analyst_manual.pdf', 
 			                              target='_blank', tags$b("here.")))))),  
 			h4("Contact Us"),

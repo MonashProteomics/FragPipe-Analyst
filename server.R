@@ -173,7 +173,8 @@ server <- function(input, output, session) {
                  fill= TRUE, # to fill any missing data
                  sep = "\t"
       )
-      validate(maxquant_input_test(temp_data))
+      # validate(maxquant_input_test(temp_data))
+      validate(fragpipe_input_test(temp_data))
       return(temp_data)
     })
    
@@ -195,13 +196,24 @@ server <- function(input, output, session) {
       inFile<-input$file2
       if (is.null(inFile))
         return(NULL)
+      # temp_df<-read.table(inFile$datapath,
+      #                     header = TRUE,
+      #                     sep="\t",
+      #                     stringsAsFactors = FALSE)
       temp_df<-read.table(inFile$datapath,
-                          header = TRUE,
+                          header = F,
                           sep="\t",
                           stringsAsFactors = FALSE)
-      exp_design_test(temp_df)
-      temp_df$label<-as.character(temp_df$label)
-      temp_df$condition<-trimws(temp_df$condition, which = "left")
+      # exp_design_test(temp_df)
+      # temp_df$label<-as.character(temp_df$label)
+      # temp_df$condition<-trimws(temp_df$condition, which = "left")
+      
+      # make it compatible to original LFQ-Analyst design
+      # colnames(temp_df) <- c("Path", "Experiment", "Bioreplicate", "Data.type")
+      colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
+      temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
+      temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
+      print(temp_df$label)
       return(temp_df)
     })
    
@@ -252,37 +264,48 @@ server <- function(input, output, session) {
      
      
      message(exp_design())
-     # print(maxquant_data()$Reverse)
-     # print(grepl('+',maxquant_data()$Reverse))
-     if(any(grepl('+',maxquant_data()$Reverse))){
-     filtered_data<-dplyr::filter(maxquant_data(),Reverse!="+")
-     }
-     else{filtered_data<-maxquant_data()}
-     if(any(grepl('+',filtered_data$Potential.contaminant))){
-       filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
-     }
-     if(any(grepl('+',filtered_data$Only.identified.by.site))){
-       filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+") 
-     }
-     if(input$single_peptide==TRUE){
-       filtered_data <-filtered_data
-     }
-     else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
-     id_columns<-c("Evidence.IDs", "MS/MS.IDs")
-     if("Evidence.IDs" %in% colnames(filtered_data)){
-      filtered_data$`Evidence.IDs`<-stringr::str_trunc(as.character(filtered_data$`Evidence.IDs`), 25000)
+     # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
+     # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
+     # if("Evidence.IDs" %in% colnames(filtered_data)){
+     # filtered_data$`Evidence.IDs`<-stringr::str_trunc(as.character(filtered_data$`Evidence.IDs`), 25000)
 
-     }
-     if("MS.MS.IDs" %in% colnames(filtered_data)){
-       filtered_data$`MS.MS.IDs`<-stringr::str_trunc(as.character(filtered_data$`MS.MS.IDs`), 25000)
-     }
+     #}
+     #if("MS.MS.IDs" %in% colnames(filtered_data)){
+     #  filtered_data$`MS.MS.IDs`<-stringr::str_trunc(as.character(filtered_data$`MS.MS.IDs`), 25000)
+     #}
+     # if(any(grepl('+',maxquant_data()$Reverse))){
+     # filtered_data<-dplyr::filter(maxquant_data(),Reverse!="+")
+     # }
+     # else{filtered_data<-maxquant_data()}
+     # if(any(grepl('+',filtered_data$Potential.contaminant))){
+     #   filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
+     # }
+     # if(any(grepl('+',filtered_data$Only.identified.by.site))){
+     #   filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+") 
+     # }
+     # if(input$single_peptide==TRUE){
+     #   filtered_data <-filtered_data
+     # }
+     # else{filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)}
+
+     filtered_data<-maxquant_data()
+     filtered_data<-ids_test(filtered_data)
      
-     data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
-     lfq_columns<-grep("LFQ.", colnames(data_unique))
+     # data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
+     # lfq_columns<-grep("LFQ.", colnames(data_unique))
+     
+     # TODO: process the data into a format that DEP takes
+     data_unique <- DEP::make_unique(filtered_data,"Gene","Protein.ID")
+     lfq_columns<-grep("MaxLFQ", colnames(data_unique))
+     # alternatively,
+     # lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
      
      ## Check for matching columns in maxquant and experiment design file
-     test_match_lfq_column_design(data_unique,lfq_columns, exp_design())
+     # test_match_lfq_column_design(data_unique,lfq_columns, exp_design())
+     test_match_lfq_column_manifest(data_unique,lfq_columns, exp_design())
+     
      data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
+     # data_se <-DEP:::make_se_parse(data_unique, lfq_columns)
   
      # Check number of replicates
      if(max(exp_design()$replicate)<3){
