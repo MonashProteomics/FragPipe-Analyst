@@ -5,7 +5,6 @@ ui <- function(request){shinyUI(
     dashboardHeader(title = "LFQ-Analyst-FP"),
     # disable = TRUE),# Disable title bar
     dashboardSidebar(
-      useShinyalert(),
       sidebarMenu(
          id="tabs_selected",
         convertMenuItem(menuItem('Home', icon=icon("home"), selected = TRUE, tabName = "home"), tabName = "home"),

@@ -1433,7 +1433,6 @@ imputed_data_dm<-reactive({
  
  #### Data table
  output$contents_dm <- DT::renderDataTable({
-   print("before")
    df<- data_result_dm()
    return(df)
  },
