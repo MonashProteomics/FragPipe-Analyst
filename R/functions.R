@@ -12,14 +12,15 @@ coef_variation<-function(x){
 
 #### Plot CVs
 
-plot_cvs<-function(se) {
+plot_cvs<-function(se, id="ID") {
   
   ## backtransform data
   untransformed_intensity<- 2^(assay(se))
   exp_design<-colData(se)
 
 ### merge untransformed to exp design and calculate cvs
-  
+
+if (id == "ID") {
   cvs_group<- untransformed_intensity %>% data.frame() %>%
     tibble::rownames_to_column() %>%
     tidyr::gather("ID", "Intensity", -rowname) %>%
@@ -28,6 +29,16 @@ plot_cvs<-function(se) {
     dplyr::summarise(cvs=coef_variation(Intensity)) %>%
     dplyr::group_by(condition)%>%
     dplyr::mutate(condition_median=median(cvs))
+} else {
+  cvs_group<- untransformed_intensity %>% data.frame() %>%
+    tibble::rownames_to_column() %>%
+    tidyr::gather("ID", "Intensity", -rowname) %>%
+    dplyr::left_join(.,data.frame(exp_design), by=c("ID"=id)) %>%
+    dplyr::group_by(rowname,condition) %>%
+    dplyr::summarise(cvs=coef_variation(Intensity)) %>%
+    dplyr::group_by(condition)%>%
+    dplyr::mutate(condition_median=median(cvs))
+}
   
 p1 <-  ggplot(cvs_group, aes(cvs, color=condition, fill=condition)) +
     geom_histogram(alpha=.5, bins= 20, show.legend = FALSE) +
@@ -500,10 +511,17 @@ get_results_proteins <- function(dep, exp) {
   # Obtain average protein-centered enrichment values per condition
   row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
   centered <- assay(dep) - row_data$mean
-  centered <- data.frame(centered) %>%
-    tibble::rownames_to_column() %>%
-    tidyr::gather(ID, val, -rowname) %>%
-    dplyr::left_join(., data.frame(colData(dep)), by = "ID")
+  if (exp == "LFQ") {
+    centered <- data.frame(centered) %>%
+      tibble::rownames_to_column() %>%
+      tidyr::gather(ID, val, -rowname) %>%
+      dplyr::left_join(., data.frame(colData(dep)), by = "ID")
+  } else if (exp == "TMT") {
+    centered <- data.frame(centered) %>%
+      tibble::rownames_to_column() %>%
+      tidyr::gather(ID, val, -rowname) %>%
+      dplyr::left_join(., data.frame(colData(dep)), by = c("ID"="label"))
+  }
   centered <- dplyr::group_by(centered, rowname, condition) %>%
     dplyr::summarize(val = mean(val, na.rm = TRUE)) %>%
     dplyr::mutate(val = signif(val, digits = 3)) %>%

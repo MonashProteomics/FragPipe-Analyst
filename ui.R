@@ -188,7 +188,7 @@ ui <- function(request){shinyUI(
       fluidRow(
         shinyjs::hidden(div(id="results_tab",
                             box(
-                              title = "LFQ Results Table",
+                              title = "Results Table",
                               DT::dataTableOutput("contents"),
                               #  actionButton("clear", "Deselect Rows"),
                               actionButton("original", "Refresh Table"),
@@ -220,7 +220,7 @@ ui <- function(request){shinyUI(
                                                              "Adjusted p values",
                                                              value = FALSE),
                                                width = 4),
-                                           tags$p("Select protein from LFQ Results Table to highlight on the plot OR 
+                                           tags$p("Select protein from Results Table to highlight on the plot OR 
                                                   drag the mouse on plot to show expression of proteins in Table")
                                            #Add text line
                                            # tags$p("OR"),
@@ -264,7 +264,7 @@ ui <- function(request){shinyUI(
                                                             inline = TRUE),
                                                width = 12
                                            ),
-                                           tags$p("Select one or more rows from LFQ Results Table to plot individual 
+                                           tags$p("Select one or more rows from Results Table to plot individual 
                                                   protein intesities across conditions and replicates")
                                            ),
                                          fluidRow(
@@ -371,7 +371,7 @@ ui <- function(request){shinyUI(
 			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
 			                              target='_blank', tags$b("here.")))))),
                    h4("Contact Us"),
-			p("For any feedback or question regarding LFQ-Analyst, please contact the 
+			p("For any feedback or question regarding LFQ-Analyst-FP, please contact the 
 			  Proteomics & Integrative Bioinformatics Lab, University of Michigan:"),
       tags$ul(
 			tags$li("Professor Alexey Nesvizhskii: nesvi@med.umich.edu")

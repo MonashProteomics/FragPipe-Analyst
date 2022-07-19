@@ -8,7 +8,7 @@ temp_data <- read.table("./data/luad_ratio_gene_MD_phospho_glyco.tsv",
                       sep = "\t",
                       check.names = F)
 
-temp_df <- read.table("./data/luad.annotation.updated.tsv",
+temp_df <- read.table("./data/luad.annotation.updated_20220719.tsv",
                       header = T,
                       sep="\t",
                       stringsAsFactors = FALSE)
@@ -25,13 +25,15 @@ temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples
 cols <- colnames(data_unique)
 selected_cols <- which(!(cols %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID")))
 data_unique[selected_cols] <- apply(data_unique[selected_cols], 2, as.numeric)
-test_match_lfq_column_design(data_unique, selected_cols, temp_exp_design)
-# TODO: TMT-I report is already log2 transformed
+test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
 data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design)
-data_diff_manual <- test_diff_customized(data_se, type = "manual", 
-                              test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+
+# data_diff_manual <- test_diff_customized(data_se, type = "manual", 
+#                               test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+data_diff_manual <- test_diff_customized(data_se, type = "all")
 dep <- add_rejections(data_diff_manual, alpha=0.05, lfc=log2(1.5))
-data_results <- get_results(dep)
+# TODO: fix this
+data_results <- get_results_customized(dep)
 
 imputed_data <- DEP::impute(data_se, "man")
 temp <- assay(data_se)

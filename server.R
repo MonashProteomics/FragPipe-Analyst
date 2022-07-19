@@ -345,7 +345,7 @@ server <- function(input, output, session) {
        # filtered_data <- avearrays(filtered_data)
        # filtered_data <- as.data.frame(filtered_data)
        # print(apply(filtered_data, 2, is.numeric))
-       data_unique <- DEP::make_unique(filtered_data, "Index", "ProteinID")
+       data_unique <- make_unique(filtered_data, "Index", "ProteinID")
        # handle unmatched columns
        overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
        data_unique <- data_unique[,colnames(data_unique) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID", overlapped_samples)]
@@ -353,7 +353,7 @@ server <- function(input, output, session) {
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID")))
        data_unique[selected_cols] <- apply(data_unique[selected_cols], 2, as.numeric)
-       test_match_lfq_column_design(data_unique, selected_cols, temp_exp_design)
+       test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
        # TMT-I report is already log2 transformed
        data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design)
        return(data_se)
@@ -388,10 +388,11 @@ server <- function(input, output, session) {
    
    diff_all<-reactive({
      if (input$exp == "LFQ") {
-       test_diff(imputed_data(),type = 'all')
+       test_diff(imputed_data(), type = 'all')
      } else if (input$exp == "TMT") {
-       test_diff_customized(imputed_data(), type = "manual", 
-                            test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+       # test_diff_customized(imputed_data(), type = "manual", 
+       #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+       test_diff_customized(imputed_data(), type = "all")
      }
    })
 
@@ -415,8 +416,9 @@ server <- function(input, output, session) {
        #   diff_all<-test_diff(imputed_data(),type='all')
        #   add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
        # }
-       diff_all <- test_diff_customized(imputed_data(), type = "manual", 
-                            test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+       # diff_all <- test_diff_customized(imputed_data(), type = "manual", 
+       #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+       diff_all <- test_diff_customized(imputed_data(), type = "all")
        add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
      }
    })
@@ -430,9 +432,10 @@ server <- function(input, output, session) {
        ## Remove leading and trailing spaces
           trimws(temp)
      } else if (input$exp == "TMT") {
-       temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
-                                                 test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
-                            type = "message")
+       temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
+       # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
+       #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
+       #                      type = "message")
        gsub(".*: ","",temp)
        ## Split conditions into character vector
        unlist(strsplit(temp,","))
@@ -456,45 +459,85 @@ server <- function(input, output, session) {
      if(input$analyze==0 ){
        return()
      }
-     if (num_total()<=500){
-       if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
-         pca_plot<-DEP::plot_pca(dep(), n=num_total(), point_size = 4)
-         pca_plot<-pca_plot + labs(title = "PCA Plot")
-         return(pca_plot)
+     if (input$exp == "LFQ") {
+       if (num_total()<=500){
+         if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
+           pca_plot<-DEP::plot_pca(dep(), n=num_total(), point_size = 4)
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           return(pca_plot)
+         }
+         else{
+           pca_plot<-DEP::plot_pca(dep(), n=num_total(), point_size = 4, indicate = "condition") 
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           return(pca_plot)
+         }
        }
        else{
-         pca_plot<-DEP::plot_pca(dep(), n=num_total(), point_size = 4, indicate = "condition") 
-         pca_plot<-pca_plot + labs(title = "PCA Plot")
-         return(pca_plot)
+         if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
+           pca_plot<-DEP::plot_pca(dep(), point_size = 4)
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           return(pca_plot)
+         }
+         else{
+           #pca_label<-SummarizedExperiment::colData(dep())$replicate
+           pca_plot<-DEP::plot_pca(dep(), point_size = 4, indicate = "condition")
+           #pca_plot<-pca_plot + geom_point()
+           pca_plot<-pca_plot + ggrepel::geom_text_repel(aes(label=factor(rowname)),
+                                                         size = 4,
+                                                         box.padding = unit(0.1, 'lines'),
+                                                         point.padding = unit(0.1, 'lines'),
+                                                         segment.size = 0.5)
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           
+           #        pca_plot<-DEP::plot_pca(dep(), point_size = 4, indicate = "condition")
+           #         pca_plot + ggrepel::geom_text_repel(aes(label=SummarizedExperiment::colData(dep())$replicate),
+           #                                        size = 5,
+           #                                           box.padding = unit(0.1, 'lines'),
+           #                                          point.padding = unit(0.1, 'lines'),
+           #                                         segment.size = 0.5)
+           return(pca_plot)
+         }
        }
-     }
-     else{
-       if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
-         pca_plot<-DEP::plot_pca(dep(), point_size = 4)
-         pca_plot<-pca_plot + labs(title = "PCA Plot")
-         return(pca_plot)
+     } else if (input$exp == "TMT"){
+       if (num_total()<=500){
+         if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
+           pca_plot<- plot_pca_customized(dep(), n=num_total(), point_size = 4)
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           return(pca_plot)
+         }
+         else{
+           pca_plot<- plot_pca_customized(dep(), n=num_total(), point_size = 4, indicate = "condition") 
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           return(pca_plot)
+         }
        }
        else{
-	     #pca_label<-SummarizedExperiment::colData(dep())$replicate
-       pca_plot<-DEP::plot_pca(dep(), point_size = 4, indicate = "condition")
-       #pca_plot<-pca_plot + geom_point()
-       pca_plot<-pca_plot + ggrepel::geom_text_repel(aes(label=factor(rowname)),
-                                           size = 4,
-                                           box.padding = unit(0.1, 'lines'),
-                                           point.padding = unit(0.1, 'lines'),
-                                           segment.size = 0.5)
-       pca_plot<-pca_plot + labs(title = "PCA Plot")
-
- #        pca_plot<-DEP::plot_pca(dep(), point_size = 4, indicate = "condition")
-#         pca_plot + ggrepel::geom_text_repel(aes(label=SummarizedExperiment::colData(dep())$replicate),
-     #                                        size = 5,
-  #                                           box.padding = unit(0.1, 'lines'),
-   #                                          point.padding = unit(0.1, 'lines'),
-    #                                         segment.size = 0.5)
-       return(pca_plot)
+         if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
+           pca_plot<- plot_pca_customized(dep(), point_size = 4)
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           return(pca_plot)
+         }
+         else{
+           #pca_label<-SummarizedExperiment::colData(dep())$replicate
+           pca_plot<-plot_pca_customized(dep(), point_size = 4, indicate = "condition")
+           #pca_plot<-pca_plot + geom_point()
+           pca_plot<-pca_plot + ggrepel::geom_text_repel(aes(label=factor(rowname)),
+                                                         size = 4,
+                                                         box.padding = unit(0.1, 'lines'),
+                                                         point.padding = unit(0.1, 'lines'),
+                                                         segment.size = 0.5)
+           pca_plot<-pca_plot + labs(title = "PCA Plot")
+           
+           #        pca_plot<-DEP::plot_pca(dep(), point_size = 4, indicate = "condition")
+           #         pca_plot + ggrepel::geom_text_repel(aes(label=SummarizedExperiment::colData(dep())$replicate),
+           #                                        size = 5,
+           #                                           box.padding = unit(0.1, 'lines'),
+           #                                          point.padding = unit(0.1, 'lines'),
+           #                                         segment.size = 0.5)
+           return(pca_plot)
+         }
        }
      }
-     
    })
    
    ### Heatmap Differentially expressed proteins
@@ -590,8 +633,13 @@ server <- function(input, output, session) {
      
    ## QC Inputs
    norm_input <- reactive({
-     plot_normalization(processed_data(),
-                        normalised_data())
+     if (input$exp == "LFQ") {
+       plot_normalization(processed_data(),
+                          normalised_data())
+     } else if (input$exp == "TMT") {
+       plot_normalization_customized(processed_data(),
+                          normalised_data())
+     }
    })
    
    missval_input <- reactive({
@@ -603,8 +651,13 @@ server <- function(input, output, session) {
    })
    
    imputation_input <- reactive({
-     plot_imputation(normalised_data(),
+     if (input$exp == "LFQ") {
+       plot_imputation(normalised_data(),
                      diff_all())
+     } else if (input$exp == "TMT") {
+       plot_imputation_customized(normalised_data(),
+                       diff_all())
+     }
    })
    
    p_hist_input <- reactive({
@@ -612,7 +665,11 @@ server <- function(input, output, session) {
    })
    
    numbers_input <- reactive({
-     plot_numbers(normalised_data())
+     if (input$exp == "LFQ") {
+       plot_numbers(normalised_data())
+     } else if (input$exp == "TMT") {
+       plot_numbers_customized(normalised_data())
+     }
    })
    
    coverage_input <- reactive({
@@ -624,7 +681,12 @@ server <- function(input, output, session) {
    })
    
    cvs_input<-reactive({
-     plot_cvs(dep())
+     if (input$exp == "LFQ") {
+       id <- "ID"
+     } else if (input$exp == "TMT") {
+       id <- "label"
+     }
+     plot_cvs(dep(), id)
    })
    
    num_total<-reactive({
@@ -1288,12 +1350,13 @@ print(pca_label)
  ### Volcano Plot
  volcano_input_dm <- reactive({
    if(!is.null(input$volcano_cntrst_dm)) {
+     print("here")
      plot_volcano_new(dep_dm(),
                       input$volcano_cntrst_dm,
                       input$fontsize_dm,
                       input$check_names_dm,
                       input$p_adj_dm)
-     
+     print("here")
    }
  })
  
@@ -1381,8 +1444,9 @@ print(pca_label)
    if (input$exp == "LFQ") {
      test_diff(imputed_data_dm(),type = 'all')
    } else if (input$exp == "TMT") {
-     test_diff_customized(imputed_data_dm(), type = "manual", 
-                          test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+     # test_diff_customized(imputed_data_dm(), type = "manual", 
+     #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+     test_diff_customized(imputed_data_dm(), type = "all")
    }
  })
 	
@@ -1410,7 +1474,11 @@ print(pca_label)
  })
  
  numbers_input_dm <- reactive({
-   plot_numbers(normalised_data_dm())
+   if (input$exp == "LFQ"){
+     plot_numbers(normalised_data_dm())
+   } else if (input$exp == "TMT") {
+     plot_numbers(normalised_data_dm())
+   }
  })
  
  coverage_input_dm <- reactive({
@@ -1422,7 +1490,12 @@ print(pca_label)
  })
  
  cvs_input_dm<-reactive({
-   plot_cvs(dep_dm())
+   if (input$exp == "LFQ") {
+     id <- "ID"
+   } else if (input$exp == "TMT") {
+     id <- "label"
+   }
+   plot_cvs(dep_dm(), id)
  })
  
  num_total_dm<-reactive({

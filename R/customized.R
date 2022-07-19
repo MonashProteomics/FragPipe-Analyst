@@ -69,9 +69,10 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   }
   # Generate the colData from the experimental design
   # and match these with the assay data
-  expdesign <- mutate(expdesign, condition = make.names(condition)) %>%
-    unite(ID, condition, replicate, remove = FALSE)
-  rownames(expdesign) <- expdesign$ID
+  # expdesign <- mutate(expdesign, condition = make.names(condition)) %>%
+  #   unite(ID, condition, replicate, remove = FALSE)
+  # rownames(expdesign) <- expdesign$ID
+  rownames(expdesign) <- expdesign$label
   
   matched <- match(make.names(delete_prefix(expdesign$label)),
                    make.names(delete_prefix(colnames(raw))))
@@ -82,7 +83,8 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
          "and/or correct columns specification")
   }
   
-  colnames(raw)[matched] <- expdesign$ID
+  # colnames(raw)[matched] <- expdesign$ID
+  colnames(raw)[matched] <- expdesign$label
   raw <- raw[, !is.na(colnames(raw))][rownames(expdesign)]
   
   # Select the rowData
@@ -222,7 +224,7 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
   # print(cntrst)
   fit <- lmFit(raw, design = design)
   made_contrasts <- makeContrasts(contrasts = cntrst, levels = design)
-  print(made_contrasts)
+  # print(made_contrasts)
   contrast_fit <- contrasts.fit(fit, made_contrasts)
   
   if (type != "manual") {
@@ -266,4 +268,544 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
   rowData(se) <- merge(rowData(se, use.names = FALSE), table,
                        by.x = "name", by.y = "rowname", all.x = TRUE, sort=FALSE)
   return(se)
+}
+
+# similar to test_match_lfq_column_design
+test_match_tmt_column_design <- function(unique_data, lfq_columns, exp_design){
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(is.data.frame(unique_data),
+                          is.integer(lfq_columns),
+                          is.data.frame(exp_design))
+  
+  # Show error if inputs do not contain required columns
+  if(any(!c("name", "ID") %in% colnames(unique_data))) {
+    stop(safeError("'Gene name' and/or 'Protein ID' columns are not present in
+          protein groups input file"
+    ))
+  }
+  
+  if(any(!c("label", "condition", "replicate") %in% colnames(exp_design))) {
+    stop(safeError("'label', 'condition' and/or 'replicate' columns
+         are not present in the experimental design"))
+  }
+  
+  if(any(!apply(unique_data[, lfq_columns], 2, is.numeric))) {
+    stop(safeError("specified 'columns' should be numeric
+         Run make_se_parse() with the appropriate columns as argument"))
+  }
+  
+  raw <- unique_data[, lfq_columns]
+  # expdesign <- mutate(exp_design, condition = make.names(condition)) %>%
+  #   unite(ID, label, remove = FALSE)
+  # rownames(expdesign) <- expdesign$ID
+  expdesign <- exp_design
+  # print(expdesign)
+  rownames(expdesign) <- expdesign$label
+  
+  matched <- match(make.names(delete_prefix(expdesign$label)),
+                   make.names(delete_prefix(colnames(raw))))
+  
+  # TODO: give warning message to indicate which columns are not matched
+  # if(any(is.na(matched))) {
+  if(all(is.na(matched))) {
+    stop(safeError("The labels/'run names' in the experimental design DID NOT match
+         with lfq column names in maxquants proteinGroups file
+         Run LFQ-Analyst with correct labels in the experimental design"))
+  }
+}
+
+# original: get_results from 
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' Generate a results table
+#'
+#' \code{get_results_customized} generates a results table from a proteomics dataset
+#' on which differential enrichment analysis was performed.
+#'
+#' @param dep SummarizedExperiment,
+#' Data object for which differentially enriched proteins are annotated
+#' (output from \code{\link{test_diff}()} and \code{\link{add_rejections}()}).
+#' @return A data.frame object
+#' containing all results variables from the performed analysis.
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter, normalize and impute missing values
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#' imputed <- impute(norm, fun = "MinProb", q = 0.01)
+#'
+#' # Test for differentially expressed proteins
+#' diff <- test_diff(imputed, "control", "Ctrl")
+#' dep <- add_rejections(diff, alpha = 0.05, lfc = 1)
+#'
+#' # Get results
+#' results <- get_results(dep)
+#' colnames(results)
+#'
+#' significant_proteins <- results[results$significant,]
+#' nrow(significant_proteins)
+#' head(significant_proteins)
+#' @export
+get_results_customized <- function(dep) {
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(dep, "SummarizedExperiment"))
+  
+  row_data <- rowData(dep, use.names = FALSE)
+  # Show error if inputs do not contain required columns
+  if(any(!c("name", "ID") %in% colnames(row_data))) {
+    stop("'name' and/or 'ID' columns are not present in '",
+         deparse(substitute(dep)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  if(length(grep("_p.adj|_diff", colnames(row_data))) < 1) {
+    stop("'[contrast]_diff' and/or '[contrast]_p.adj' columns are not present in '",
+         deparse(substitute(dep)),
+         "'\nRun test_diff() to obtain the required columns",
+         call. = FALSE)
+  }
+  
+  # Obtain average protein-centered enrichment values per condition
+  row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
+  centered <- assay(dep) - row_data$mean
+  centered <- data.frame(centered) %>%
+    rownames_to_column() %>%
+    gather(ID, val, -rowname) %>%
+    left_join(., data.frame(colData(dep)), by = c("ID"="label"))
+  centered <- group_by(centered, rowname, condition) %>%
+    summarize(val = mean(val, na.rm = TRUE)) %>%
+    mutate(val = signif(val, digits = 3)) %>%
+    spread(condition, val)
+  colnames(centered)[2:ncol(centered)] <-
+    paste(colnames(centered)[2:ncol(centered)], "_centered", sep = "")
+  
+  # Obtain average enrichments of conditions versus the control condition
+  ratio <- as.data.frame(row_data) %>%
+    column_to_rownames("name") %>%
+    select(ends_with("diff")) %>%
+    signif(., digits = 3) %>%
+    rownames_to_column()
+  colnames(ratio)[2:ncol(ratio)] <-
+    gsub("_diff", "_ratio", colnames(ratio)[2:ncol(ratio)])
+  df <- left_join(ratio, centered, by = "rowname")
+  
+  # Select the adjusted p-values and significance columns
+  pval <- as.data.frame(row_data) %>%
+    column_to_rownames("name") %>%
+    select(ends_with("p.val"),
+           ends_with("p.adj"),
+           ends_with("significant")) %>%
+    rownames_to_column()
+  pval[, grep("p.adj", colnames(pval))] <-
+    pval[, grep("p.adj", colnames(pval))] %>%
+    signif(digits = 3)
+  
+  # Join into a results table
+  ids <- as.data.frame(row_data) %>% select(name, ID)
+  table <- left_join(ids, pval, by = c("name" = "rowname"))
+  table <- left_join(table, df, by = c("name" = "rowname")) %>%
+    arrange(desc(significant))
+  return(table)
+}
+# original plot_pca from
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_explore.R
+#' Plot PCA
+#'
+#' \code{plot_pca} generates a PCA plot using the top variable proteins.
+#'
+#' @param dep SummarizedExperiment,
+#' Data object for which differentially enriched proteins are annotated
+#' (output from \code{\link{test_diff}()} and \code{\link{add_rejections}()}).
+#' @param x Integer(1),
+#' Sets the principle component to plot on the x-axis.
+#' @param y Integer(1),
+#' Sets the principle component to plot on the y-axis.
+#' @param indicate Character,
+#' Sets the color, shape and facet_wrap of the plot
+#' based on columns from the experimental design (colData).
+#' @param label Logical,
+#' Whether or not to add sample labels.
+#' @param n Integer(1),
+#' Sets the number of top variable proteins to consider.
+#' @param point_size Integer(1),
+#' Sets the size of the points.
+#' @param label_size Integer(1),
+#' Sets the size of the labels.
+#' @param plot Logical(1),
+#' If \code{TRUE} (default) the PCA plot is produced.
+#' Otherwise (if \code{FALSE}), the data which the
+#' PCA plot is based on are returned.
+#' @return A scatter plot (generated by \code{\link[ggplot2]{ggplot}}).
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter, normalize and impute missing values
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#' imputed <- impute(norm, fun = "MinProb", q = 0.01)
+#'
+#' # Test for differentially expressed proteins
+#' diff <- test_diff(imputed, "control", "Ctrl")
+#' dep <- add_rejections(diff, alpha = 0.05, lfc = 1)
+#'
+#' # Plot PCA
+#' plot_pca(dep)
+#' plot_pca(dep, indicate = "condition")
+#' @export
+plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "replicate"),
+                     label = FALSE, n = 500, point_size = 4, label_size = 3, plot = TRUE) {
+  if(is.integer(x)) x <- as.numeric(x)
+  if(is.integer(y)) y <- as.numeric(y)
+  if(is.integer(n)) n <- as.numeric(n)
+  if(is.integer(point_size)) point_size <- as.numeric(point_size)
+  if(is.integer(label_size)) label_size <- as.numeric(label_size)
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
+                          is.numeric(x),
+                          length(x) == 1,
+                          is.numeric(y),
+                          length(y) == 1,
+                          is.numeric(n),
+                          length(n) == 1,
+                          is.character(indicate),
+                          is.logical(label),
+                          is.numeric(point_size),
+                          length(point_size) == 1,
+                          is.numeric(label_size),
+                          length(label_size) == 1,
+                          is.logical(plot),
+                          length(plot) == 1)
+  
+  # Check for valid x and y values
+  if(x > ncol(dep) | y > ncol(dep)) {
+    stop(paste0("'x' and/or 'y' arguments are not valid\n",
+                "Run plot_pca() with 'x' and 'y' <= ",
+                ncol(dep), "."),
+         call. = FALSE)
+  }
+  
+  # Check for valid 'n' value
+  if(n > nrow(dep)) {
+    stop(paste0("'n' argument is not valid.\n",
+                "Run plot_pca() with 'n' <= ",
+                nrow(dep),
+                "."),
+         call. = FALSE)
+  }
+  
+  # Check for valid 'indicate'
+  columns <- colnames(colData(dep))
+  if(!is.null(indicate)) {
+    if(length(indicate) > 3) {
+      stop("Too many features in 'indicate'
+        Run plot_pca() with a maximum of 3 indicate features")
+    }
+    if(any(!indicate %in% columns)) {
+      stop(paste0("'",
+                  paste0(indicate, collapse = "' and/or '"),
+                  "' column(s) is/are not present in ",
+                  deparse(substitute(dep)),
+                  ".\nValid columns are: '",
+                  paste(columns, collapse = "', '"),
+                  "'."),
+           call. = FALSE)
+    }
+  }
+  
+  # Get the variance per protein and take the top n variable proteins
+  var <- apply(assay(dep), 1, sd)
+  df <- assay(dep)[order(var, decreasing = TRUE)[seq_len(n)],]
+  
+  # Calculate PCA
+  pca <- prcomp(t(df), scale = FALSE)
+  pca_df <- pca$x %>%
+    data.frame() %>%
+    rownames_to_column() %>%
+    left_join(., data.frame(colData(dep)), by = c("rowname" = "label"))
+  
+  # Calculate the percentage of variance explained
+  percent <- round(100 * pca$sdev^2 / sum(pca$sdev^2), 1)
+  
+  # Make factors of indicate features
+  for(feat in indicate) {
+    pca_df[[feat]] <- as.factor(pca_df[[feat]])
+  }
+  
+  # Plot the PCA plot
+  p <- ggplot(pca_df, aes(get(paste0("PC", x)), get(paste0("PC", y)))) +
+    labs(title = paste0("PCA plot - top ", n, " variable proteins"),
+         x = paste0("PC", x, ": ", percent[x], "%"),
+         y = paste0("PC", y, ": ", percent[y], "%")) +
+    coord_fixed() +
+    theme_DEP1()
+  
+  if(length(indicate) == 0) {
+    p <- p + geom_point(size = point_size)
+  }
+  if(length(indicate) == 1) {
+    p <- p + geom_point(aes(col = pca_df[[indicate[1]]]),
+                        size = point_size) +
+      labs(col = indicate[1])
+  }
+  if(length(indicate) == 2) {
+    p <- p + geom_point(aes(col = pca_df[[indicate[1]]],
+                            shape = pca_df[[indicate[2]]]),
+                        size = point_size) +
+      labs(col = indicate[1],
+           shape = indicate[2])
+  }
+  if(length(indicate) == 3) {
+    p <- p + geom_point(aes(col = pca_df[[indicate[1]]],
+                            shape = pca_df[[indicate[2]]]),
+                        size = point_size) +
+      facet_wrap(~pca_df[[indicate[3]]])
+    labs(col = indicate[1],
+         shape = indicate[2])
+  }
+  if(label) {
+    p <- p + geom_text(aes(label = rowname), size = label_size)
+  }
+  if(plot) {
+    return(p)
+  } else {
+    df <- pca_df %>%
+      select(rowname, paste0("PC", c(x, y)), match(indicate, colnames(pca_df)))
+    colnames(df)[1] <- "sample"
+    return(df)
+  }
+}
+
+# Original plot_numbers is from plot_numbers
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_frequencies.R
+#' Plot protein numbers
+#'
+#' \code{plot_numbers} generates a barplot
+#' of the number of identified proteins per sample.
+#'
+#' @param se SummarizedExperiment,
+#' Data object for which to plot protein numbers
+#' (output from \code{\link{make_se}()} or \code{\link{make_se_parse}()}).
+#' @param plot Logical(1),
+#' If \code{TRUE} (default) the barplot is produced.
+#' Otherwise (if \code{FALSE}), the data which the
+#' barplot is based on are returned.
+#' @return Barplot of the number of identified proteins per sample
+#' (generated by \code{\link[ggplot2]{ggplot}})
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter and plot numbers
+#' filt <- filter_missval(se, thr = 0)
+#' plot_numbers(filt)
+#' @export
+plot_numbers_customized <- function(se, plot = TRUE) {
+  # Show error if input is not the required classes
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"),
+                          is.logical(plot),
+                          length(plot) == 1)
+  
+  # Make a binary long data.frame (1 = valid value, 0 = missing value)
+  df <- assay(se) %>%
+    data.frame() %>%
+    rownames_to_column() %>%
+    gather(ID, bin, -rowname) %>%
+    mutate(bin = ifelse(is.na(bin), 0, 1))
+  # Summarize the number of proteins identified
+  # per sample and generate a barplot
+  stat <- df %>%
+    group_by(ID) %>%
+    summarize(n = n(), sum = sum(bin)) %>%
+    left_join(., data.frame(colData(se)), by = c("ID"="label"))
+  p <- ggplot(stat, aes(x = ID, y = sum, fill = condition)) +
+    geom_col() +
+    geom_hline(yintercept = unique(stat$n)) +
+    labs(title = "Proteins per sample", x = "",
+         y = "Number of proteins") +
+    theme_DEP2()
+  if(plot) {
+    return(p)
+  } else {
+    df <- as.data.frame(stat)
+    colnames(df)[seq_len(3)] <- c("sample", "total_proteins", "proteins_in_sample")
+    return(df)
+  }
+}
+
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_QC.R
+#' Visualize normalization
+#'
+#' \code{plot_normalization} generates boxplots
+#' of all conditions for input objects, e.g. before and after normalization.
+#'
+#' @param se SummarizedExperiment,
+#' Data object, e.g. before normalization (output from \code{\link{make_se}()}
+#' or \code{\link{make_se_parse}()}).
+#' @param ... Additional SummarizedExperiment object(s),
+#' E.g. data object after normalization
+#' (output from \code{\link{normalize_vsn}}).
+#' @return Boxplots of all conditions
+#' for input objects, e.g. before and after normalization
+#'   (generated by \code{\link[ggplot2]{ggplot}}).
+#' Adding components and other plot adjustments can be easily done
+#' using the ggplot2 syntax (i.e. using '+')
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter and normalize
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#'
+#' # Plot normalization
+#' plot_normalization(se, filt, norm)
+#' @export
+plot_normalization_customized <- function(se, ...) {
+  # Get arguments from call
+  call <- match.call()
+  arglist <- lapply(call[-1], function(x) x)
+  var.names <- vapply(arglist, deparse, character(1))
+  arglist <- lapply(arglist, eval.parent, n = 2)
+  names(arglist) <- var.names
+  
+  # Show error if inputs are not the required classes
+  lapply(arglist, function(x) {
+    assertthat::assert_that(inherits(x,
+                                     "SummarizedExperiment"),
+                            msg = "input objects need to be of class 'SummarizedExperiment'")
+    if (any(!c("label", "condition", "replicate") %in% colnames(colData(x)))) {
+      # ID is not required
+      stop("'label', 'condition' and/or 'replicate' ",
+           "columns are not present in (one of) the input object(s)",
+           "\nRun make_se() or make_se_parse() to obtain the required columns",
+           call. = FALSE)
+    }
+  })
+  
+  # Function to get a long data.frame of the assay data
+  # annotated with sample info
+  gather_join <- function(se) {
+    assay(se) %>%
+      data.frame() %>%
+      gather(ID, val) %>%
+      left_join(., data.frame(colData(se)), by = c("ID"="label"))
+  }
+  
+  df <- map_df(arglist, gather_join, .id = "var") %>%
+    mutate(var = factor(var, levels = names(arglist)))
+  
+  # Boxplots for conditions with facet_wrap
+  # for the original and normalized values
+  ggplot(df, aes(x = ID, y = val, fill = condition)) +
+    geom_boxplot(notch = TRUE, na.rm = TRUE) +
+    coord_flip() +
+    facet_wrap(~var, ncol = 1) +
+    labs(x = "", y = expression(log[2]~"Intensity")) +
+    theme_DEP1()
+}
+
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_QC.R
+#' Visualize imputation
+#'
+#' \code{plot_imputation} generates density plots
+#' of all conditions for input objects, e.g. before and after imputation.
+#'
+#' @param se SummarizedExperiment,
+#' Data object, e.g. before imputation
+#' (output from \code{\link{normalize_vsn}()}).
+#' @param ... Other SummarizedExperiment object(s),
+#' E.g. data object after imputation
+#' (output from \code{\link{impute}()}).
+#' @return Density plots of all conditions
+#' of all conditions for input objects, e.g. before and
+#' after imputation (generated by \code{\link[ggplot2]{ggplot}}).
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter, normalize and impute missing values
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#' imputed <- impute(norm, fun = "MinProb", q = 0.01)
+#'
+#' # Plot imputation
+#' plot_imputation(filt, norm, imputed)
+#' @export
+plot_imputation_customized <- function(se, ...) {
+  # Get arguments from call
+  call <- match.call()
+  arglist <- lapply(call[-1], function(x) x)
+  var.names <- vapply(arglist, deparse, character(1))
+  arglist <- lapply(arglist, eval.parent, n = 2)
+  names(arglist) <- var.names
+  
+  # Show error if inputs are not the required classes
+  lapply(arglist, function(x) {
+    assertthat::assert_that(inherits(x,
+                                     "SummarizedExperiment"),
+                            msg = "input objects need to be of class 'SummarizedExperiment'")
+    if (any(!c("label", "condition", "replicate") %in% colnames(colData(x)))) {
+      stop("'label', 'condition' and/or 'replicate' ",
+           "columns are not present in (one of) the input object(s)",
+           "\nRun make_se() or make_se_parse() to obtain the required columns",
+           call. = FALSE)
+    }
+  })
+  
+  # Function to get a long data.frame of the assay data
+  # annotated with sample info
+  gather_join <- function(se) {
+    assay(se) %>%
+      data.frame() %>%
+      gather(ID, val) %>%
+      left_join(., data.frame(colData(se)), by = c("ID"="label"))
+  }
+  
+  df <- map_df(arglist, gather_join, .id = "var") %>%
+    mutate(var = factor(var, levels = names(arglist)))
+  
+  # Density plots for different conditions with facet_wrap
+  # for original and imputed samles
+  ggplot(df, aes(val, col = condition)) +
+    geom_density(na.rm = TRUE) +
+    facet_wrap(~var, ncol = 1) +
+    labs(x = expression(log[2]~"Intensity"), y = "Density") +
+    theme_DEP1()
 }
