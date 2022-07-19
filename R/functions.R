@@ -478,7 +478,7 @@ test_limma <- function(se, type = c("control", "all", "manual"),
   #return(table)
 }
 
-get_results_proteins <- function(dep) {
+get_results_proteins <- function(dep, exp) {
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"))
   
@@ -541,9 +541,15 @@ get_results_proteins <- function(dep) {
   table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
   # table <- dplyr::left_join(table, centered, by = c("name" = "rowname")) %>%
   #   dplyr::arrange(desc(significant))
-   table<-as.data.frame(row_data) %>% 
-    dplyr::select(name, imputed, num_NAs, Description) %>%
-    dplyr::left_join(table, ., by = "name")
+  if (exp == "LFQ") {
+    table<-as.data.frame(row_data) %>% 
+      dplyr::select(name, imputed, num_NAs, Description) %>%
+      dplyr::left_join(table, ., by = "name")
+  } else if (exp == "TMT") {
+    table<-as.data.frame(row_data) %>% 
+      dplyr::select(name, imputed, num_NAs) %>%
+      dplyr::left_join(table, ., by = "name")
+  }
   table<-table %>% dplyr::arrange(desc(significant))
   colnames(table)[1]<-c("Gene Name")
   colnames(table)[2]<-c("Protein IDs")

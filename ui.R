@@ -9,21 +9,39 @@ ui <- function(request){shinyUI(
          id="tabs_selected",
         convertMenuItem(menuItem('Home', icon=icon("home"), selected = TRUE, tabName = "home"), tabName = "home"),
         convertMenuItem(menuItem("Analysis",  tabName="analysis", icon=icon("flask"),
-                 #menuItem("Input Files", tabName="file", icon=icon("file"), #selected = TRUE,
-                          fileInput('file1',
-                                    'Upload FragPipe combined_protein.tsv',
+                                 selectInput("exp", "Experiment type:", c("LFQ", "TMT")),
+                                 conditionalPanel(condition = "input.exp == 'LFQ'",
+                                   fileInput('file1',
+                                           'Upload FragPipe combined_protein.tsv',
                                     accept=c('text/csv',
                                              'text/comma-separated-values,text/plain',
                                              '.csv')),
-                        
-                          fileInput('file2',
+                                 fileInput('file2',
                                     'Upload Manifest',
                                     accept=c('text/csv',
                                              'text/comma-separated-values,text/plain',
                                              '.csv')),
-                          
-                          
-               #  ),
+                                 tags$hr(),
+                                 p(a("Example LFQ data", target= "_blank",
+                                     href="data/combined_protein.tsv", 
+                                     download="combined_protein.tsv")),
+                                 p(a("Example Manifest", target= "_blank",
+                                     href="data/lfq_manifest.fp-manifest", 
+                                     download="lfq_manifest.fp-manifest"))
+                                 ),
+                                 conditionalPanel(
+                                   condition = "input.exp == 'TMT'",
+                                   fileInput('file3',
+                                             'Upload TMT report *.tsv',
+                                             accept=c('text/csv',
+                                                      'text/comma-separated-values,text/plain',
+                                                      '.csv')),
+                                   fileInput('file4',
+                                             'Upload sample annotation',
+                                             accept=c('text/csv',
+                                                      'text/comma-separated-values,text/plain',
+                                                      '.csv')),
+                                 ),
                  tags$hr(),
                  menuItem("Advanced Options",tabName="advanced", icon = icon("cogs"), 
                           numericInput("p", 
@@ -52,14 +70,7 @@ ui <- function(request){shinyUI(
                                        min = 1, max = 20, value = 6)
                  ),
                tags$hr(),
-               actionButton("analyze", "Start Analysis"),
-               tags$hr(),
-               p(a("Example LFQ data", target= "_blank",
-                   href="data/combined_protein.tsv", 
-                   download="combined_protein.tsv")),
-               p(a("Example Manifest", target= "_blank",
-                 href="data/lfq_manifest.fp-manifest", 
-                 download="lfq_manifest.fp-manifest"))
+               actionButton("analyze", "Start Analysis")
               
                   #,
                   #actionButton("load_data", "Load example data")

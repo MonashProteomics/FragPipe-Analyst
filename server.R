@@ -165,19 +165,31 @@ server <- function(input, output, session) {
     maxquant_data_example<-reactive({NULL})
     
     maxquant_data_input<-eventReactive(input$analyze,{
-      inFile<-input$file1
+      if (input$exp == "LFQ") {
+        inFile<-input$file1
+      } else if (input$exp == "TMT") {
+        inFile<-input$file3
+      }
       if(is.null(inFile))
         return(NULL)
       temp_data<-read.table(inFile$datapath,
                  header = TRUE,
                  fill= TRUE, # to fill any missing data
-                 sep = "\t"
+                 sep = "\t",
+                 check.names = F
       )
       # validate(maxquant_input_test(temp_data))
-      validate(fragpipe_input_test(temp_data))
+      if (input$exp == "LFQ") {
+        validate(fragpipe_input_test(temp_data))
+      } else if (input$exp == "TMT") {
+        validate(tmt_input_test(temp_data))
+        # convert columns into numeric
+        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity")]
+        temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
+      }
       return(temp_data)
     })
-   
+
     # observeEvent(input$analyze,{
     #   exp_design<-reactive({
     #     inFile<-input$file2
@@ -193,27 +205,34 @@ server <- function(input, output, session) {
     #   })    
     # })
     exp_design_input<-eventReactive(input$analyze,{
-      inFile<-input$file2
+      if (input$exp == "LFQ"){
+        inFile <- input$file2
+      } else if (input$exp == "TMT") {
+        inFile <- input$file4
+      }
       if (is.null(inFile))
         return(NULL)
-      # temp_df<-read.table(inFile$datapath,
-      #                     header = TRUE,
-      #                     sep="\t",
-      #                     stringsAsFactors = FALSE)
-      temp_df<-read.table(inFile$datapath,
-                          header = F,
-                          sep="\t",
-                          stringsAsFactors = FALSE)
-      # exp_design_test(temp_df)
-      # temp_df$label<-as.character(temp_df$label)
-      # temp_df$condition<-trimws(temp_df$condition, which = "left")
-      
-      # make it compatible to original LFQ-Analyst design
-      # colnames(temp_df) <- c("Path", "Experiment", "Bioreplicate", "Data.type")
-      colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
-      temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
-      temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
-      print(temp_df$label)
+      if (input$exp == "LFQ"){
+        temp_df <- read.table(inFile$datapath,
+                            header = F,
+                            sep="\t",
+                            stringsAsFactors = FALSE)
+        # exp_design_test(temp_df)
+        # temp_df$label<-as.character(temp_df$label)
+        # temp_df$condition<-trimws(temp_df$condition, which = "left")
+        
+        # make it compatible to original LFQ-Analyst design
+        # colnames(temp_df) <- c("Path", "Experiment", "Bioreplicate", "Data.type")
+        colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
+        temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
+        temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
+        print(temp_df$label)
+      } else if (input$exp == "TMT") {
+        temp_df <- read.table(inFile$datapath,
+                              header = T,
+                              sep="\t",
+                              stringsAsFactors = FALSE)
+      }
       return(temp_df)
     })
    
@@ -264,62 +283,81 @@ server <- function(input, output, session) {
      
      
      message(exp_design())
-     # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
-     # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
-     # if("Evidence.IDs" %in% colnames(filtered_data)){
-     # filtered_data$`Evidence.IDs`<-stringr::str_trunc(as.character(filtered_data$`Evidence.IDs`), 25000)
-
-     #}
-     #if("MS.MS.IDs" %in% colnames(filtered_data)){
-     #  filtered_data$`MS.MS.IDs`<-stringr::str_trunc(as.character(filtered_data$`MS.MS.IDs`), 25000)
-     #}
-     # if(any(grepl('+',maxquant_data()$Reverse))){
-     # filtered_data<-dplyr::filter(maxquant_data(),Reverse!="+")
-     # }
-     # else{filtered_data<-maxquant_data()}
-     # if(any(grepl('+',filtered_data$Potential.contaminant))){
-     #   filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
-     # }
-     # if(any(grepl('+',filtered_data$Only.identified.by.site))){
-     #   filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+") 
-     # }
-     # if(input$single_peptide==TRUE){
-     #   filtered_data <-filtered_data
-     # }
-     # else{filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)}
-
      filtered_data<-maxquant_data()
-     filtered_data<-ids_test(filtered_data)
-     
-     # data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
-     # lfq_columns<-grep("LFQ.", colnames(data_unique))
-     
-     # TODO: process the data into a format that DEP takes
-     data_unique <- DEP::make_unique(filtered_data,"Gene","Protein.ID")
-     lfq_columns<-grep("MaxLFQ", colnames(data_unique))
-     # alternatively,
-     # lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
-     
-     ## Check for matching columns in maxquant and experiment design file
-     # test_match_lfq_column_design(data_unique,lfq_columns, exp_design())
-     test_match_lfq_column_manifest(data_unique,lfq_columns, exp_design())
-     
-     data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
-     # data_se <-DEP:::make_se_parse(data_unique, lfq_columns)
-  
-     # Check number of replicates
-     if(max(exp_design()$replicate)<3){
-       threshold<-0
-     } else  if(max(exp_design()$replicate)==3){
-       threshold<-1
-     } else if(max(exp_design()$replicate)<6 ){
-       threshold<-2
-     } else if (max(exp_design()$replicate)>=6){
-       threshold<-trunc(max(exp_design()$replicate)/2)
+     if (input$exp == "LFQ"){
+       # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
+       # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
+       # if("Evidence.IDs" %in% colnames(filtered_data)){
+       # filtered_data$`Evidence.IDs`<-stringr::str_trunc(as.character(filtered_data$`Evidence.IDs`), 25000)
+       
+       #}
+       #if("MS.MS.IDs" %in% colnames(filtered_data)){
+       #  filtered_data$`MS.MS.IDs`<-stringr::str_trunc(as.character(filtered_data$`MS.MS.IDs`), 25000)
+       #}
+       # if(any(grepl('+',maxquant_data()$Reverse))){
+       # filtered_data<-dplyr::filter(maxquant_data(),Reverse!="+")
+       # }
+       # else{filtered_data<-maxquant_data()}
+       # if(any(grepl('+',filtered_data$Potential.contaminant))){
+       #   filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
+       # }
+       # if(any(grepl('+',filtered_data$Only.identified.by.site))){
+       #   filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+") 
+       # }
+       # if(input$single_peptide==TRUE){
+       #   filtered_data <-filtered_data
+       # }
+       # else{filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)}
+       # filtered_data<-ids_test(filtered_data)
+       # data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
+       # lfq_columns<-grep("LFQ.", colnames(data_unique))
+
+       data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
+       lfq_columns<-grep("MaxLFQ", colnames(data_unique))
+       # alternatively,
+       # lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
+       
+       ## Check for matching columns in maxquant and experiment design file
+       # test_match_lfq_column_design(data_unique,lfq_columns, exp_design())
+       test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
+       
+       data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
+       # data_se <-DEP:::make_se_parse(data_unique, lfq_columns)
+    
+       # Check number of replicates
+       if(max(exp_design()$replicate)<3){
+         threshold<-0
+       } else  if(max(exp_design()$replicate)==3){
+         threshold<-1
+       } else if(max(exp_design()$replicate)<6 ){
+         threshold<-2
+       } else if (max(exp_design()$replicate)>=6){
+         threshold<-trunc(max(exp_design()$replicate)/2)
+       }
+       
+       return(filter_missval(data_se,thr = threshold))
+     } else {
+       temp_exp_design <- exp_design()
+       temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
+       temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
+       # temp_exp_design[is.na(temp_exp_design), "replicate"] <- 1
+       #need to handle duplicate columns first
+       # filtered_data <- avearrays(filtered_data)
+       # filtered_data <- as.data.frame(filtered_data)
+       # print(apply(filtered_data, 2, is.numeric))
+       data_unique <- DEP::make_unique(filtered_data, "Index", "ProteinID")
+       # handle unmatched columns
+       overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
+       data_unique <- data_unique[,colnames(data_unique) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID", overlapped_samples)]
+       temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples,]
+       cols <- colnames(data_unique)
+       selected_cols <- which(!(cols %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID")))
+       data_unique[selected_cols] <- apply(data_unique[selected_cols], 2, as.numeric)
+       test_match_lfq_column_design(data_unique, selected_cols, temp_exp_design)
+       # TMT-I report is already log2 transformed
+       data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design)
+       return(data_se)
      }
-     
-     
-     filter_missval(data_se,thr = threshold)
    })
    
    unimputed_table<-reactive({
@@ -349,28 +387,58 @@ server <- function(input, output, session) {
    })
    
    diff_all<-reactive({
-     test_diff(imputed_data(),type = 'all')
+     if (input$exp == "LFQ") {
+       test_diff(imputed_data(),type = 'all')
+     } else if (input$exp == "TMT") {
+       test_diff_customized(imputed_data(), type = "manual", 
+                            test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+     }
    })
 
    dep<-reactive({
-     if(input$fdr_correction=="BH"){
-       diff_all<-test_limma(imputed_data(),type='all', paired = input$paired)
+     if (input$exp == "LFQ") {
+       if(input$fdr_correction=="BH"){
+         diff_all<-test_limma(imputed_data(),type='all', paired = input$paired)
+         add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
+       }
+       else{
+         diff_all<-test_diff(imputed_data(),type='all')
+         add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
+       }
+     } else if (input$exp == "TMT") {
+       # TODO: test_limma
+       # if(input$fdr_correction=="BH"){
+       #   diff_all<-test_limma(imputed_data(),type='all', paired = input$paired)
+       #   add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
+       # }
+       # else{
+       #   diff_all<-test_diff(imputed_data(),type='all')
+       #   add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
+       # }
+       diff_all <- test_diff_customized(imputed_data(), type = "manual", 
+                            test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
        add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
      }
-     else{
-       diff_all<-test_diff(imputed_data(),type='all')
-       add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-     }
-     
    })
    
    comparisons<-reactive ({
-  temp<-capture.output(DEP::test_diff(imputed_data(),type='all'),type = "message")
-    gsub(".*: ","",temp)
-   ## Split conditions into character vector
-    unlist(strsplit(temp,","))
-   ## Remove leading and trailing spaces
-      trimws(temp)
+     if (input$exp == "LFQ") {
+      temp<-capture.output(test_diff(imputed_data(),type='all'),type = "message")
+        gsub(".*: ","",temp)
+       ## Split conditions into character vector
+        unlist(strsplit(temp,","))
+       ## Remove leading and trailing spaces
+          trimws(temp)
+     } else if (input$exp == "TMT") {
+       temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
+                                                 test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
+                            type = "message")
+       gsub(".*: ","",temp)
+       ## Split conditions into character vector
+       unlist(strsplit(temp,","))
+       ## Remove leading and trailing spaces
+       trimws(temp)
+     }
    })
    
    ## Select point on volcano plot
@@ -625,7 +693,7 @@ server <- function(input, output, session) {
 
   ##### Get results dataframe from Summarizedexperiment object
     data_result<-reactive({
-      get_results_proteins(dep())
+      get_results_proteins(dep(), input$exp)
       #get_results(dep())
     })
     
@@ -1304,13 +1372,18 @@ print(pca_label)
  })
 	
 	
-imputed_data_dm<-reactive({
+ imputed_data_dm<-reactive({
    DEP::impute(processed_data_dm(),input$imputation)
  })
  
  
  diff_all_dm<-reactive({
-   test_diff(imputed_data_dm(),type = 'all')
+   if (input$exp == "LFQ") {
+     test_diff(imputed_data_dm(),type = 'all')
+   } else if (input$exp == "TMT") {
+     test_diff_customized(imputed_data_dm(), type = "manual", 
+                          test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+   }
  })
 	
  ## QC Inputs

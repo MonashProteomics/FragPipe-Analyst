@@ -113,6 +113,39 @@ fragpipe_input_test<-function(fragpipe_input){
 }
 
 
+tmt_input_test<-function(tmt_input){
+  col_names<-colnames(tmt_input)
+  if(!"Index" %in% col_names){
+    stop(safeError("The column 'Index' is not found in the Fragpipe combined_protein File"))
+  }
+  else if(!"ProteinID" %in% col_names){
+    stop(safeError("The column 'ProteinID' is not found in the Fragpipe combined_protein File"))
+  }
+  else if(!"NumberPSM" %in% col_names){
+    stop(safeError("The column 'NumberPSM' is not found in the Fragpipe combined_protein File"))
+  }
+  # More like razor proteins
+  # else if (!"Protein.IDs" %in% col_names){
+  #   stop(safeError("The column 'Protein IDs' is not found in the MaxQuant proteinGroups File"))
+  # }
+  
+  # else if (!"Reverse" %in% col_names){
+  #   stop(safeError("The column 'Reverse' is not found in the MaxQuant proteinGroups File"))
+  # }
+  
+  # else if (!"Potential.contaminant" %in% col_names){
+  #   stop(safeError("The column 'Potential contaminant' is not found in the MaxQuant proteinGroups File"))
+  # }
+  
+  # else if (!"Only.identified.by.site" %in% col_names){
+  #   stop(safeError("The column 'Only identified by site' is not found in the MaxQuant proteinGroups File"))
+  # }
+  
+  # else if (!"Razor...unique.peptides" %in% col_names){
+  #   stop(safeError("The column 'Razor + unique peptides' is not found in the MaxQuant proteinGroups File"))
+  # }
+}
+
 ### Test if experimental design names and LFQ column names match
 
 test_match_lfq_column_design<-function(unique_data, lfq_columns, exp_design){
@@ -146,8 +179,10 @@ test_match_lfq_column_design<-function(unique_data, lfq_columns, exp_design){
   
   matched <- match(make.names(delete_prefix(expdesign$label)),
                    make.names(delete_prefix(colnames(raw))))
-  
-  if(any(is.na(matched))) {
+
+  # TODO: give warning message to indicate which columns are not matched
+  # if(any(is.na(matched))) {
+  if(all(is.na(matched))) {
     stop(safeError("The labels/'run names' in the experimental design DID NOT match
          with lfq column names in maxquants proteinGroups file
          Run LFQ-Analyst with correct labels in the experimental design"))
