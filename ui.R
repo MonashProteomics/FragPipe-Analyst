@@ -1,4 +1,6 @@
 # Define UI for data upload app ----
+library(dplyr)
+
 ui <- function(request){shinyUI(
   dashboardPage(
     skin = "blue",
@@ -66,7 +68,7 @@ ui <- function(request){shinyUI(
                           #               "Include single peptide identifications", FALSE),
                           numericInput("k_number",
                                        "Number of clusters in heatmap",
-                                       min = 1, max = 20, value = 6)
+                                       min = 1, max = 10, value = 3)
                  ),
                tags$hr(),
                actionButton("analyze", "Start Analysis")
@@ -244,7 +246,7 @@ ui <- function(request){shinyUI(
                                          fluidRow(
                                            box(numericInput("cluster_number",
                                                             "Cluster to download",
-                                                            min=1, max=6, value = 1), width = 6),
+                                                            min=1, max=6, value = 3), width = 6),
                                            box(downloadButton('downloadCluster',"Save Cluster"),
                                                downloadButton('download_hm_svg', "Save svg"),
                                                 width = 5)
@@ -328,14 +330,14 @@ ui <- function(request){shinyUI(
                               tabBox(title = "Enrichment", width = 12,
                                      tabPanel(title="Gene Ontology",
                                               box(uiOutput("contrast"), width = 5),
-                                            box(
-                                              selectInput("go_database", "GO database:",
-                                                        c("Molecular Function"="GO_Molecular_Function_2017b",
-                                                          "Cellular Component"="GO_Cellular_Component_2017b",
-                                                          "Biological Process"="GO_Biological_Process_2017b")),
-                                              width= 5),
-                                           actionButton("go_analysis", "Run Enrichment"),
-                                              plotOutput("go_enrichment"),
+                                              box(
+                                                selectInput("go_database", "GO database:",
+                                                          c("Molecular Function"="GO_Molecular_Function_2017b",
+                                                            "Cellular Component"="GO_Cellular_Component_2017b",
+                                                            "Biological Process"="GO_Biological_Process_2017b")),
+                                                width= 5),
+                                              actionButton("go_analysis", "Run Enrichment"),
+                                              plotOutput("go_enrichment", height=600),
                                               downloadButton('downloadGO', 'Download Table')
                                               
                                      ),
@@ -347,7 +349,7 @@ ui <- function(request){shinyUI(
                                                               "Reactome"="Reactome_2016")),
                                                 width= 5),
                                               actionButton("pathway_analysis", "Run Enrichment"),
-                                              plotOutput("pathway_enrichment"),
+                                              plotOutput("pathway_enrichment", height=600),
                                               downloadButton('downloadPA', 'Download Table')
                                      )
                                      
@@ -574,7 +576,7 @@ ui <- function(request){shinyUI(
                                                           "Biological Process"="GO_Biological_Process_2017b")),
                                               width= 5),
                                            actionButton("go_analysis_dm", "Run Enrichment"),
-                                              plotOutput("go_enrichment_dm"),
+                                              plotOutput("go_enrichment_dm", height=600),
                                               downloadButton('downloadGO_dm', 'Download Table')
                                               
                                      ),
@@ -586,7 +588,7 @@ ui <- function(request){shinyUI(
                                                               "Reactome"="Reactome_2016")),
                                                 width= 5),
                                               actionButton("pathway_analysis_dm", "Run Enrichment"),
-                                              plotOutput("pathway_enrichment_dm"),
+                                              plotOutput("pathway_enrichment_dm", height=600),
                                               downloadButton('downloadPA_dm', 'Download Table')
                                      ) #### Tab demo closed
                                      

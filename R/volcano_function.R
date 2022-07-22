@@ -190,16 +190,18 @@ get_volcano_df <- function(dep, contrast, adjusted = FALSE) {
 }
 
 ### Function to plot intensities of individual proteins
-plot_protein<-function(dep, protein, type){
+plot_protein<-function(dep, protein, type, id="ID"){
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
                           is.character(protein),
                           is.character(type))
+  print(id)
   subset<-dep[protein]
   
   df_reps <- data.frame(assay(subset)) %>%
     rownames_to_column() %>%
     gather(ID, val, -rowname) %>%
-    left_join(., data.frame(colData(subset)), by = "ID")
+    left_join(., data.frame(colData(subset)), by = c("ID"=id))
+  
   df_reps$rowname <- parse_factor(as.character(df_reps$rowname), levels = protein)
   
   df_CI<- df_reps %>%

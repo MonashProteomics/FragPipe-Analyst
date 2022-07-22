@@ -419,7 +419,7 @@ server <- function(input, output, session) {
        # diff_all <- test_diff_customized(imputed_data(), type = "manual", 
        #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
        if(input$fdr_correction=="BH"){
-         diff_all<-test_limma(imputed_data(),type='all', paired = F)
+         diff_all<- test_limma(imputed_data(),type='all', paired = F)
        } else {
          diff_all <- test_diff_customized(imputed_data(), type = "all")
        }
@@ -620,20 +620,27 @@ server <- function(input, output, session) {
        }
     })
     
-    protein_input<-reactive({ 
-      
+    protein_input<-reactive({
       protein_selected  <- data_result()[input$contents_rows_selected,1]
       protein_selected <-as.character(protein_selected)
-      if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
-        plot_protein(dep(), protein_selected, as.character(input$type))
+      if (input$exp == "TMT"){
+        if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
+          plot_protein(dep(), protein_selected, as.character(input$type), id="label")
+        }
+        else{
+          protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type), id="label")
+          protein_plot + scale_color_brewer(palette = "Paired")
+        }
+      } else {
+        if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
+          plot_protein(dep(), protein_selected, as.character(input$type))
+        }
+        else{
+          protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type))
+          protein_plot + scale_color_brewer(palette = "Paired")
+        }
       }
-      else{
-        protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type))
-        protein_plot + scale_color_brewer(palette = "Paired")
-      }
-      
     })
-    
      
    ## QC Inputs
    norm_input <- reactive({
@@ -1417,16 +1424,15 @@ print(pca_label)
  protein_input_dm<-reactive({ 
    
    protein_selected  <- data_result_dm()[input$contents_dm_rows_selected,1]
-   
+  
    #protein<-row_selected$name
    if(length(levels(as.factor(colData(dep_dm())$replicate))) <= 8){
-   plot_protein(dep_dm(), protein_selected, input$type_dm)
+     plot_protein(dep_dm(), protein_selected, input$type_dm)
    }
    else{
      protein_plot<-plot_protein(dep_dm(), protein_selected, input$type_dm)
      protein_plot + scale_color_brewer(palette = "Paired")
-     }
-   
+    }
  })
  
  ## Get processed data

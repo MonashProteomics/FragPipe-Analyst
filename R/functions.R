@@ -667,7 +667,7 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   subset$var <- readr::parse_factor(subset$var, levels = unique(subset$var))
   
   # Plot top enriched gene sets
-  p<-ggplot(subset, aes(Term,
+  return(ggplot(subset, aes(Term,
                      y=-log10(`Adjusted.P.value`))) +
     geom_col(aes(fill = log_odds )) +
     facet_wrap(~contrast, nrow = nrow) +
@@ -677,7 +677,7 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
     theme_bw() +
     theme(legend.position = "top",
           legend.text = element_text(size = 9)) +
-    scale_fill_distiller(palette="Spectral")
+    scale_fill_distiller(palette="Spectral"))
 }
                                   
 #### ==== get prefix function 
