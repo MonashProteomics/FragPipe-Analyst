@@ -399,7 +399,7 @@ server <- function(input, output, session) {
    dep<-reactive({
      if (input$exp == "LFQ") {
        if(input$fdr_correction=="BH"){
-         diff_all<-test_limma(imputed_data(),type='all', paired = input$paired)
+         diff_all<-test_limma(imputed_data(),type='all', paired = F)
          add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
        }
        else{
@@ -418,7 +418,11 @@ server <- function(input, output, session) {
        # }
        # diff_all <- test_diff_customized(imputed_data(), type = "manual", 
        #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
-       diff_all <- test_diff_customized(imputed_data(), type = "all")
+       if(input$fdr_correction=="BH"){
+         diff_all<-test_limma(imputed_data(),type='all', paired = F)
+       } else {
+         diff_all <- test_diff_customized(imputed_data(), type = "all")
+       }
        add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
      }
    })

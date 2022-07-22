@@ -49,10 +49,9 @@ ui <- function(request){shinyUI(
                                        min = 0.0001, max = 0.1, value = 0.05),
                           numericInput("lfc",
                                        "Log2 fold change cutoff",
-                                       min = 0, max = 10, value = 1),
-                          checkboxInput("paired",
-                                        "Paired test", FALSE),
-                          
+                                       min = 0, max = 10, value = 0.7),
+                          # checkboxInput("paired",
+                          #               "Paired test", FALSE),
                           radioButtons("imputation",
                                        "Imputation type",
                                        choices = c("Perseus-type"="man", MsCoreUtils::imputeMethods())[1:9],
