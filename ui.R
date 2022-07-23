@@ -4,16 +4,16 @@ library(dplyr)
 ui <- function(request){shinyUI(
   dashboardPage(
     skin = "blue",
-    dashboardHeader(title = "LFQ-Analyst-FP"),
+    dashboardHeader(title = "Fragpipe-Analyst"),
     # disable = TRUE),# Disable title bar
     dashboardSidebar(
       sidebarMenu(
-         id="tabs_selected",
+        id="tabs_selected",
         convertMenuItem(menuItem('Home', icon=icon("home"), selected = TRUE, tabName = "home"), tabName = "home"),
         convertMenuItem(menuItem("Analysis",  tabName="analysis", icon=icon("flask"),
-                                 selectInput("exp", "Experiment type:", c("LFQ", "TMT")),
+                                 selectInput("exp", "Experiment type:", c("LFQ", "TMT", "DIA")),
                                  conditionalPanel(condition = "input.exp == 'LFQ'",
-                                   fileInput('file1',
+                                 fileInput('file1',
                                            'Upload FragPipe combined_protein.tsv',
                                     accept=c('text/csv',
                                              'text/comma-separated-values,text/plain',
@@ -40,6 +40,19 @@ ui <- function(request){shinyUI(
                                                       '.csv')),
                                    fileInput('file4',
                                              'Upload sample annotation',
+                                             accept=c('text/csv',
+                                                      'text/comma-separated-values,text/plain',
+                                                      '.csv')),
+                                 ),
+                                 conditionalPanel(
+                                   condition = "input.exp == 'DIA'",
+                                   fileInput('file5',
+                                             'Upload DIA report *.tsv',
+                                             accept=c('text/csv',
+                                                      'text/comma-separated-values,text/plain',
+                                                      '.csv')),
+                                   fileInput('file6',
+                                             'Upload Manifest',
                                              accept=c('text/csv',
                                                       'text/comma-separated-values,text/plain',
                                                       '.csv')),
@@ -107,14 +120,14 @@ ui <- function(request){shinyUI(
              fluidRow( 
                box(
                 title = "Overview",
-                  h3("LFQ-Analyst-FP: An customized version of LFQ-Analyst for FragPipe."),
-                p(HTML(paste0("LFQ-Analyst-FP is an easy-to-use, interactive web application developed to perform 
+                  h3("Fragpipe-Analyst: An customized version of LFQ-Analyst for FragPipe."),
+                p(HTML(paste0("Fragpipe-Analyst is an easy-to-use, interactive web application developed to perform 
                   differential expression analysis with “one click” and to visualize label-free quantitative proteomic 
                   datasets preprocessed with ",
                   a(href="https://fragpipe.nesvilab.org/", target="_blank", "FragPipe"), 
                   ". It's based on the origianl ",
                   a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blanl", "LFQ-Analyst"),
-                  ". LFQ-Analyst-FP provides a wealth of user-analytic features 
+                  ". Fragpipe-Analyst provides a wealth of user-analytic features 
                   and offers numerous publication-quality result output graphics and tables to facilitate statistical 
                   and exploratory analysis of label-free quantitative datasets. "))), 
                 br(),
@@ -123,7 +136,7 @@ ui <- function(request){shinyUI(
                 h4("Sidebar tabs"),
                 tags$ul(
                 tags$li(tags$b("Analysis: "),"perform your own analysis"), 
-                # tags$li(tags$b("Demo: "),"familiarise yourself with LFQ-Analyst-FP by browsing through pre-analysed results"), 
+                # tags$li(tags$b("Demo: "),"familiarise yourself with Fragpipe-Analyst by browsing through pre-analysed results"), 
                 tags$li(tags$b("User Guide: "), "download an in-depth manual") 
                 ),
                 width = 12,
@@ -252,7 +265,7 @@ ui <- function(request){shinyUI(
                                                 width = 5)
                                          )
                                 ),
-                                tabPanel(title = "Protein Plot",
+                                tabPanel(title = "Protein Box Plot",
                                          fluidRow(
                                            box(radioButtons("type",
                                                             "Plot type",
@@ -296,15 +309,14 @@ ui <- function(request){shinyUI(
                                               plotOutput("sample_cvs", height = 600),
                                               downloadButton('download_cvs_svg', "Save svg")
                                      ),
+                                     # conditionalPanel(condition="input.exp != 'TMT'",
                                      tabPanel(title = "Protein Numbers",
                                               plotOutput("numbers", height = 600),
-                                              downloadButton('download_num_svg', "Save svg")
-                                     ),
-                                     
+                                              downloadButton('download_num_svg', "Save svg")),
+                                     # conditionalPanel(condition="input.exp != 'TMT'",
                                      tabPanel(title = "Sample coverage",
                                               plotOutput("coverage", height = 600),
-                                              downloadButton('download_cov_svg', "Save svg")
-                                     ),
+                                              downloadButton('download_cov_svg', "Save svg")),
                                      tabPanel(title = "Normalization",
                                               plotOutput("norm", height = 600),
                                               downloadButton('download_norm_svg', "Save svg")
@@ -365,21 +377,21 @@ ui <- function(request){shinyUI(
               fluidRow( 
                box(
                    title = "User Guide",
-                   h3("LFQ-Analyst-FP Documentation"),
+                   h3("Fragpipe-Analyst Documentation"),
                    div(p(HTML(paste0('Learn more about our FragPipe',
                                      a(href = 'https://monashbioinformaticsplatform.github.io/LFQ-Analyst/', target='_blank', 'here'))))),
                    div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
 			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
 			                              target='_blank', tags$b("here.")))))),
                    h4("Contact Us"),
-			p("For any feedback or question regarding LFQ-Analyst-FP, please contact the 
+			p("For any feedback or question regarding Fragpipe-Analyst, please contact the 
 			  Proteomics & Integrative Bioinformatics Lab, University of Michigan:"),
       tags$ul(
 			tags$li("Professor Alexey Nesvizhskii: nesvi@med.umich.edu")
       ),
 			
-			h4("How to Cite LFQ-Analyst-FP?"),
-			div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst-FP: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
+			h4("How to Cite Fragpipe-Analyst?"),
+			div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
 		LFQ-Analyst: An easy-to-use interactive web-platform to analyze and 
 		visualize proteomics data preprocessed with MaxQuant. DOI:",
 			                            a(href = 'https://pubs.acs.org/doi/10.1021/acs.jproteome.9b00496', 
@@ -389,7 +401,7 @@ ui <- function(request){shinyUI(
       h4("News and Updates"),
 			
       tags$ul(
-        tags$li("07-13-2022: LFQ-Analyst-FP first created")
+        tags$li("07-13-2022: Fragpipe-Analyst first created")
 #       tags$li("27-12-2021: LFQ-Analyst being accessed by more than 5000 users worldwide"),
 #       tags$li("30-09-2021: LFQ-Analyst being accessed by more than 4000 users worldwide"),
 #       tags$li("03-05-2021: LFQ-Analyst being accessed by more than 3000 users worldwide"),
@@ -408,206 +420,194 @@ ui <- function(request){shinyUI(
                 status = "primary"
                 ) #includeMarkdown("www/Info.md")
               )
-          ),# info tab close
+          )# info tab close
 
-          tabItem(tabName = "demo",
-            div(id="downloadbox_dm",
-                          fluidRow(
-                            box(
-                              column(6,uiOutput("downloadTable_dm"),offset = 1), 
-                              column(4,uiOutput("downloadButton_dm")), # make the button on same line
-                              width = 4),
-                            
-                            infoBoxOutput("significantBox_dm",width = 4),
-                            box(
-                              column(5,uiOutput("downloadreport_dm")), # offset for dist between buttons
-                              #tags$br(),
-                             # column(5,uiOutput('downloadPlots_dm')),
-                              width = 4
-                            )
-                          )), #close div and first row 
-      
-      # align save button
-      tags$style(type='text/css', "#downloadButton_dm { width:100%; margin-top: 25px;}"), 
-      tags$style(type='text/css', "#downloadreport_dm { width:100%; margin-top: 25px; margin-bottom: 25px;}"),
-     # tags$style(type='text/css', "#downloadPlots_dm { width:100%; margin-top: 25px;}"),
-      
-      tags$br(), # Blank lines
-      tags$br(),
-      
-      ## Data table and result plots box
-      fluidRow(
-        div(id="results_tab_dm",
-                            box(
-                              title = "LFQ Results Table",
-                              DT::dataTableOutput("contents_dm"),
-                              #  actionButton("clear", "Deselect Rows"),
-                              actionButton("original_dm", "Refresh Table"),
-                              width = 6,
-                              status = "success",
-                              #color=""
-                              solidHeader = TRUE
-                            ),
-                            # column(
-                            box(
-                              width= 6,
-                              collapsible = TRUE,
-                              #status="primary",
-                              #solidHeader=TRUE,
-                              tabBox(
-                                title = "Result Plots",
-                                width = 12,
-                                tabPanel(title = "Volcano plot",
-                                         fluidRow(
-                                           box(uiOutput("volcano_cntrst_dm"), width = 5),
-                                           box(numericInput("fontsize_dm",
-                                                            "Font size",
-                                                            min = 0, max = 8, value = 4),
-                                               width = 3),
-                                           box(checkboxInput("check_names_dm",
-                                                             "Display names",
-                                                             value = FALSE),
-                                               checkboxInput("p_adj_dm",
-                                                             "Adjusted p values",
-                                                             value = FALSE),
-                                               width = 4),
-                                           tags$p("Select protein from LFQ Results Table to highlight on the plot OR 
-                                                  drag the mouse on plot to show expression of proteins in Table")
-                                           #Add text line
-                                           # tags$p("OR"),
-                                           #  tags$p("Drag the mouse on plot to show expression of proteins in Table") 
-                                           ),
-                                         
-                                         fluidRow(
-                                           plotOutput("volcano_dm", height = 600,
-                                                      # hover = "protein_hover"),
-                                                      #),
-                                                      # click = "protein_click"),
-                                                      brush = "protein_brush_dm",
-                                                      click = "protein_click_dm"),
-                                           downloadButton('downloadVolcano_dm', 'Save Highlighted Plot'),
-                                           actionButton("resetPlot_dm", "Clear Selection")
-                                           #)),
-                                         )),
-                                tabPanel(title= "Heatmap",
-                                         fluidRow(
-                                           plotOutput("heatmap_dm", height = 600)
-                                         ),
-                                         fluidRow(
-                                           box(numericInput("cluster_number_dm",
-                                                            "Cluster to download",
-                                                            min=1, max=6, value = 1), width = 6),
-                                           box(downloadButton('downloadCluster_dm',"Save Cluster"),width = 3)
-                                         )
-                                ),
-                                tabPanel(title = "Protein Plot",
-                                         fluidRow(
-                                           box(radioButtons("type_dm",
-                                                            "Plot type",
-                                                            choices = c("Box Plot"= "boxplot",
-                                                                        "Violin Plot"="violin", 
-                                                                        "Interaction Plot"= "interaction",
-                                                                        "Intensity Plot"="dot"
-                                                            ),
-                                                            selected = "boxplot", 
-                                                            inline = TRUE),
-                                               width = 12
-                                           ),
-                                           tags$p("Select one or more rows from LFQ Results Table to plot individual 
-                                                  protein intesities across conditions and replicates")
-                                           ),
-                                         fluidRow(
-                                           plotOutput("protein_plot_dm"),
-                                           downloadButton('downloadProtein_dm', 'Download Plot')
-                                         )
-                                         )
-                                # verbatimTextOutput("protein_info"))
-                            )
-                            ) # box or column end
-        )),
-      
-      ## QC Box
-      fluidRow(
-        div(id="qc_tab_dm",
-                            column(
-                              width=6,
-                              tabBox(title = "QC Plots", width = 12,
-                                tabPanel(title = "PCA Plot",
-                                         plotOutput("pca_plot_dm"), height=600),
-                                     tabPanel(title="Sample Correlation",
-                                              plotOutput("sample_corr_dm", height = 600)
-                                     ),
-                                     tabPanel(title= "Sample CVs",
-                                              plotOutput("sample_cvs_dm", height = 600)
-                                     ),
-                                     tabPanel(title = "Protein Numbers",
-                                              plotOutput("numbers_dm", height = 600)
-                                     ),
-                                     
-                                     tabPanel(title = "Sample coverage",
-                                              plotOutput("coverage_dm", height = 600)
-                                     ),
-                                     tabPanel(title = "Normalization",
-                                              plotOutput("norm_dm", height = 600)
-                                     ),
-                                     # tabPanel(title = "Missing values - Quant",
-                                     #          plotOutput("detect_dm", height = 600)
-                                     # ),
-                                     tabPanel(title = "Missing values - Heatmap",
-                                              plotOutput("missval_dm", height = 600)
-                                     ),
-                                     tabPanel(title = "Imputation",
-                                              plotOutput("imputation_dm", height = 600)
-                                     )#,
-                                     # tabPanel(title = "p-value Histogram",
-                                     #          plotOutput("p_hist_dm", height = 600)
-                                     # )
-                              ) # Tab box close
-                            ),
-                            column(
-                              width=6,
-                              tabBox(title = "Enrichment", width = 12,
-                                     tabPanel(title="Gene Ontology",
-                                              box(uiOutput("contrast_dm"), width = 5),
-                                            box(
-                                              selectInput("go_database_dm", "GO database:",
-                                                        c("Molecular Function"="GO_Molecular_Function_2017b",
-                                                          "Cellular Component"="GO_Cellular_Component_2017b",
-                                                          "Biological Process"="GO_Biological_Process_2017b")),
-                                              width= 5),
-                                           actionButton("go_analysis_dm", "Run Enrichment"),
-                                              plotOutput("go_enrichment_dm", height=600),
-                                              downloadButton('downloadGO_dm', 'Download Table')
-                                              
-                                     ),
-                                     tabPanel(title= "Pathway enrichment",
-                                              box(uiOutput("contrast_dm_1"), width = 5),
-                                              box(
-                                                selectInput("pathway_database_dm", "Pathway database:",
-                                                            c("KEGG"="KEGG_2016",
-                                                              "Reactome"="Reactome_2016")),
-                                                width= 5),
-                                              actionButton("pathway_analysis_dm", "Run Enrichment"),
-                                              plotOutput("pathway_enrichment_dm", height=600),
-                                              downloadButton('downloadPA_dm', 'Download Table')
-                                     ) #### Tab demo closed
-                                     
-                              ) # Tab box close
-                            )
-        )) # fluidrow qc close
-      # tabItems(
-        ) # Tab items close
-      
-      #)# info tab lose
-      #   )#tabitems close
-        ),
-tags$footer(
-  tags$p("Supported by: Proteomics & Integrative Bioinformatics Lab, University of Michigan"),
-align = "right"
-
-)# Dasbboardbody close
-    
+     #     , tabItem(tabName = "demo",
+     #        div(id="downloadbox_dm",
+     #                      fluidRow(
+     #                        box(
+     #                          column(6,uiOutput("downloadTable_dm"),offset = 1), 
+     #                          column(4,uiOutput("downloadButton_dm")), # make the button on same line
+     #                          width = 4),
+     #                        
+     #                        infoBoxOutput("significantBox_dm",width = 4),
+     #                        box(
+     #                          column(5,uiOutput("downloadreport_dm")), # offset for dist between buttons
+     #                          #tags$br(),
+     #                         # column(5,uiOutput('downloadPlots_dm')),
+     #                          width = 4
+     #                        )
+     #                      )), #close div and first row 
+     #  
+     #  # align save button
+     #  tags$style(type='text/css', "#downloadButton_dm { width:100%; margin-top: 25px;}"), 
+     #  tags$style(type='text/css', "#downloadreport_dm { width:100%; margin-top: 25px; margin-bottom: 25px;}"),
+     # # tags$style(type='text/css', "#downloadPlots_dm { width:100%; margin-top: 25px;}"),
+     #  
+     #  tags$br(), # Blank lines
+     #  tags$br(),
+     #  
+     #  ## Data table and result plots box
+     #  fluidRow(
+     #    div(id="results_tab_dm",
+     #                        box(
+     #                          title = "LFQ Results Table",
+     #                          DT::dataTableOutput("contents_dm"),
+     #                          #  actionButton("clear", "Deselect Rows"),
+     #                          actionButton("original_dm", "Refresh Table"),
+     #                          width = 6,
+     #                          status = "success",
+     #                          #color=""
+     #                          solidHeader = TRUE
+     #                        ),
+     #                        # column(
+     #                        box(
+     #                          width= 6,
+     #                          collapsible = TRUE,
+     #                          #status="primary",
+     #                          #solidHeader=TRUE,
+     #                          tabBox(
+     #                            title = "Result Plots",
+     #                            width = 12,
+     #                            tabPanel(title = "Volcano plot",
+     #                                     fluidRow(
+     #                                       box(uiOutput("volcano_cntrst_dm"), width = 5),
+     #                                       box(numericInput("fontsize_dm",
+     #                                                        "Font size",
+     #                                                        min = 0, max = 8, value = 4),
+     #                                           width = 3),
+     #                                       box(checkboxInput("check_names_dm",
+     #                                                         "Display names",
+     #                                                         value = FALSE),
+     #                                           checkboxInput("p_adj_dm",
+     #                                                         "Adjusted p values",
+     #                                                         value = FALSE),
+     #                                           width = 4),
+     #                                       tags$p("Select protein from LFQ Results Table to highlight on the plot OR 
+     #                                              drag the mouse on plot to show expression of proteins in Table")
+     #                                       #Add text line
+     #                                       # tags$p("OR"),
+     #                                       #  tags$p("Drag the mouse on plot to show expression of proteins in Table") 
+     #                                       ),
+     #                                     
+     #                                     fluidRow(
+     #                                       plotOutput("volcano_dm", height = 600,
+     #                                                  # hover = "protein_hover"),
+     #                                                  #),
+     #                                                  # click = "protein_click"),
+     #                                                  brush = "protein_brush_dm",
+     #                                                  click = "protein_click_dm"),
+     #                                       downloadButton('downloadVolcano_dm', 'Save Highlighted Plot'),
+     #                                       actionButton("resetPlot_dm", "Clear Selection")
+     #                                       #)),
+     #                                     )),
+     #                            tabPanel(title= "Heatmap",
+     #                                     fluidRow(
+     #                                       plotOutput("heatmap_dm", height = 600)
+     #                                     ),
+     #                                     fluidRow(
+     #                                       box(numericInput("cluster_number_dm",
+     #                                                        "Cluster to download",
+     #                                                        min=1, max=6, value = 1), width = 6),
+     #                                       box(downloadButton('downloadCluster_dm',"Save Cluster"),width = 3)
+     #                                     )
+     #                            ),
+     #                            tabPanel(title = "Protein Plot",
+     #                                     fluidRow(
+     #                                       box(radioButtons("type_dm",
+     #                                                        "Plot type",
+     #                                                        choices = c("Box Plot"= "boxplot",
+     #                                                                    "Violin Plot"="violin", 
+     #                                                                    "Interaction Plot"= "interaction",
+     #                                                                    "Intensity Plot"="dot"
+     #                                                        ),
+     #                                                        selected = "boxplot", 
+     #                                                        inline = TRUE),
+     #                                           width = 12
+     #                                       ),
+     #                                       tags$p("Select one or more rows from LFQ Results Table to plot individual 
+     #                                              protein intesities across conditions and replicates")
+     #                                       ),
+     #                                     fluidRow(
+     #                                       plotOutput("protein_plot_dm"),
+     #                                       downloadButton('downloadProtein_dm', 'Download Plot')
+     #                                     )
+     #                                     )
+     #                            # verbatimTextOutput("protein_info"))
+     #                        )
+     #                        ) # box or column end
+     #    )),
+     #  
+     #  ## QC Box
+     #  fluidRow(
+     #    div(id="qc_tab_dm",
+     #                        column(
+     #                          width=6,
+     #                          tabBox(title = "QC Plots", width = 12,
+     #                            tabPanel(title = "PCA Plot",
+     #                                     plotOutput("pca_plot_dm"), height=600),
+     #                            tabPanel(title="Sample Correlation",
+     #                                     plotOutput("sample_corr_dm", height = 600)),
+     #                            tabPanel(title= "Sample CVs",
+     #                                     plotOutput("sample_cvs_dm", height = 600)),
+     #                            conditionalPanel(condition="input.exp != 'TMT'",
+     #                                             tabPanel(title = "Protein Numbers",
+     #                                                      plotOutput("numbers_dm", height = 600))),
+     #                            conditionalPanel(condition="input.exp != 'TMT'",
+     #                                             tabPanel(title = "Sample coverage",
+     #                                                      plotOutput("coverage_dm", height = 600))),
+     #                            tabPanel(title = "Normalization",
+     #                                     plotOutput("norm_dm", height = 600)),
+     #                            # tabPanel(title = "Missing values - Quant",
+     #                            #          plotOutput("detect_dm", height = 600)
+     #                            # ),
+     #                            tabPanel(title = "Missing values - Heatmap",
+     #                                     plotOutput("missval_dm", height = 600)),
+     #                            tabPanel(title = "Imputation",
+     #                                     plotOutput("imputation_dm", height = 600))
+     #                            #,
+     #                            # tabPanel(title = "p-value Histogram",
+     #                            #          plotOutput("p_hist_dm", height = 600)
+     #                            # )
+     #                          ) # Tab box close
+     #                        ),
+     #                        column(
+     #                          width=6,
+     #                          tabBox(title = "Enrichment", width = 12,
+     #                                 tabPanel(title="Gene Ontology",
+     #                                          box(uiOutput("contrast_dm"), width = 5),
+     #                                        box(
+     #                                          selectInput("go_database_dm", "GO database:",
+     #                                                    c("Molecular Function"="GO_Molecular_Function_2017b",
+     #                                                      "Cellular Component"="GO_Cellular_Component_2017b",
+     #                                                      "Biological Process"="GO_Biological_Process_2017b")),
+     #                                          width= 5),
+     #                                       actionButton("go_analysis_dm", "Run Enrichment"),
+     #                                          plotOutput("go_enrichment_dm", height=600),
+     #                                          downloadButton('downloadGO_dm', 'Download Table'),
+     #                                       height=600
+     #                                 ),
+     #                                 tabPanel(title= "Pathway enrichment",
+     #                                          box(uiOutput("contrast_dm_1"), width = 5),
+     #                                          box(
+     #                                            selectInput("pathway_database_dm", "Pathway database:",
+     #                                                        c("KEGG"="KEGG_2016",
+     #                                                          "Reactome"="Reactome_2016")),
+     #                                            width= 5),
+     #                                          actionButton("pathway_analysis_dm", "Run Enrichment"),
+     #                                          plotOutput("pathway_enrichment_dm", height=600),
+     #                                          downloadButton('downloadPA_dm', 'Download Table'),
+     #                                          height=600
+     #                                 ) #### Tab demo closed
+     #                                 
+     #                          ) # Tab box close
+     #    ))) # fluidrow qc close
+     #  ) # Tab items close
+    ),
+    tags$footer(
+      tags$p("Supported by: Proteomics & Integrative Bioinformatics Lab, University of Michigan"),
+      align = "right")
+      ) # Dasbboardbody close
     ) #Dashboard page close
-  ) 
   )#Shiny U Close
 }

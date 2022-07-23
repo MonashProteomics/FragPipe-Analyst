@@ -591,7 +591,7 @@ plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "re
   }
 }
 
-# Original plot_numbers is from plot_numbers
+# Original plot_numbers is from plot_numbers 
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_frequencies.R
 #' Plot protein numbers
 #'
@@ -629,11 +629,13 @@ plot_numbers_customized <- function(se, plot = TRUE) {
                           length(plot) == 1)
   
   # Make a binary long data.frame (1 = valid value, 0 = missing value)
+  # print(rowData(se))
   df <- assay(se) %>%
     data.frame() %>%
     rownames_to_column() %>%
     gather(ID, bin, -rowname) %>%
     mutate(bin = ifelse(is.na(bin), 0, 1))
+  # print(df)
   # Summarize the number of proteins identified
   # per sample and generate a barplot
   stat <- df %>%
@@ -654,6 +656,10 @@ plot_numbers_customized <- function(se, plot = TRUE) {
     return(df)
   }
 }
+
+# plot_numbers_by_plex_set(se, ...) {
+#   # 
+# }
 
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_QC.R
 #' Visualize normalization
