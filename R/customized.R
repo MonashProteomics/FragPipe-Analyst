@@ -657,9 +657,25 @@ plot_numbers_customized <- function(se, plot = TRUE) {
   }
 }
 
-# plot_numbers_by_plex_set(se, ...) {
-#   # 
-# }
+plot_numbers_by_plex_set <- function(se, ...) {
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"))
+  unique_plexes <- unique(colData(data_se)$Plex)
+  prot_v <- c()
+  for(i in 1:length(unique_plexes)){
+    n_prot <- assay(data_se[, data_se$Plex == unique_plexes[i]]) %>%
+      data.frame() %>%
+      filter(if_all(everything(), ~!is.na(.))) %>%
+      nrow()
+    prot_v <- c(prot_v, n_prot)
+  }
+  
+  df_prot <- data.frame(plex=factor(unique_plexes), num_protein=prot_v)
+  return(ggplot(df_prot, aes(x = plex, y = num_protein)) +
+           geom_bar(stat="identity") +
+           labs(title = "Number of proteins across plex sets", x = "Plex",
+                y = "Number of proteins") +
+           theme_DEP2())
+}
 
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_QC.R
 #' Visualize normalization

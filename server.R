@@ -680,7 +680,7 @@ server <- function(input, output, session) {
    
    numbers_input <- reactive({
      if (input$exp == "TMT") {
-       plot_numbers_customized(normalised_data())
+       plot_numbers_by_plex_set(normalised_data())
      } else if (input$exp == "LFQ") { # prepared for the DIA 
        plot_numbers(normalised_data())
      } 
