@@ -3,8 +3,6 @@
 
 # FragPipe-Analyst
 
-**You are currently on the dev branch of LFQ-Analyst**
-
 A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fragpipe.nesvilab.org/).
 
 
@@ -15,13 +13,19 @@ A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fra
 
 ### Input
 
-- FragPipe *combined_protein.tsv** file
-- FragPipe manifest file
+- LFQ
+  - FragPipe *combined_protein.tsv** file
+  - FragPipe manifest file
+- TMT
+  - TMT-I gene report from [TMT-Integrator](http://tmt-integrator.nesvilab.org/)
+  - An annotation file
+- DIA
+  - DIA pipeline output
+  - FragPipe manifest file
 
 #### Data pre-filtering criteria
 
 - Remove potential contaminants
-- Remove reverse sequences
 - Remove proteins identified only by sites
 - Remove proteins identified/quantified by a single Razor or unique peptide
 - Remove observation with high proportion of missing values (intensity values must be present
@@ -47,7 +51,7 @@ at least 2 out of three replicates)
 
 #### Result table
 
--   **LFQ Results Table:** Includes names (Gene names), Protein Ids, Log
+-   **Results Table:** Includes names (Gene names), Protein Ids, Log
     fold changes/ ratios (each pairwise comparisons), Adjusted
     *p-values* (applying FDR corrections), *p-values*, Boolean values
     for significance, average protein intensity (log transformed) in
