@@ -174,10 +174,13 @@ server <- function(input, output, session) {
       }
       if(is.null(inFile))
         return(NULL)
-      temp_data<-read.table(inFile$datapath,
+      temp_data <- read.table(inFile$datapath,
                  header = TRUE,
                  fill= TRUE, # to fill any missing data
                  sep = "\t",
+                 quote = "",
+                 comment.char = "",
+                 blank.lines.skip = F,
                  check.names = F
       )
       # validate(maxquant_input_test(temp_data))
@@ -189,7 +192,9 @@ server <- function(input, output, session) {
       } else { # LFQ and DIA
         validate(fragpipe_input_test(temp_data))
         # remove contam
+        print(nrow(temp_data))
         temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        print(nrow(temp_data))
       }
       return(temp_data)
     })
@@ -238,6 +243,7 @@ server <- function(input, output, session) {
         temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
         temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
         print(temp_df$label)
+        print(nrow(temp_df))
       } else if (input$exp == "DIA") {
         temp_df <- read.table(inFile$datapath,
                               header = F,
@@ -324,7 +330,7 @@ server <- function(input, output, session) {
        # filtered_data<-ids_test(filtered_data)
        # data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
        # lfq_columns<-grep("LFQ.", colnames(data_unique))
-
+       print(nrow(filtered_data))
        data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
        lfq_columns<-grep("MaxLFQ", colnames(data_unique))
        # alternatively,
@@ -333,7 +339,7 @@ server <- function(input, output, session) {
        ## Check for matching columns in maxquant and experiment design file
        # test_match_lfq_column_design(data_unique,lfq_columns, exp_design())
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
-       
+       print(nrow(data_unique))
        data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
        # data_se <-DEP:::make_se_parse(data_unique, lfq_columns)
     
@@ -347,8 +353,11 @@ server <- function(input, output, session) {
        } else if (max(exp_design()$replicate)>=6){
          threshold<-trunc(max(exp_design()$replicate)/2)
        }
-       
-       return(filter_missval(data_se,thr = threshold))
+       print(threshold)
+       print(nrow(data_se))
+       filtered_se <- filter_missval(data_se,thr = threshold)
+       print(nrow(filtered_se))
+       return(filtered_se)
      } else {
        temp_exp_design <- exp_design()
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
