@@ -186,7 +186,7 @@ server <- function(input, output, session) {
         # convert columns into numeric
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
-      } else if (input$exp == "LFQ") {
+      } else { # LFQ and DIA
         validate(fragpipe_input_test(temp_data))
       }
       return(temp_data)
@@ -236,6 +236,13 @@ server <- function(input, output, session) {
         temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
         temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
         print(temp_df$label)
+      } else if (input$exp == "DIA") {
+        temp_df <- read.table(inFile$datapath,
+                              header = F,
+                              sep="\t",
+                              stringsAsFactors = FALSE)
+        colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
+        temp_df$label <- temp$path
       }
       return(temp_df)
     })
@@ -288,7 +295,7 @@ server <- function(input, output, session) {
      
      message(exp_design())
      filtered_data<-maxquant_data()
-     if (input$exp == "LFQ"){
+     if (input$exp == "LFQ" | input$exp == "DIA"){
        # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
        # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
        # if("Evidence.IDs" %in% colnames(filtered_data)){
@@ -419,7 +426,7 @@ server <- function(input, output, session) {
          diff_all <- test_diff_customized(imputed_data(), type = "all")
        }
        add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-     } else if (input$exp == "LFQ") {
+     } else if (input$exp == "LFQ" | input$exp == "DIA") {
        if(input$fdr_correction=="BH"){
          diff_all<-test_limma(imputed_data(),type='all', paired = F)
          add_rejections(diff_all,alpha = input$p, lfc= input$lfc)

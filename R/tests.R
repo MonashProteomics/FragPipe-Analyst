@@ -76,8 +76,8 @@ fragpipe_manifest_test<-function(fragpipe_manifest){
 # temp <- read.csv("../test-LFQ-Analyst/combined_protein.tsv", sep="\t", stringsAsFactors = F)
 fragpipe_input_test<-function(fragpipe_input){
   col_names<-colnames(fragpipe_input)
-  ## 
   if(!"Gene" %in% col_names){
+    print(col_names)
     stop(safeError("The column 'Gene' is not found in the Fragpipe combined_protein File"))
   }
   

@@ -511,7 +511,7 @@ get_results_proteins <- function(dep, exp) {
   # Obtain average protein-centered enrichment values per condition
   row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
   centered <- assay(dep) - row_data$mean
-  if (exp == "LFQ") {
+  if (exp == "LFQ" | exp == "DIA") {
     centered <- data.frame(centered) %>%
       tibble::rownames_to_column() %>%
       tidyr::gather(ID, val, -rowname) %>%
