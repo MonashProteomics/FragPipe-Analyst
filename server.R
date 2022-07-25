@@ -65,15 +65,15 @@ server <- function(input, output, session) {
                 timer = 10000) # timer in miliseconds (10 sec)
    })
    
-   observe({
-   if (input$tabs_selected=="demo"){
-     shinyalert("Demo results loading!...", "Wait until table and plots
-                appear on the screen", type="info",
-                closeOnClickOutside = TRUE,
-                closeOnEsc = TRUE,
-                timer = 6000)
-   }
-   })
+   # observe({
+   # if (input$tabs_selected=="demo"){
+   #   shinyalert("Demo results loading!...", "Wait until table and plots
+   #              appear on the screen", type="info",
+   #              closeOnClickOutside = TRUE,
+   #              closeOnEsc = TRUE,
+   #              timer = 6000)
+   # }
+   # })
  
    
    ####======= Render Functions
@@ -188,6 +188,8 @@ server <- function(input, output, session) {
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else { # LFQ and DIA
         validate(fragpipe_input_test(temp_data))
+        # remove contam
+        temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
       }
       return(temp_data)
     })
@@ -338,7 +340,7 @@ server <- function(input, output, session) {
        # Check number of replicates
        if(max(exp_design()$replicate)<3){
          threshold<-0
-       } else  if(max(exp_design()$replicate)==3){
+       } else if(max(exp_design()$replicate)==3){
          threshold<-1
        } else if(max(exp_design()$replicate)<6 ){
          threshold<-2
