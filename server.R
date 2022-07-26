@@ -3,30 +3,30 @@ server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   
 #  Show elements on clicking Start analysis button
-   observeEvent(input$analyze ,{ 
-     if(input$analyze==0){
+   observeEvent(start_analysis(),{ 
+     if(input$analyze==0 | !start_analysis()){
        return()
      }
     shinyjs::hide("quickstart_info")
     shinyjs::show("downloadbox")
     })
    
-   observeEvent(input$analyze ,{ 
-       if(input$analyze==0 ){
+   observeEvent(start_analysis(),{ 
+       if(input$analyze==0 | !start_analysis()){
          return()
        }
      shinyjs::show("results_tab")
    })
    
-   observeEvent(input$analyze ,{ 
-     if(input$analyze==0 ){
+   observeEvent(start_analysis() ,{ 
+     if(input$analyze==0 | !start_analysis()){
        return()
      }
      shinyjs::show("qc_tab")
    })
    
-   observeEvent(input$analyze ,{ 
-     if(input$analyze==0 ){
+   observeEvent(start_analysis, {
+     if(input$analyze==0 | !start_analysis()){
        return()
      }
      shinyjs::show("enrichment_tab")
@@ -53,9 +53,27 @@ server <- function(input, output, session) {
     # })
  
    ## Shinyalert
-   observeEvent(input$analyze ,{ 
+   start_analysis <- eventReactive(input$analyze,{ 
      if(input$analyze==0 ){
-       return()
+       return(F)
+     } else {
+       if (input$exp == "LFQ"){
+         inFile <- input$file1
+         exp_design_input <- input$file2
+       } else if (input$exp == "TMT") {
+         inFile <- input$file3
+         exp_design_input <- input$file4
+       } else if (input$exp == "DIA") {
+         inFile <- input$file5
+         exp_design_input <- input$file6
+       }
+       if (is.null(inFile) | is.null(exp_design_input)) {
+         shinyalert("Input file missing!", "Please checkout your input files", type="info",
+                    closeOnClickOutside = TRUE,
+                    closeOnEsc = TRUE,
+                    timer = 5000)
+         return(F)
+       }
      }
      
      shinyalert("In Progress!", "Data analysis has started, wait until table and plots
@@ -63,6 +81,7 @@ server <- function(input, output, session) {
                 closeOnClickOutside = TRUE,
                 closeOnEsc = TRUE,
                 timer = 10000) # timer in miliseconds (10 sec)
+     return(T)
    })
    
    # observe({
@@ -189,12 +208,13 @@ server <- function(input, output, session) {
         # convert columns into numeric
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
-      } else { # LFQ and DIA
+      } else if (input$exp == "LFQ") {
         validate(fragpipe_input_test(temp_data))
         # remove contam
-        print(nrow(temp_data))
         temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
-        print(nrow(temp_data))
+      } else { # DIA
+        validate(fragpipe_DIA_input_test(temp_data))
+        # temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
       }
       return(temp_data)
     })
@@ -213,6 +233,7 @@ server <- function(input, output, session) {
     #     return(temp_df)
     #   })    
     # })
+
     exp_design_input<-eventReactive(input$analyze,{
       if (input$exp == "LFQ"){
         inFile <- input$file2
@@ -242,15 +263,14 @@ server <- function(input, output, session) {
         colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
         temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
         temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
-        print(temp_df$label)
-        print(nrow(temp_df))
+        # print(temp_df$label)
       } else if (input$exp == "DIA") {
         temp_df <- read.table(inFile$datapath,
                               header = F,
                               sep="\t",
                               stringsAsFactors = FALSE)
         colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
-        temp_df$label <- temp$path
+        temp_df$label <- temp_df$path
       }
       return(temp_df)
     })
@@ -290,7 +310,7 @@ server <- function(input, output, session) {
    
    
 ### Reactive components
-   processed_data<- reactive({
+   processed_data<- eventReactive(start_analysis(),{
      ## check which dataset
      if(!is.null (maxquant_data_input() )){
        maxquant_data <- reactive({maxquant_data_input()})
@@ -303,7 +323,7 @@ server <- function(input, output, session) {
      
      message(exp_design())
      filtered_data<-maxquant_data()
-     if (input$exp == "LFQ" | input$exp == "DIA"){
+     if (input$exp == "LFQ"){
        # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
        # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
        # if("Evidence.IDs" %in% colnames(filtered_data)){
@@ -330,19 +350,15 @@ server <- function(input, output, session) {
        # filtered_data<-ids_test(filtered_data)
        # data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
        # lfq_columns<-grep("LFQ.", colnames(data_unique))
-       print(nrow(filtered_data))
        data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
        lfq_columns<-grep("MaxLFQ", colnames(data_unique))
        # alternatively,
        # lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
        
-       ## Check for matching columns in maxquant and experiment design file
-       # test_match_lfq_column_design(data_unique,lfq_columns, exp_design())
+       ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
-       print(nrow(data_unique))
        data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
-       # data_se <-DEP:::make_se_parse(data_unique, lfq_columns)
-    
+       
        # Check number of replicates
        if(max(exp_design()$replicate)<3){
          threshold<-0
@@ -353,11 +369,27 @@ server <- function(input, output, session) {
        } else if (max(exp_design()$replicate)>=6){
          threshold<-trunc(max(exp_design()$replicate)/2)
        }
-       print(threshold)
-       print(nrow(data_se))
        filtered_se <- filter_missval(data_se,thr = threshold)
-       print(nrow(filtered_se))
        return(filtered_se)
+     } else if (input$exp == "DIA") {
+       data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
+       cols <- colnames(data_unique)
+       selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+       test_match_tmt_column_design(data_unique, selected_cols, exp_design())
+       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
+       return(data_se)
+       # Check number of replicates
+       # if(max(exp_design()$replicate)<3){
+       #   threshold<-0
+       # } else if(max(exp_design()$replicate)==3){
+       #   threshold<-1
+       # } else if(max(exp_design()$replicate)<6 ){
+       #   threshold<-2
+       # } else if (max(exp_design()$replicate)>=6){
+       #   threshold<-trunc(max(exp_design()$replicate)/2)
+       # }
+       # filtered_se <- filter_missval(data_se,thr = threshold)
+       # return(filtered_se)
      } else {
        temp_exp_design <- exp_design()
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
@@ -396,7 +428,13 @@ server <- function(input, output, session) {
    })
    
    imputed_data<-reactive({
-     DEP::impute(processed_data(),input$imputation)
+     if (input$exp == "DIA") { # need a customized function here since DIA data has several slashs in the column
+      imputed <- impute_customized(processed_data(),input$imputation)
+      print(input$imputation)
+     } else {
+      imputed <- DEP::impute(processed_data(),input$imputation)
+     }
+     return(imputed)
    })
    
    imputed_table<-reactive({
@@ -409,7 +447,7 @@ server <- function(input, output, session) {
    })
    
    diff_all<-reactive({
-     if (input$exp == "TMT") {
+     if (input$exp == "TMT" | input$exp == "DIA") {
        # test_diff_customized(imputed_data(), type = "manual", 
        #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
        test_diff_customized(imputed_data(), type = "all")
@@ -419,38 +457,26 @@ server <- function(input, output, session) {
    })
 
    dep<-reactive({
-     if (input$exp == "TMT") {
-       # TODO: test_limma
-       # if(input$fdr_correction=="BH"){
-       #   diff_all<-test_limma(imputed_data(),type='all', paired = input$paired)
-       #   add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-       # }
-       # else{
-       #   diff_all<-test_diff(imputed_data(),type='all')
-       #   add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-       # }
+     if (input$exp == "TMT" | input$exp == "DIA") {
+       # TODO: test_limma for paired
        # diff_all <- test_diff_customized(imputed_data(), type = "manual", 
        #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
        if(input$fdr_correction=="BH"){
-         diff_all<- test_limma(imputed_data(),type='all', paired = F)
+         diff_all<- test_limma_customized(imputed_data(), type='all', paired = F)
        } else {
          diff_all <- test_diff_customized(imputed_data(), type = "all")
        }
        add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-     } else if (input$exp == "LFQ" | input$exp == "DIA") {
+     } else if (input$exp == "LFQ") {
        if(input$fdr_correction=="BH"){
          diff_all<-test_limma(imputed_data(),type='all', paired = F)
-         add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-       }
-       else{
-         diff_all<-test_diff(imputed_data(),type='all')
          add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
        }
      }
    })
    
    comparisons<-reactive ({
-    if (input$exp == "TMT") {
+    if (input$exp == "TMT"  | input$exp == "DIA") {
        temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
        # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
        #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
@@ -482,10 +508,10 @@ server <- function(input, output, session) {
    
    ## PCA Plot
    pca_input<-eventReactive(input$analyze ,{ 
-     if(input$analyze==0 ){
+     if(input$analyze==0 | !start_analysis()){
        return()
      }
-     if (input$exp == "TMT"){
+     if (input$exp == "TMT" | input$exp == "DIA"){
        if (num_total()<=500){
          if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
            pca_plot<- plot_pca_customized(dep(), n=num_total(), point_size = 4)
@@ -567,8 +593,8 @@ server <- function(input, output, session) {
    })
    
    ### Heatmap Differentially expressed proteins
-   heatmap_input<-eventReactive(input$analyze ,{ 
-     if(input$analyze==0 ){
+   heatmap_input<-eventReactive(input$analyze, { 
+     if(input$analyze==0 | !start_analysis()){
        return()
      }
      get_cluster_heatmap(dep(),
@@ -669,6 +695,9 @@ server <- function(input, output, session) {
      if (input$exp == "TMT") {
        plot_normalization_customized(processed_data(),
                                      normalised_data())
+     } else if (input$exp == "DIA") {
+       plot_normalization_DIA_customized(processed_data(),
+                                     normalised_data())
      } else if (input$exp == "LFQ") {
        plot_normalization(processed_data(),
                           normalised_data())
@@ -685,8 +714,9 @@ server <- function(input, output, session) {
    
    imputation_input <- reactive({
      if (input$exp == "TMT") {
-       plot_imputation_customized(normalised_data(),
-                                  diff_all())
+       plot_imputation_customized(normalised_data(), diff_all())
+     } else if (input$exp == "DIA") {
+       plot_imputation_DIA_customized(normalised_data(), diff_all())
      } else if (input$exp == "LFQ") {
        plot_imputation(normalised_data(), diff_all())
      } 
@@ -701,7 +731,9 @@ server <- function(input, output, session) {
        plot_numbers_by_plex_set(normalised_data())
      } else if (input$exp == "LFQ") { # prepared for the DIA 
        plot_numbers(normalised_data())
-     } 
+     } else if (input$exp == "DIA") {
+       plot_numbers_customized(normalised_data())
+     }
    })
    
    coverage_input <- reactive({
@@ -713,12 +745,16 @@ server <- function(input, output, session) {
    })
    
    cvs_input<-reactive({
+     check.names <- T
      if (input$exp == "TMT") {
+       id <- "label"
+     } else if (input$exp == "DIA"){
+       check.names <- F
        id <- "label"
      } else if (input$exp == "LFQ") {
        id <- "ID"
      }
-     plot_cvs(dep(), id)
+     plot_cvs(dep(), id, check.names=check.names)
    })
    
    num_total<-reactive({
@@ -786,21 +822,20 @@ server <- function(input, output, session) {
    })
 
   ##### Get results dataframe from Summarizedexperiment object
-    data_result<-reactive({
+   data_result<-reactive({
       get_results_proteins(dep(), input$exp)
       #get_results(dep())
     })
-    
-    
+
   #### Data table
-  output$contents <- DT::renderDataTable({
-    df<- data_result()
-    return(df)
-  },
-  options = list(scrollX = TRUE,
-autoWidth=TRUE,
-                columnDefs= list(list(width = '400px', targets = c(-1))))
-  )
+   output$contents <- DT::renderDataTable({
+     df<- data_result()
+     print(df[df["Gene Name"] == "CA9",])
+     return(df)
+     },
+     options = list(scrollX = TRUE,
+                    autoWidth=TRUE,
+                    columnDefs= list(list(width = '400px', targets = c(-1)))))
   
   ## Deselect all rows button
   proxy <- dataTableProxy("contents")
@@ -888,16 +923,16 @@ autoWidth=TRUE,
                                point.padding = unit(0.1, 'lines'),
                                segment.size = 0.5)
     
-    output$volcano <- renderPlot({
-      withProgress(message = 'Volcano Plot calculations are in progress',
-                   detail = 'Please wait for a while', value = 0, {
-                     for (i in 1:15) {
-                       incProgress(1/15)
-                       Sys.sleep(0.25)
-                     }
-                   })
-     p
-    })
+    # output$volcano <- renderPlot({
+    #   withProgress(message = 'Volcano Plot calculations are in progress',
+    #                detail = 'Please wait for a while', value = 0, {
+    #                  for (i in 1:15) {
+    #                    incProgress(1/15)
+    #                    Sys.sleep(0.25)
+    #                  }
+    #                })
+    #  p
+    # })
     return(p)
   })
  

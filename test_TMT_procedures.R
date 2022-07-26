@@ -3,13 +3,13 @@ source("./R/customized.R")
 source("./R/functions.R")
 library(DEP)
 
-temp_data <- read.table("./data/luad_ratio_gene_MD_phospho_glyco.tsv",
+temp_data <- read.table("./data/TMT_datasets/luad_ratio_gene_MD_phospho_glyco.tsv",
                       header = TRUE,
                       fill= TRUE, # to fill any missing data
                       sep = "\t",
                       check.names = F)
 
-temp_df <- read.table("./data/luad.annotation.updated_20220722.tsv",
+temp_df <- read.table("./data/TMT_datasets/luad.annotation.updated_20220722.tsv",
                       header = T,
                       sep="\t",
                       stringsAsFactors = FALSE)
@@ -31,16 +31,16 @@ data_unique[selected_cols] <- apply(data_unique[selected_cols], 2, as.numeric)
 test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
 data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design)
 
-plot_numbers_customized(data_se)
-
-# DE analysis
-# data_diff_manual <- test_diff_customized(data_se, type = "manual", 
-#                               test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
-data_diff_manual <- test_diff_customized(data_se, type = "all")
-dep <- add_rejections(data_diff_manual, alpha=0.05, lfc=log2(1.5))
-data_results <- get_results_customized(dep)
-
 # impute
 imputed_data <- DEP::impute(data_se, "man")
 
+DE_result <- test_limma_customized(imputed_data, type = "all")
+dep <- add_rejections(DE_result, alpha=0.05, lfc=log2(1.5))
+data_results <- get_results_proteins(dep, "TMT")
+data_results[data_results["Gene Name"] == "CA9",]
 
+DE_result2 <- test_diff_customized(imputed_data, type = "all")
+dep2 <- add_rejections(DE_result2, alpha=0.05, lfc=log2(1.5))
+data_results2 <- get_results_proteins(dep2, "TMT")
+# data_results <- get_results_customized(dep)
+data_results2[data_results2["Gene Name"] == "CA9",]

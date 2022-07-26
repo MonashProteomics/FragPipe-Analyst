@@ -73,7 +73,6 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   #   unite(ID, condition, replicate, remove = FALSE)
   # rownames(expdesign) <- expdesign$ID
   rownames(expdesign) <- expdesign$label
-  
   matched <- match(make.names(delete_prefix(expdesign$label)),
                    make.names(delete_prefix(colnames(raw))))
   if(any(is.na(matched))) {
@@ -83,14 +82,13 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
          "and/or correct columns specification")
   }
   
-  # colnames(raw)[matched] <- expdesign$ID
   colnames(raw)[matched] <- expdesign$label
   raw <- raw[, !is.na(colnames(raw))][rownames(expdesign)]
-  
+
   # Select the rowData
   row_data <- proteins_unique[, -columns]
   rownames(row_data) <- row_data$name
-  
+
   # Generate the SummarizedExperiment object
   se <- SummarizedExperiment(assays = as.matrix(raw),
                              colData = expdesign,
@@ -631,7 +629,7 @@ plot_numbers_customized <- function(se, plot = TRUE) {
   # Make a binary long data.frame (1 = valid value, 0 = missing value)
   # print(rowData(se))
   df <- assay(se) %>%
-    data.frame() %>%
+    data.frame(check.names = F) %>%
     rownames_to_column() %>%
     gather(ID, bin, -rowname) %>%
     mutate(bin = ifelse(is.na(bin), 0, 1))
@@ -756,6 +754,50 @@ plot_normalization_customized <- function(se, ...) {
     theme_DEP1()
 }
 
+plot_normalization_DIA_customized <- function(se, ...) {
+  # Get arguments from call
+  call <- match.call()
+  arglist <- lapply(call[-1], function(x) x)
+  var.names <- vapply(arglist, deparse, character(1))
+  arglist <- lapply(arglist, eval.parent, n = 2)
+  names(arglist) <- var.names
+  
+  # Show error if inputs are not the required classes
+  lapply(arglist, function(x) {
+    assertthat::assert_that(inherits(x,
+                                     "SummarizedExperiment"),
+                            msg = "input objects need to be of class 'SummarizedExperiment'")
+    if (any(!c("label", "condition", "replicate") %in% colnames(colData(x)))) {
+      # ID is not required
+      stop("'label', 'condition' and/or 'replicate' ",
+           "columns are not present in (one of) the input object(s)",
+           "\nRun make_se() or make_se_parse() to obtain the required columns",
+           call. = FALSE)
+    }
+  })
+  
+  # Function to get a long data.frame of the assay data
+  # annotated with sample info
+  gather_join <- function(se) {
+    assay(se) %>%
+      data.frame(check.names = F) %>%
+      gather(ID, val) %>%
+      left_join(., data.frame(colData(se)), by = c("ID"="label"))
+  }
+  
+  df <- map_df(arglist, gather_join, .id = "var") %>%
+    mutate(var = factor(var, levels = names(arglist)))
+  
+  # Boxplots for conditions with facet_wrap
+  # for the original and normalized values
+  ggplot(df, aes(x = ID, y = val, fill = condition)) +
+    geom_boxplot(notch = TRUE, na.rm = TRUE) +
+    coord_flip() +
+    facet_wrap(~var, ncol = 1) +
+    labs(x = "", y = expression(log[2]~"Intensity")) +
+    theme_DEP1()
+}
+
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_QC.R
 #' Visualize imputation
 #'
@@ -816,6 +858,48 @@ plot_imputation_customized <- function(se, ...) {
   gather_join <- function(se) {
     assay(se) %>%
       data.frame() %>%
+      gather(ID, val) %>%
+      left_join(., data.frame(colData(se)), by = c("ID"="label"))
+  }
+  
+  df <- map_df(arglist, gather_join, .id = "var") %>%
+    mutate(var = factor(var, levels = names(arglist)))
+  
+  # Density plots for different conditions with facet_wrap
+  # for original and imputed samles
+  ggplot(df, aes(val, col = condition)) +
+    geom_density(na.rm = TRUE) +
+    facet_wrap(~var, ncol = 1) +
+    labs(x = expression(log[2]~"Intensity"), y = "Density") +
+    theme_DEP1()
+}
+
+plot_imputation_DIA_customized <- function(se, ...) {
+  # Get arguments from call
+  call <- match.call()
+  arglist <- lapply(call[-1], function(x) x)
+  var.names <- vapply(arglist, deparse, character(1))
+  arglist <- lapply(arglist, eval.parent, n = 2)
+  names(arglist) <- var.names
+  
+  # Show error if inputs are not the required classes
+  lapply(arglist, function(x) {
+    assertthat::assert_that(inherits(x,
+                                     "SummarizedExperiment"),
+                            msg = "input objects need to be of class 'SummarizedExperiment'")
+    if (any(!c("label", "condition", "replicate") %in% colnames(colData(x)))) {
+      stop("'label', 'condition' and/or 'replicate' ",
+           "columns are not present in (one of) the input object(s)",
+           "\nRun make_se() or make_se_parse() to obtain the required columns",
+           call. = FALSE)
+    }
+  })
+  
+  # Function to get a long data.frame of the assay data
+  # annotated with sample info
+  gather_join <- function(se) {
+    assay(se) %>%
+      data.frame(check.names = F) %>%
       gather(ID, val) %>%
       left_join(., data.frame(colData(se)), by = c("ID"="label"))
   }
@@ -1005,9 +1089,168 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
     dplyr::mutate(variable = dplyr::recode(variable, logFC = "diff", P.Value = "p.val", adj.P.Val = "p.adj")) %>%
     tidyr::unite(temp, comparison, variable) %>%
     tidyr::spread(temp, value)
-  rowData(se) <- merge(rowData(se), table,
-                       by.x = "name", by.y = "rowname", all.x = TRUE)
+  rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
+                                         by=c("name"="rowname")))
   return(se)
-  #return(table)
 }
 
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' Imputation by random draws from a manually defined distribution
+#'
+#' \code{manual_impute_customized} imputes missing values in a proteomics dataset
+#' by random draws from a manually defined distribution.
+#'
+#' @param se SummarizedExperiment,
+#' Proteomics data (output from \code{\link{make_se}()} or
+#' \code{\link{make_se_parse}()}). It is adviced to first remove
+#' proteins with too many missing values using \code{\link{filter_missval}()}
+#' and normalize the data using \code{\link{normalize_vsn}()}.
+#' @param shift Numeric(1),
+#' Sets the left-shift of the distribution (in standard deviations) from
+#' the median of the original distribution.
+#' @param scale Numeric(1),
+#' Sets the width of the distribution relative to the
+#' standard deviation of the original distribution.
+#' @return An imputed SummarizedExperiment object.
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter and normalize
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#'
+#' # Impute missing values manually
+#' imputed_manual <- impute(norm, fun = "man", shift = 1.8, scale = 0.3)
+#' @export
+manual_impute_customized <- function(se, scale = 0.3, shift = 1.8) {
+  if(is.integer(scale)) scale <- is.numeric(scale)
+  if(is.integer(shift)) shift <- is.numeric(shift)
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"),
+                          is.numeric(scale),
+                          length(scale) == 1,
+                          is.numeric(shift),
+                          length(shift) == 1)
+  
+  se_assay <- assay(se)
+  
+  # Show error if there are no missing values
+  if(!any(is.na(se_assay))) {
+    stop("No missing values in '", deparse(substitute(se)), "'",
+         call. = FALSE)
+  }
+  
+  # Get descriptive parameters of the current sample distributions
+  stat <- se_assay %>%
+    data.frame(check.names = F) %>%
+    rownames_to_column() %>%
+    gather(samples, value, -rowname) %>%
+    filter(!is.na(value))  %>%
+    group_by(samples) %>%
+    summarise(mean = mean(value),
+              median = median(value),
+              sd = sd(value),
+              n = n(),
+              infin = nrow(se_assay) - n)
+  # Impute missing values by random draws from a distribution
+  # which is left-shifted by parameter 'shift' * sd and scaled by parameter 'scale' * sd.
+  for (a in seq_len(nrow(stat))) {
+    assay(se)[is.na(assay(se)[, stat$samples[a]]), stat$samples[a]] <-
+      rnorm(stat$infin[a],
+            mean = stat$median[a] - shift * stat$sd[a],
+            sd = stat$sd[a] * scale)
+  }
+  return(se)
+}
+
+
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' Impute missing values
+#'
+#' \code{impute_customized} imputes missing values in a proteomics dataset.
+#'
+#' @param se SummarizedExperiment,
+#' Proteomics data (output from \code{\link{make_se}()} or
+#' \code{\link{make_se_parse}()}). It is adviced to first remove
+#' proteins with too many missing values using \code{\link{filter_missval}()}
+#' and normalize the data using \code{\link{normalize_vsn}()}.
+#' @param fun "bpca", "knn", "QRILC", "MLE", "MinDet",
+#' "MinProb", "man", "min", "zero", "mixed" or "nbavg",
+#' Function used for data imputation based on \code{\link{manual_impute}}
+#' and \code{\link[MSnbase:impute-methods]{impute}}.
+#' @param ... Additional arguments for imputation functions as depicted in
+#' \code{\link{manual_impute}} and \code{\link[MSnbase:impute-methods]{impute}}.
+#' @return An imputed SummarizedExperiment object.
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter and normalize
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#'
+#' # Impute missing values using different functions
+#' imputed_MinProb <- impute(norm, fun = "MinProb", q = 0.05)
+#' imputed_QRILC <- impute(norm, fun = "QRILC")
+#'
+#' imputed_knn <- impute(norm, fun = "knn", k = 10, rowmax = 0.9)
+#' imputed_MLE <- impute(norm, fun = "MLE")
+#'
+#' imputed_manual <- impute(norm, fun = "man", shift = 1.8, scale = 0.3)
+#' @export
+impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE",
+                               "MinDet", "MinProb", "man", "min", "zero",
+                               "mixed", "nbavg"), ...) {
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"),
+                          is.character(fun))
+  
+  # Show error if inputs do not contain required columns
+  fun <- match.arg(fun)
+  
+  if(any(!c("name", "ID") %in% colnames(rowData(se, use.names = FALSE)))) {
+    stop("'name' and/or 'ID' columns are not present in '",
+         deparse(substitute(se)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  
+  # Show error if there are no missing values
+  if(!any(is.na(assay(se)))) {
+    warning("No missing values in '", deparse(substitute(se)), "'. ",
+            "Returning the unchanged object.",
+            call. = FALSE)
+    return(se)
+  }
+  
+  # Annotate whether or not there are missing values and how many
+  rowData(se)$imputed <- apply(is.na(assay(se)), 1, any)
+  rowData(se)$num_NAs <- rowSums(is.na(assay(se)))
+  
+  # if the "man" function is selected, use the manual impution method
+  if(fun == "man") {
+    se <- manual_impute_customized(se, ...)
+  }
+  # else use the MSnSet::impute function
+  else {
+    MSnSet_data <- as(se, "MSnSet")
+    MSnSet_imputed <- MSnbase::impute(MSnSet_data, method = fun, ...)
+    assay(se) <- MSnbase::exprs(MSnSet_imputed)
+  }
+  return(se)
+}

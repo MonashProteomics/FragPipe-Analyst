@@ -112,6 +112,17 @@ fragpipe_input_test<-function(fragpipe_input){
   
 }
 
+fragpipe_DIA_input_test<-function(fragpipe_input){
+  col_names<-colnames(fragpipe_input)
+  if(!"Genes" %in% col_names){
+    stop(safeError("The column 'Genes' is not found in the Fragpipe combined_protein File"))
+  }
+  # else if (!"Description" %in% col_names){
+  #   stop(safeError("The column 'Description' is not found in the Fragpipe combined_protein File"))
+  # }
+
+}
+
 
 tmt_input_test<-function(tmt_input){
   col_names<-colnames(tmt_input)

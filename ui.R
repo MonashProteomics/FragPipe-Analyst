@@ -86,10 +86,13 @@ ui <- function(request){shinyUI(
                                        min = 1, max = 10, value = 3)
                  ),
                tags$hr(),
-               actionButton("analyze", "Start Analysis")
-              
-                  #,
-                  #actionButton("load_data", "Load example data")
+               actionButton("analyze", "Start Analysis"),
+               #actionButton("load_data", "Load example data")
+               tags$script(HTML("
+                 $(document).ready(function() {
+                    $('#analyze').on('click', function(){$(this).blur()});
+                  })
+                "))
                  ), tabName = 'analysis'),
                   
         # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),

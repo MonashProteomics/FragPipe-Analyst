@@ -12,7 +12,7 @@ coef_variation<-function(x){
 
 #### Plot CVs
 
-plot_cvs<-function(se, id="ID") {
+plot_cvs<-function(se, id="ID", check.names=T) {
   
   ## backtransform data
   untransformed_intensity<- 2^(assay(se))
@@ -30,7 +30,7 @@ if (id == "ID") {
     dplyr::group_by(condition)%>%
     dplyr::mutate(condition_median=median(cvs))
 } else {
-  cvs_group<- untransformed_intensity %>% data.frame() %>%
+  cvs_group<- untransformed_intensity %>% data.frame(check.names=check.names) %>%
     tibble::rownames_to_column() %>%
     tidyr::gather("ID", "Intensity", -rowname) %>%
     dplyr::left_join(.,data.frame(exp_design), by=c("ID"=id)) %>%
@@ -511,12 +511,12 @@ get_results_proteins <- function(dep, exp) {
   # Obtain average protein-centered enrichment values per condition
   row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
   centered <- assay(dep) - row_data$mean
-  if (exp == "LFQ" | exp == "DIA") {
+  if (exp == "LFQ") {
     centered <- data.frame(centered) %>%
       tibble::rownames_to_column() %>%
       tidyr::gather(ID, val, -rowname) %>%
       dplyr::left_join(., data.frame(colData(dep)), by = "ID")
-  } else if (exp == "TMT") {
+  } else if (exp == "TMT" | exp == "DIA") {
     centered <- data.frame(centered) %>%
       tibble::rownames_to_column() %>%
       tidyr::gather(ID, val, -rowname) %>%
