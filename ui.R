@@ -303,8 +303,8 @@ ui <- function(request){shinyUI(
                               width=6,
                               tabBox(title = "QC Plots", width = 12,
                                      tabPanel(title = "PCA Plot",
-                                         plotOutput("pca_plot", height=600),
-                                         downloadButton('download_pca_svg', "Save svg")
+                                         plotlyOutput("pca_plot", height=600)
+                                         # downloadButton('download_pca_svg', "Save svg")
                                      ),
                                      tabPanel(title="Sample Correlation",
                                               plotOutput("sample_corr", height = 600),

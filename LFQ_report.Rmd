@@ -1,5 +1,5 @@
 ---
-title: "LFQ-Analyst report"
+title: "Fragpipe-Analyst report"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
   data: NA
@@ -19,9 +19,11 @@ params:
   dep: NA
   pg_width: NA
   cvs_input: NA
+  volcano_input: NA
 output: 
   pdf_document:
     fig_caption: yes
+always_allow_html: true
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(opts.label="kill_prefix") # Remove line number and Comment "##" from printing
@@ -29,7 +31,7 @@ knitr::opts_chunk$set(opts.label="kill_prefix") # Remove line number and Comment
 
 ## Method details
 
-The raw data files were analyzed using MaxQuant to obtain protein identifications and their respective label-free quantification values using in-house standard parameters. Of note, the data were normalization based on the assumption that the majority of proteins do not change between the different conditions. 
+The raw data files were analyzed using Fragpipe to obtain protein identifications and their respective label-free quantification values using in-house standard parameters. Of note, the data were normalization based on the assumption that the majority of proteins do not change between the different conditions. 
 Statistical analysis was performed using an in-house generated R script based on the ProteinGroup.txt file. First, contaminant proteins, reverse sequences and proteins identified “only by site” were filtered out. In addition, proteins that have been only identified by a single peptide and proteins not identified/quantified consistantly in same condition have been removed as well. The LFQ data was converted to log2 scale, samples were grouped by conditions and missing values were imputed using the ‘Missing not At Random’ (MNAR) method, which uses random draws from a left-shifted Gaussian distribution of 1.8 StDev (standard deviation) apart with a width of 0.3. Protein-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of 0.05 (Benjamini-Hochberg method) along with a |log2 fold change| of 1 has been applied to determine significantly regulated proteins in each pairwise comparison.
 
 
@@ -124,10 +126,12 @@ print(params$heatmap_input())
 #### Volcano Plots
 
 ```{r volcano,  echo=FALSE, warning=FALSE, comment=NA}
-for(i in params$tested_contrasts){
- # print(paste0('volcano_plot_',i,sep=""))
-  print(plot_volcano_new(params$dep(),contrast = i,label_size = 2, add_names = F))
-  }
+print(params$volcano_input())
+# source("./R/volcano_function.R", local = knitr::knit_global())
+#for(i in params$tested_contrasts){
+#  # print(paste0('volcano_plot_',i,sep=""))
+#  print(plot_volcano_new(params$dep(),contrast = i,label_size = 2, add_names = F))
+# }
 ```
 
 

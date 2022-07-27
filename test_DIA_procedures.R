@@ -2,6 +2,7 @@ source("./R/tests.R")
 source("./R/customized.R")
 source("./R/functions.R")
 library(DEP)
+library(plotly)
 
 temp_data <- read.table("./data/DIA_datasets/diann-output.pg_matrix.tsv",
                       header = TRUE,
