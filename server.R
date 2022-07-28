@@ -665,9 +665,9 @@ server <- function(input, output, session) {
      } 
    })
    
-   p_hist_input <- reactive({
-     plot_p_hist(dep())
-   })
+   # p_hist_input <- reactive({
+   #   plot_p_hist(dep())
+   # })
    
    numbers_input <- reactive({
      if (input$exp == "TMT") {
