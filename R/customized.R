@@ -508,27 +508,19 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                 symbol = as.formula(paste0('~', indicate[2])),
                 marker = list(color = "grey", size = point_size + 3),
                 mode = 'markers',
-                legendgroup=indicate[2]) %>%
+                legendgroup=indicate[2],
+                legendgrouptitle_text=indicate[2]) %>%
       add_trace(type = "scatter",
                 x = ~PC1, 
                 y = ~PC2,
                 color = as.formula(paste0('~', indicate[1])),
                 mode = 'markers',
-                legendgroup=indicate[1]) %>%
-      #Add Legend Titles (manual)
-      add_annotations( text=indicate[2], xref="paper", yref="paper",
-                       x=1, xanchor="left",
-                       y=0.9, yanchor="bottom",    # Same y as legend below
-                       legendtitle=TRUE, showarrow=FALSE ) %>%
-      add_annotations( text=indicate[1], xref="paper", yref="paper",
-                       x=1, xanchor="left",
-                       y=0.72, yanchor="bottom",    # Y depends on the height of the plot
-                       legendtitle=TRUE, showarrow=FALSE ) %>%
+                legendgroup=indicate[1],
+                legendgrouptitle_text=indicate[1]) %>%
       plotly::layout(title = 'PCA plot',
                      xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
                      yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
-                     legend=list(tracegroupgap=50, y=0.9, yanchor="top",
-                                 itemclick = FALSE,
+                     legend=list(itemclick = FALSE,
                                  itemdoubleclick = FALSE,
                                  groupclick = FALSE))
   }
