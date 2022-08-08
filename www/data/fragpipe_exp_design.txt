@@ -1,0 +1,7 @@
+label	condition	replicate
+aspirin_1	aspirin	1
+aspirin_2	aspirin	2
+aspirin_3	aspirin	3
+control_1	control	1
+control_2	control	2
+control_3	control	3
