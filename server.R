@@ -2,35 +2,48 @@
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   
-#  Show elements on clicking Start analysis button
+   #  Show elements on clicking Start analysis button
    observeEvent(start_analysis(),{ 
      if(input$analyze==0 | !start_analysis()){
        return()
      }
     shinyjs::hide("quickstart_info")
-    shinyjs::show("downloadbox")
+    shinyjs::show("panel_list")
     })
    
-   observeEvent(start_analysis(),{ 
-       if(input$analyze==0 | !start_analysis()){
-         return()
-       }
-     shinyjs::show("results_tab")
-   })
-   
+   # Hide LFQ page if only have one replicate in each sample
    observeEvent(start_analysis() ,{ 
-     if(input$analyze==0 | !start_analysis()){
-       return()
+     exp <- exp_design_input()
+     if (max(exp$replicate)==1){
+       hideTab(inputId = "tab_panels", target = "lfq_panel")
+     } else {
+       showTab(inputId = "tab_panels", target = "lfq_panel")
+       updateTabsetPanel(session, "tab_panels", selected = "lfq_panel")
      }
-     shinyjs::show("qc_tab")
+     # updateTabItems(session, "tabs_selected", selected = "analysis")
    })
    
-   observeEvent(start_analysis, {
-     if(input$analyze==0 | !start_analysis()){
-       return()
-     }
-     shinyjs::show("enrichment_tab")
-   })
+   # observeEvent(start_analysis(),{ 
+   #     if(input$analyze==0 | !start_analysis()){
+   #       return()
+   #     }
+   #   shinyjs::show("results_tab")
+   # })
+   # 
+   # observeEvent(start_analysis() ,{ 
+   #   if(input$analyze==0 | !start_analysis()){
+   #     return()
+   #   }
+   #   shinyjs::show("qc_tab")
+   # })
+   # 
+   # observeEvent(start_analysis, {
+   #   if(input$analyze==0 | !start_analysis()){
+   #     return()
+   #   }
+   #   shinyjs::show("enrichment_tab")
+   # })
+
    # observeEvent(input$analyze,{
    #   shinyjs::hide("howto")
    # })
