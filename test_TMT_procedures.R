@@ -31,6 +31,8 @@ data_unique[selected_cols] <- apply(data_unique[selected_cols], 2, as.numeric)
 test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
 data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design)
 
+plot_numbers_by_plex_set(data_se)
+
 # impute
 imputed_data <- DEP::impute(data_se, "man")
 

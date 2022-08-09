@@ -779,7 +779,7 @@ plot_numbers_customized <- function(se, plot = TRUE) {
 
 plot_numbers_by_plex_set <- function(se, ...) {
   assertthat::assert_that(inherits(se, "SummarizedExperiment"))
-  unique_plexes <- unique(colData(data_se)$Plex)
+  unique_plexes <- unique(colData(se)$Plex)
   prot_v <- c()
   for(i in 1:length(unique_plexes)){
     n_prot <- assay(data_se[, data_se$Plex == unique_plexes[i]]) %>%
@@ -788,7 +788,6 @@ plot_numbers_by_plex_set <- function(se, ...) {
       nrow()
     prot_v <- c(prot_v, n_prot)
   }
-  
   df_prot <- data.frame(plex=factor(unique_plexes), num_protein=prot_v)
   return(ggplot(df_prot, aes(x = plex, y = num_protein)) +
            geom_bar(stat="identity") +
