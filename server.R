@@ -12,14 +12,19 @@ server <- function(input, output, session) {
     })
    
    # Hide LFQ page if only have one replicate in each sample
-   observeEvent(start_analysis() ,{ 
-     exp <- exp_design_input()
-     if (max(exp$replicate)==1){
-       hideTab(inputId = "tab_panels", target = "lfq_panel")
-     } else {
-       showTab(inputId = "tab_panels", target = "lfq_panel")
-       updateTabsetPanel(session, "tab_panels", selected = "lfq_panel")
+   observeEvent(start_analysis() ,{
+     if (input$exp == "LFQ"){
+       exp <- exp_design_input()
+       if (max(exp$replicate)==1){
+         hideTab(inputId = "tab_panels", target = "quantification_panel")
+       } else {
+         showTab(inputId = "tab_panels", target = "quantification_panel")
+         updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+       }
      }
+     showTab(inputId = "tab_panels", target = "quantification_panel")
+     hideTab(inputId = "tab_panels", target = "occ_panel")
+     updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
      # updateTabItems(session, "tabs_selected", selected = "analysis")
    })
    
@@ -71,14 +76,14 @@ server <- function(input, output, session) {
        return(F)
      } else {
        if (input$exp == "LFQ"){
-         inFile <- input$file1
-         exp_design_input <- input$file2
+         inFile <- input$lfq_expr
+         exp_design_input <- input$lfq_manifest
        } else if (input$exp == "TMT") {
-         inFile <- input$file3
-         exp_design_input <- input$file4
+         inFile <- input$tmt_expr
+         exp_design_input <- input$tmt_annot
        } else if (input$exp == "DIA") {
-         inFile <- input$file5
-         exp_design_input <- input$file6
+         inFile <- input$dia_expr
+         exp_design_input <- input$dia_manifest
        }
        if (is.null(inFile) | is.null(exp_design_input)) {
          shinyalert("Input file missing!", "Please checkout your input files", type="info",
@@ -198,11 +203,11 @@ server <- function(input, output, session) {
     
     maxquant_data_input<-eventReactive(input$analyze,{
       if (input$exp == "LFQ") {
-        inFile <- input$file1
+        inFile <- input$lfq_expr
       } else if (input$exp == "TMT") {
-        inFile <- input$file3
+        inFile <- input$tmt_expr
       } else if (input$exp == "DIA") {
-        inFile <- input$file5
+        inFile <- input$dia_expr
       }
       if(is.null(inFile))
         return(NULL)
@@ -249,11 +254,11 @@ server <- function(input, output, session) {
 
     exp_design_input<-eventReactive(input$analyze,{
       if (input$exp == "LFQ"){
-        inFile <- input$file2
+        inFile <- input$lfq_manifest
       } else if (input$exp == "TMT") {
-        inFile <- input$file4
+        inFile <- input$tmt_annot
       } else if (input$exp == "DIA") {
-        inFile <- input$file6
+        inFile <- input$dia_manifest
       }
       if (is.null(inFile))
         return(NULL)
@@ -1239,7 +1244,257 @@ output$download_imp_svg<-downloadHandler(
   }
 )
 
- 
+  #### Occurrence page logic ####
+  data_attendance<-reactive({
+    protein_data <- maxquant_data_input()
+    
+    #check maxquant columns    
+    if(length(grep("^LFQ.", colnames(protein_data))) !=0){
+      lfq_columns<-grep("LFQ.", colnames(protein_data))
+    }
+    else {
+      # Compatible for Fragpipe datasets without "MaxLFQ" columns
+      if(length(grep(".MaxLFQ.Intensity", colnames(protein_data))) !=0){
+        lfq_columns<-grep(".MaxLFQ.Intensity", colnames(protein_data))
+      } 
+      else {
+        # lfq_columns<-grep(".Total.Intensity", colnames(protein_data))
+        all_intentisy_cols <- grep(".Intensity", colnames(protein_data))
+        remove_cols <- grep("Unique.Intensity|Total.Intensity",colnames(protein_data))
+        lfq_columns <- setdiff(all_intentisy_cols, remove_cols)
+      }
+      
+    }
+    intensity_names <- colnames( protein_data[,lfq_columns]) 
+    
+    needed_cols <- c("Protein.IDs", "Gene.names",intensity_names,"Protein.names", "Description",
+                     "Reverse", "Potential.contaminant", "Only.identified.by.site", "Razor...unique.peptides", "Unique.Stripped.Peptides")
+    df <- protein_data[,colnames(protein_data) %in% needed_cols]
+    df <- dplyr::relocate(df, "Description", .after = last_col())
+    # MaxQuant Protein.names is Description in FragPipe output
+    # MaxQuant Gene.names is Gene in FragPipe output
+    
+    intensity_names_1 <- intensity_names %>% 
+      gsub("LFQ.intensity[.]", "", .)  %>% 
+      gsub(".Intensity", "", .)  %>% 
+      gsub(".MaxLFQ", "", .) %>% 
+      gsub(".Razor", "",.)
+    
+    colnames(df)[colnames(df) %in% intensity_names] <- intensity_names_1
+    
+    # get conditions
+    exp_design <- exp_design_input()
+    conditions <- exp_design$condition %>% unique()
+    
+    # replace intensity column names
+    replace_protein <- paste("LFQ_intensity", exp_design$condition, exp_design$replicate,sep = "_") %>% unique()
+    print("replace protein")
+    print(replace_protein)
+    if (any(make.names(intensity_names_1) %in% make.names(exp_design$label))){
+      colnames(df)[colnames(df) %in% intensity_names_1] <- replace_protein[match(make.names(intensity_names_1), 
+                                                                                 make.names(exp_design$label), nomatch = 0)]
+    } else {
+      colnames(df)[colnames(df) %in% intensity_names_1] <- replace_protein[match(make.names(delete_prefix(intensity_names_1)), 
+                                                                                 make.names(delete_prefix(exp_design$label)), nomatch = 0)]
+    }
+    
+    # remove intensity columns not in experimental design file.
+    df <- df[!is.na(names(df))]
+    # filter if all intensity are 0
+    df <- df[rowSums(df[,grep("^LFQ_", colnames(df))]) != 0,]
+    
+    for (i in 1:length(conditions)) {
+      condition <- conditions[i]
+      pattern <- paste(condition,"[[:digit:]]",sep = "_")
+      df[paste0("#Occurences",sep = "_",condition)] <- rowSums(df %>% select(grep(pattern, colnames(df))) != 0)
+      
+      # change column order
+      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_",condition), .before = paste("LFQ_intensity", conditions[1],"1",sep = "_"), .after = NULL)
+      # print(colnames(df))
+      cols <- grep(paste0(condition, "$"),colnames(df))
+      
+      if (!is.null(input[[paste0("",condition)]])){
+        df <- df %>%
+          dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
+      }
+    }
+    
+    if ("" %in% df$Gene.names){
+      df$Gene.names[df["Gene.names"]==""] <- "NoGeneNameAvailable"}
+    if ("" %in% df$Protein.names){
+      df$Protein.names[df["Protein.names"]==""] <- "NoProteinNameAvailable"}
+    return(df)
+  })
+  
+  data_attendance_filtered <- reactive({
+    filtered_data <- data_attendance()
+    if (is.null(input$filtered_condition_maxquant) & is.null(input$filtered_condition_fragpipe)) {
+      filtered_data <- filtered_data
+    }
+    else {
+      if(("Reverse" %in% colnames(filtered_data)) & ('Reverse sequences' %in% input$filtered_condition_maxquant)){
+        filtered_data<-dplyr::filter(filtered_data,Reverse!="+")
+      }
+      else{filtered_data <-filtered_data}
+      if(("Potential.contaminant" %in% colnames(filtered_data)) & ('Potential contaminants' %in% input$filtered_condition_maxquant)){
+        filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
+      }
+      else{filtered_data <-filtered_data}
+      if(("Only.identified.by.site" %in% colnames(filtered_data)) & ('"Only identified by site" Protein' %in% input$filtered_condition_maxquant)){
+        filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+")
+      }
+      else{filtered_data <-filtered_data}
+      if(("Razor...unique.peptides" %in% colnames(filtered_data)) & ('Proteins with peptiedes < 2' %in% input$filtered_condition_maxquant)){
+        filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)
+      }
+      else{filtered_data <-filtered_data}
+      if(("Unique.Stripped.Peptides" %in% colnames(filtered_data)) & ('Proteins with peptiedes < 2' %in% input$filtered_condition_fragpipe)){
+        filtered_data <-dplyr::filter(filtered_data,as.numeric(Unique.Stripped.Peptides)>=2)
+      }
+      else{filtered_data <-filtered_data}
+    }
+    
+    colnames(filtered_data)[names(filtered_data) == "Razor...unique.peptides"] <- "#Peptides"
+    colnames(filtered_data)[names(filtered_data) == "Unique.Stripped.Peptides"] <- "#Peptides"
+    
+    drop_cols <- c("Reverse", "Potential.contaminant", "Only.identified.by.site")
+    filtered_data<- filtered_data[, !(colnames(filtered_data) %in% drop_cols)]
+    print(filtered_data)
+    return(filtered_data)
+  })
+  
+  #### Data table
+  output$contents_occ <- DT::renderDataTable({
+    df<- data_attendance_filtered()
+    return(df)},
+    options = list(scrollX = TRUE,
+                   scroller = TRUE,
+                   autoWidth=TRUE,
+                   # columnDefs= list(list(width = "10%", targets = c(1)),
+                   #                  list(width = "400px", targets = grep("Protein.names", names(df)))
+                   #                  )
+                   columnDefs= list(list(width = '400px', targets = c(-1)))
+    )
+  )
+  
+  make_sliderInput <- function(n= 1){
+    exp_design_input <- exp_design_input()
+    conditions <- exp_design_input$condition %>% unique()
+    
+    sliderInput(paste0("",conditions[n]),
+                label=paste0("",conditions[n]),
+                min = min(0), 
+                max = max(exp_design_input$replicate),
+                value = c(0, max(exp_design_input$replicate)),
+                step = 1)}
+  
+  slider_bars <- reactive({
+    exp_design <- exp_design_input()
+    lapply(X = 1:length(unique(exp_design$condition)), FUN = make_sliderInput)
+  })
+  
+  output$sidebar <- renderUI({
+    tagList(slider_bars())
+  })
+  
+  output$download_attendance <- downloadHandler("Occurrences_results_table.csv",
+                                                content = function(file){
+                                                  write.table(data_attendance_filtered(),  
+                                                              file,
+                                                              col.names = TRUE,
+                                                              row.names = FALSE,
+                                                              sep =",")
+                                                },
+                                                contentType = "text/csv")
+  
+  ## Venn plot
+  condition_list <- reactive({
+    if(!is.null(exp_design_input())){
+      exp_design <- exp_design_input()
+      conditions <- exp_design$condition %>% unique() %>% sort()
+      return(conditions)
+    }
+  })
+  
+  observeEvent(input$analyze, {
+    if (length(condition_list()) == 1){
+      shinyjs::hide(id = "con_2")
+      shinyjs::hide(id = "con_3")
+    } 
+    if (length(condition_list()) == 2){
+      shinyjs::hide(id = "con_3")
+    } 
+  })
+  
+  output$condition_1 <- renderUI({
+    if (!is.null(condition_list())){
+      selectizeInput("condition_1",
+                     "Condition 1",
+                     choices = condition_list(),
+                     selected = condition_list()[1])
+    }
+  })
+  
+  output$condition_2 <- renderUI({
+    if (!is.null(condition_list()) & length(condition_list()) > 1){
+      selectizeInput("condition_2",
+                     "Condition 2",
+                     # choices = condition_list(),
+                     choices = condition_list()[condition_list() != input$condition_1],
+                     selected = condition_list()[2])
+    }
+  })
+  
+  output$condition_3 <- renderUI({
+    if (!is.null(condition_list())  & length(condition_list()) > 2){
+      selectizeInput("condition_3",
+                     "Condition 3",
+                     # choices = condition_list(),
+                     choices = c("NONE", condition_list()[condition_list() != input$condition_1 & condition_list() != input$condition_2]),
+                     selected = condition_list()[3])
+    }
+  })
+  
+  venn_plot_input <- reactive({
+    df<- data_attendance_filtered()
+    if(length(condition_list()) < 2){
+      stop(safeError("Venn plot should contain at least two sets"))
+    } else if(length(condition_list()) < 3){
+      set1 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
+      set2 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
+      x <- list(set1,set2)
+      names(x) <- c("Condition 1", "Condition 2")
+    } else {
+      set1 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
+      set2 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
+      set3 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_3),colnames(df))] != 0]
+      x <- list(set1,set2,set3)
+      names(x) <- c("Condition 1", "Condition 2", "Condition 3")
+      if (!is.null(input$condition_3)){
+        if (input$condition_3 == "NONE"){
+          x <- list(set1,set2)
+          names(x) <- c("Condition 1", "Condition 2")
+        }
+      }
+    }
+    ggVennDiagram::ggVennDiagram(x,label_alpha = 0) +
+      scale_fill_gradient(low = "#F4FAFE", high = "#4981BF")
+  })
+  
+  output$venn_plot <- renderPlot({
+    if (!is.null(input$condition_1) & !is.null(input$condition_2)){
+        venn_plot_input()
+    }
+  })
+  
+  output$download_venn_svg<-downloadHandler(
+    filename = function() { "venn_plot.svg" }, 
+    content = function(file) {
+      svg(file)
+      print(venn_plot_input())
+      dev.off()
+    }
+  )
  
  #### Demo logic ========== #############
  
