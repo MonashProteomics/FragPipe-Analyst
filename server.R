@@ -19,20 +19,23 @@ server <- function(input, output, session) {
          hideTab(inputId = "tab_panels", target = "quantification_panel")
        } else {
          showTab(inputId = "tab_panels", target = "quantification_panel")
+         showTab(inputId="qc_tabBox", target="norm_tab")
+         showTab(inputId="qc_tabBox", target="sample_coverage_tab")
          # make sure occ_panel visible after users updating their analysis
          showTab(inputId = "tab_panels", target = "occ_panel")
          updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
        }
-     }
-     showTab(inputId = "tab_panels", target = "quantification_panel")
-     hideTab(inputId = "tab_panels", target = "occ_panel")
-     updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-     if (input$exp == "TMT") {
+     } else if (input$exp == "TMT") {
+       hideTab(inputId = "tab_panels", target = "occ_panel")
        hideTab(inputId="qc_tabBox", target="norm_tab")
        hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
-     } else {
+       showTab(inputId = "tab_panels", target = "quantification_panel")
+       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+     } else { # DIA
        showTab(inputId="qc_tabBox", target="norm_tab")
        showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+       showTab(inputId = "tab_panels", target = "occ_panel")
+       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
      }
      
    })
@@ -385,19 +388,8 @@ server <- function(input, output, session) {
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
        data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
-       
-       # Check number of replicates
-       if(max(exp_design()$replicate)<3){
-         threshold<-0
-       } else if(max(exp_design()$replicate)==3){
-         threshold<-1
-       } else if(max(exp_design()$replicate)<6 ){
-         threshold<-2
-       } else if (max(exp_design()$replicate)>=6){
-         threshold<-trunc(max(exp_design()$replicate)/2)
-       }
-       filtered_se <- filter_missval(data_se,thr = threshold)
-       return(filtered_se)
+
+       return(data_se)
      } else if (input$exp == "DIA") {
        data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
        cols <- colnames(data_unique)
@@ -441,8 +433,29 @@ server <- function(input, output, session) {
      }
    })
    
+   filtered_data <- reactive({
+     if (input$exp == "LFQ"){ # Check number of replicates
+       if(!is.null (exp_design_input() )){
+         exp_design<-reactive({exp_design_input()})
+       }
+       if(max(exp_design()$replicate)<3){
+         threshold<-0
+       } else if(max(exp_design()$replicate)==3){
+         threshold<-1
+       } else if(max(exp_design()$replicate)<6 ){
+         threshold<-2
+       } else if (max(exp_design()$replicate)>=6){
+         threshold<-trunc(max(exp_design()$replicate)/2)
+       }
+       filtered_se <- filter_missval(processed_data(),thr = threshold)
+       return(filtered_se)
+     } else {
+       return(processed_data())
+     }
+   })
+   
    unimputed_table<-reactive({
-     temp<-assay(processed_data())
+     temp<-assay(filtered_data())
      temp1<-2^(temp)
      colnames(temp1)<-paste(colnames(temp1),"original_intensity",sep="_")
      temp1<-cbind(ProteinID=rownames(temp1),temp1) 
@@ -451,15 +464,14 @@ server <- function(input, output, session) {
    })
    
    normalised_data<-reactive({
-     normalize_vsn(processed_data())
+     normalize_vsn(filtered_data())
    })
    
    imputed_data<-reactive({
      if (input$exp == "DIA") { # need a customized function here since DIA data has several slashs in the column
-      imputed <- impute_customized(processed_data(),input$imputation)
-      print(input$imputation)
+      imputed <- impute_customized(filtered_data(),input$imputation)
      } else {
-      imputed <- DEP::impute(processed_data(),input$imputation)
+      imputed <- DEP::impute(filtered_data(),input$imputation)
      }
      return(imputed)
    })
@@ -663,23 +675,23 @@ server <- function(input, output, session) {
    ## QC Inputs
    norm_input <- reactive({
      if (input$exp == "TMT") {
-       plot_normalization_customized(processed_data(),
+       plot_normalization_customized(filtered_data(),
                                      normalised_data())
      } else if (input$exp == "DIA") {
-       plot_normalization_DIA_customized(processed_data(),
+       plot_normalization_DIA_customized(filtered_data(),
                                      normalised_data())
      } else if (input$exp == "LFQ") {
-       plot_normalization(processed_data(),
+       plot_normalization(filtered_data(),
                           normalised_data())
      }
    })
    
    missval_input <- reactive({
-     plot_missval(processed_data())
+     plot_missval(filtered_data())
    })
    
    detect_input <- reactive({
-     plot_detect(processed_data())
+     plot_detect(filtered_data())
    })
    
    imputation_input <- reactive({
@@ -800,7 +812,6 @@ server <- function(input, output, session) {
   #### Data table
    output$contents <- DT::renderDataTable({
      df<- data_result()
-     print(df[df["Gene Name"] == "CA9",])
      return(df)
      },
      options = list(scrollX = TRUE,
@@ -1123,10 +1134,6 @@ output$download_hm_svg<-downloadHandler(
     heatmap_plot<-DEP::plot_heatmap(dep(),"centered", k=6, indicate = "condition")
     svg(file)
     print(heatmap_plot)
-    
-
-
-
     dev.off()
   }
 )
@@ -1255,121 +1262,64 @@ output$download_imp_svg<-downloadHandler(
 
   #### Occurrence page logic ####
   data_attendance<-reactive({
-    protein_data <- maxquant_data_input()
+    conditions <- colData(processed_data())$condition %>% unique()
     
-    #check maxquant columns    
-    if(length(grep("^LFQ.", colnames(protein_data))) !=0){
-      lfq_columns<-grep("LFQ.", colnames(protein_data))
-    }
-    else {
-      # Compatible for Fragpipe datasets without "MaxLFQ" columns
-      if(length(grep(".MaxLFQ.Intensity", colnames(protein_data))) !=0){
-        lfq_columns<-grep(".MaxLFQ.Intensity", colnames(protein_data))
-      } 
-      else {
-        # lfq_columns<-grep(".Total.Intensity", colnames(protein_data))
-        all_intentisy_cols <- grep(".Intensity", colnames(protein_data))
-        remove_cols <- grep("Unique.Intensity|Total.Intensity",colnames(protein_data))
-        lfq_columns <- setdiff(all_intentisy_cols, remove_cols)
-      }
-      
-    }
-    intensity_names <- colnames( protein_data[,lfq_columns]) 
     
-    needed_cols <- c("Protein.IDs", "Gene.names",intensity_names,"Protein.names", "Description",
-                     "Reverse", "Potential.contaminant", "Only.identified.by.site", "Razor...unique.peptides", "Unique.Stripped.Peptides")
-    df <- protein_data[,colnames(protein_data) %in% needed_cols]
-    df <- dplyr::relocate(df, "Description", .after = last_col())
+    df <- as.data.frame(assay(processed_data()))
+    sample_cols <- colnames(df)
     # MaxQuant Protein.names is Description in FragPipe output
     # MaxQuant Gene.names is Gene in FragPipe output
+    df$Gene <- rowData(processed_data())$Gene
+    df$Description <- rowData(processed_data())$Description
+    df$Combined.Total.Peptides <- as.data.frame(rowData(processed_data())["Combined Total Peptides"])
     
-    intensity_names_1 <- intensity_names %>% 
-      gsub("LFQ.intensity[.]", "", .)  %>% 
-      gsub(".Intensity", "", .)  %>% 
-      gsub(".MaxLFQ", "", .) %>% 
-      gsub(".Razor", "",.)
+    if ("" %in% df$Gene){
+      df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
+    if ("" %in% df$Description){
+      df$Description[df["Description"]==""] <- "NoProteinDescriptionAvailable"}
     
-    colnames(df)[colnames(df) %in% intensity_names] <- intensity_names_1
-    
-    # get conditions
-    exp_design <- exp_design_input()
-    conditions <- exp_design$condition %>% unique()
-    
-    # replace intensity column names
-    replace_protein <- paste("LFQ_intensity", exp_design$condition, exp_design$replicate,sep = "_") %>% unique()
-    print("replace protein")
-    print(replace_protein)
-    if (any(make.names(intensity_names_1) %in% make.names(exp_design$label))){
-      colnames(df)[colnames(df) %in% intensity_names_1] <- replace_protein[match(make.names(intensity_names_1), 
-                                                                                 make.names(exp_design$label), nomatch = 0)]
-    } else {
-      colnames(df)[colnames(df) %in% intensity_names_1] <- replace_protein[match(make.names(delete_prefix(intensity_names_1)), 
-                                                                                 make.names(delete_prefix(exp_design$label)), nomatch = 0)]
-    }
-    
-    # remove intensity columns not in experimental design file.
-    df <- df[!is.na(names(df))]
-    # filter if all intensity are 0
-    df <- df[rowSums(df[,grep("^LFQ_", colnames(df))]) != 0,]
-    
+    # filter if all intensity are NA
+    df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
     for (i in 1:length(conditions)) {
       condition <- conditions[i]
       pattern <- paste(condition,"[[:digit:]]",sep = "_")
-      df[paste0("#Occurences",sep = "_",condition)] <- rowSums(df %>% select(grep(pattern, colnames(df))) != 0)
-      
-      # change column order
-      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_",condition), .before = paste("LFQ_intensity", conditions[1],"1",sep = "_"), .after = NULL)
-      # print(colnames(df))
+      df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,grep(pattern, colnames(df))]))
+      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_",condition), .before = paste(conditions[1],"1",sep = "_"), .after = NULL)
       cols <- grep(paste0(condition, "$"),colnames(df))
-      
       if (!is.null(input[[paste0("",condition)]])){
         df <- df %>%
           dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
       }
     }
-    
-    if ("" %in% df$Gene.names){
-      df$Gene.names[df["Gene.names"]==""] <- "NoGeneNameAvailable"}
-    if ("" %in% df$Protein.names){
-      df$Protein.names[df["Protein.names"]==""] <- "NoProteinNameAvailable"}
     return(df)
   })
   
   data_attendance_filtered <- reactive({
-    filtered_data <- data_attendance()
-    if (is.null(input$filtered_condition_maxquant) & is.null(input$filtered_condition_fragpipe)) {
-      filtered_data <- filtered_data
+    data <- data_attendance()
+    if (!is.null(input$filtered_condition_fragpipe)) {
+      # if(("Reverse" %in% colnames(filtered_data)) & ('Reverse sequences' %in% input$filtered_condition_maxquant)){
+      #   filtered_data<-dplyr::filter(filtered_data,Reverse!="+")
+      # }
+      # else{filtered_data <-filtered_data}
+      # if(("Potential.contaminant" %in% colnames(filtered_data)) & ('Potential contaminants' %in% input$filtered_condition_maxquant)){
+      #   filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
+      # }
+      # else{filtered_data <-filtered_data}
+  
+      # if(("Only.identified.by.site" %in% colnames(filtered_data)) & ('"Only identified by site" Protein' %in% input$filtered_condition_maxquant)){
+      #   filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+")
+      # }
+      # else{filtered_data <-filtered_data}
+      # if(("Razor...unique.peptides" %in% colnames(filtered_data)) & ('Proteins with peptiedes < 2' %in% input$filtered_condition_maxquant)){
+      #   filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)
+      # }
+      # else{filtered_data <-filtered_data}
+  
+      if(('Proteins with more than two peptides' %in% input$filtered_condition_fragpipe)){
+        data <-dplyr::filter(data,Combined.Total.Peptides>=2)
+      }
     }
-    else {
-      if(("Reverse" %in% colnames(filtered_data)) & ('Reverse sequences' %in% input$filtered_condition_maxquant)){
-        filtered_data<-dplyr::filter(filtered_data,Reverse!="+")
-      }
-      else{filtered_data <-filtered_data}
-      if(("Potential.contaminant" %in% colnames(filtered_data)) & ('Potential contaminants' %in% input$filtered_condition_maxquant)){
-        filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
-      }
-      else{filtered_data <-filtered_data}
-      if(("Only.identified.by.site" %in% colnames(filtered_data)) & ('"Only identified by site" Protein' %in% input$filtered_condition_maxquant)){
-        filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+")
-      }
-      else{filtered_data <-filtered_data}
-      if(("Razor...unique.peptides" %in% colnames(filtered_data)) & ('Proteins with peptiedes < 2' %in% input$filtered_condition_maxquant)){
-        filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)
-      }
-      else{filtered_data <-filtered_data}
-      if(("Unique.Stripped.Peptides" %in% colnames(filtered_data)) & ('Proteins with peptiedes < 2' %in% input$filtered_condition_fragpipe)){
-        filtered_data <-dplyr::filter(filtered_data,as.numeric(Unique.Stripped.Peptides)>=2)
-      }
-      else{filtered_data <-filtered_data}
-    }
-    
-    colnames(filtered_data)[names(filtered_data) == "Razor...unique.peptides"] <- "#Peptides"
-    colnames(filtered_data)[names(filtered_data) == "Unique.Stripped.Peptides"] <- "#Peptides"
-    
-    drop_cols <- c("Reverse", "Potential.contaminant", "Only.identified.by.site")
-    filtered_data<- filtered_data[, !(colnames(filtered_data) %in% drop_cols)]
-    print(filtered_data)
-    return(filtered_data)
+    return(data)
   })
   
   #### Data table
@@ -1419,8 +1369,7 @@ output$download_imp_svg<-downloadHandler(
   ## Venn plot
   condition_list <- reactive({
     if(!is.null(exp_design_input())){
-      exp_design <- exp_design_input()
-      conditions <- exp_design$condition %>% unique() %>% sort()
+      conditions <- colData(processed_data())$condition %>% unique()
       return(conditions)
     }
   })
@@ -1469,14 +1418,14 @@ output$download_imp_svg<-downloadHandler(
     if(length(condition_list()) < 2){
       stop(safeError("Venn plot should contain at least two sets"))
     } else if(length(condition_list()) < 3){
-      set1 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
-      set2 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
+      set1 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
+      set2 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
       x <- list(set1,set2)
       names(x) <- c("Condition 1", "Condition 2")
     } else {
-      set1 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
-      set2 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
-      set3 <- df$Protein.IDs[df[grep(paste0("#Occurences",sep = "_",input$condition_3),colnames(df))] != 0]
+      set1 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
+      set2 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
+      set3 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_3),colnames(df))] != 0]
       x <- list(set1,set2,set3)
       names(x) <- c("Condition 1", "Condition 2", "Condition 3")
       if (!is.null(input$condition_3)){

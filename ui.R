@@ -441,8 +441,7 @@ ui <- function(request){shinyUI(
                               tags$h4("Subset Results Table"),
                               shinyWidgets::prettyCheckboxGroup("filtered_condition_fragpipe",
                                                                 "Filtered Condition",
-                                                                choices = c('Proteins with peptiedes < 2'
-                                                                ),
+                                                                choices = c('Proteins with more than two peptides'),
                                                                 shape = "round",
                                                                 selected = NULL,
                               ),
