@@ -19,6 +19,8 @@ server <- function(input, output, session) {
          hideTab(inputId = "tab_panels", target = "quantification_panel")
        } else {
          showTab(inputId = "tab_panels", target = "quantification_panel")
+         # make sure occ_panel visible after users updating their analysis
+         showTab(inputId = "tab_panels", target = "occ_panel")
          updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
        }
      }
