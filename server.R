@@ -27,7 +27,14 @@ server <- function(input, output, session) {
      showTab(inputId = "tab_panels", target = "quantification_panel")
      hideTab(inputId = "tab_panels", target = "occ_panel")
      updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-     # updateTabItems(session, "tabs_selected", selected = "analysis")
+     if (input$exp == "TMT") {
+       hideTab(inputId="qc_tabBox", target="norm_tab")
+       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
+     } else {
+       showTab(inputId="qc_tabBox", target="norm_tab")
+       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+     }
+     
    })
    
    # observeEvent(start_analysis(),{ 

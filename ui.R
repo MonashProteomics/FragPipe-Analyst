@@ -351,7 +351,7 @@ ui <- function(request){shinyUI(
           id="qc_tab",
           column(
             width=6,
-            tabBox(title = "QC Plots", width = 12,
+            tabBox(title = "QC Plots", width = 12, id="qc_tabBox",
                    tabPanel(title = "PCA Plot",
                             plotlyOutput("pca_plot", height=600)
                                            # downloadButton('download_pca_svg', "Save svg")
@@ -369,10 +369,10 @@ ui <- function(request){shinyUI(
                             plotOutput("numbers", height = 600),
                             downloadButton('download_num_svg', "Save svg")),
                    # conditionalPanel(condition="input.exp != 'TMT'",
-                   tabPanel(title = "Sample coverage",
+                   tabPanel(title = "Sample coverage", value="sample_coverage_tab",
                             plotOutput("coverage", height = 600),
                             downloadButton('download_cov_svg', "Save svg")),
-                   tabPanel(title = "Normalization",
+                   tabPanel(title = "Normalization", value="norm_tab",
                             plotOutput("norm", height = 600),
                             downloadButton('download_norm_svg', "Save svg")
                             ),
