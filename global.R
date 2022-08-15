@@ -17,6 +17,11 @@ library("ensembldb")
 library(EnsDb.Hsapiens.v86)
 library("conflicted")
 library("plotly")
+library("shinyWidgets")# new added
+library("ggVennDiagram") # new added
+library("rhandsontable") # new added
+library("shinyBS") # new added
+
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
 conflict_prefer("filter", "dplyr")
