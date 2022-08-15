@@ -364,7 +364,7 @@ ui <- function(request){shinyUI(
                            width=6,
                            tabBox(title = "QC Plots", width = 12,
                                   tabPanel(title = "PCA Plot",
-                                           plotOutput("pca_plot", height=600),
+                                           plotlyOutput("pca_plot", height=600),
                                            downloadButton('download_pca_svg', "Save svg")
                                   ),
                                   tabPanel(title="Sample Correlation",
@@ -718,7 +718,7 @@ ui <- function(request){shinyUI(
                                                width=6,
                                                tabBox(title = "QC Plots", width = 12,
                                                       tabPanel(title = "PCA Plot",
-                                                               plotOutput("pca_plot_dm"), height=600),
+                                                               plotlyOutput("pca_plot_dm"), height=600),
                                                       tabPanel(title="Sample Correlation",
                                                                plotOutput("sample_corr_dm", height = 600)
                                                       ),
