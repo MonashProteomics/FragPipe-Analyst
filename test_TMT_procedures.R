@@ -46,3 +46,6 @@ dep2 <- add_rejections(DE_result2, alpha=0.05, lfc=log2(1.5))
 data_results2 <- get_results_proteins(dep2, "TMT")
 # data_results <- get_results_customized(dep)
 data_results2[data_results2["Gene Name"] == "CA9",]
+
+plot_pca_plotly(DE_result, n=500, indicate = "condition", ID_col="label")
+

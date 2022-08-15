@@ -494,16 +494,23 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
   }
   
   if(length(indicate) == 1) {
-    p <- plot_ly(data=pca_df, x=~PC1, y=~PC2, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
+    p <- plot_ly(data=pca_df, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
       plotly::layout(title = 'PCA plot', xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")), yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"))) %>%
-      add_markers(color=~indicate[1])
+      # add_markers(color=as.formula(paste0("~", indicate[1])))
+      add_trace(type = "scatter",
+       x = ~PC1,
+       y = ~PC2,
+       color = as.formula(paste0('~', indicate[1])),
+       mode = 'markers',
+       legendgroup=indicate[1],
+       legendgrouptitle_text=indicate[1])
   }
   if(length(indicate) == 2) {
     p <- plot_ly(data=pca_df, type = 'scatter',
                  mode = 'markers', marker = list(size = point_size), text=~rowname) %>%
       #Overlay color for gears
       add_trace(type = "scatter",
-                x = ~PC1, 
+                x = ~PC1,
                 y = ~PC2,
                 symbol = as.formula(paste0('~', indicate[2])),
                 marker = list(color = "grey", size = point_size + 3),
@@ -511,7 +518,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                 legendgroup=indicate[2],
                 legendgrouptitle_text=indicate[2]) %>%
       add_trace(type = "scatter",
-                x = ~PC1, 
+                x = ~PC1,
                 y = ~PC2,
                 color = as.formula(paste0('~', indicate[1])),
                 mode = 'markers',
