@@ -1141,13 +1141,13 @@ output$download_hm_svg<-downloadHandler(
 #####===== Download Report =====#####
   output$downloadReport <- downloadHandler(
     # For PDF output, change this to "report.pdf"
-    filename = "LFQ-Analyst_report.pdf",
+    filename = "FragPipe-Analyst_report.pdf",
     content = function(file) {
       # Copy the report file to a temporary directory before processing it, in
       # case we don't have write permissions to the current working dir (which
       # can happen when deployed).
       tempReport <- file.path(tempdir(), "LFQ_report.Rmd")
-      file.copy("LFQ_report.Rmd", tempReport, overwrite = TRUE)
+      file.copy("./reports/LFQ_report.Rmd", tempReport, overwrite = TRUE)
       
       sig_proteins<-dep() %>%
         .[SummarizedExperiment::rowData(.)$significant, ] %>%
