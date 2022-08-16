@@ -195,7 +195,7 @@ server <- function(input, output, session) {
     ## Read input files on shiny server
     ## NOTE: have to use reactive framework, otherwise throws out error
     # observeEvent(input$analyze,{
-    #   maxquant_data<-reactive({
+    #   fragpipe_data<-reactive({
     #     inFile<-input$file1
     #     if(is.null(inFile))
     #       return(NULL)
@@ -208,12 +208,12 @@ server <- function(input, output, session) {
     # })
     
     ## make reactive elements
-    maxquant_data_input<-reactive({NULL})
+    fragpipe_data_input<-reactive({NULL})
     exp_design_input<-reactive({NULL})
     exp_design_example<-reactive({NULL})
-    maxquant_data_example<-reactive({NULL})
+    fragpipe_data_example<-reactive({NULL})
     
-    maxquant_data_input<-eventReactive(input$analyze,{
+    fragpipe_data_input<-eventReactive(input$analyze,{
       if (input$exp == "LFQ") {
         inFile <- input$lfq_expr
       } else if (input$exp == "TMT") {
@@ -311,7 +311,7 @@ server <- function(input, output, session) {
       # example_data<-reactive({
       #   load("data/example_data.RData", envir = .GlobalEnv)
       # })
-      # maxquant_data<-reactive({example_data[1]})
+      # fragpipe_data<-reactive({example_data[1]})
       # exp_design<-reactive({example_data[2]})
    #  env<-reactive({
    #    LoadToEnvironment("data/example_data.RData", env = globalenv())
@@ -319,7 +319,7 @@ server <- function(input, output, session) {
    # 
    #   observeEvent(input$load_data,{
    # # message(env()[["exp_design"]])
-   #     maxquant_data_example<-reactive({
+   #     fragpipe_data_example<-reactive({
    #     env()[["maxquant_output"]]
    #   })
    #   })
@@ -330,7 +330,7 @@ server <- function(input, output, session) {
    #  })
    # }) ## leave this commented
    #  
-   #  maxquant_data<-eventReactive(input$load_data,{
+   #  fragpipe_data<-eventReactive(input$load_data,{
    #    env()[['maxquant_output']]
    #  })
    # 
@@ -342,8 +342,8 @@ server <- function(input, output, session) {
 ### Reactive components
    processed_data<- eventReactive(start_analysis(),{
      ## check which dataset
-     if(!is.null (maxquant_data_input() )){
-       maxquant_data <- reactive({maxquant_data_input()})
+     if(!is.null (fragpipe_data_input() )){
+       fragpipe_data <- reactive({fragpipe_data_input()})
      }
      
      if(!is.null (exp_design_input() )){
@@ -352,7 +352,7 @@ server <- function(input, output, session) {
      
      
      message(exp_design())
-     filtered_data<-maxquant_data()
+     filtered_data<-fragpipe_data()
      if (input$exp == "LFQ"){
        # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
        # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
