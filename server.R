@@ -1051,6 +1051,21 @@ server <- function(input, output, session) {
   })
   
   ##### Download Functions
+  # example data
+  output$lfq_example <- downloadHandler(
+    filename="combined_protein.tsv",  # desired file name on client 
+    content=function(con) {
+      file.copy("./data/LFQ_datasets/ubiquitin/combined_protein.tsv", con)
+    }
+  )
+  
+  output$llfq_manifest <- downloadHandler(
+    filename="lfq_manifest.tsv",  # desired file name on client 
+    content=function(con) {
+      file.copy("./data/LFQ_datasets/ubiquitin/fp-manifest.tsv", con)
+    }
+  )
+  
   datasetInput <- reactive({
     switch(input$dataset,
            "Results" = get_results_proteins(dep()),

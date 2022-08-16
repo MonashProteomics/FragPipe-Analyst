@@ -26,12 +26,15 @@ ui <- function(request){shinyUI(
                                                '.tsv',
                                                '.fp-manifest')),
                                    tags$hr(),
-                                   p(a("Example LFQ data", target= "_blank",
-                                       href="data/LFQ_datasets/ubiquitin/combined_protein.tsv", 
-                                       download="combined_protein.tsv")),
-                                   p(a("Example Manifest", target= "_blank",
-                                       href="data/LFQ_datasets/ubiquitin/lfq_manifest.tsv", 
-                                       download="lfq_manifest.tsv"))
+                                   downloadLink("lfq_example", label="Example LFQ data"),
+                                   br(),
+                                   downloadLink("lfq_manifest", label="Example FragPipe Manifest")
+                                   # p(a("Example LFQ data", target= "_blank",
+                                   #     href="data/LFQ_datasets/ubiquitin/combined_protein.tsv", 
+                                   #     download="combined_protein.tsv")),
+                                   # p(a("Example Manifest", target= "_blank",
+                                   #     href="data/LFQ_datasets/ubiquitin/lfq_manifest.tsv", 
+                                   #     download="lfq_manifest.tsv"))
                                  ),
                                  conditionalPanel(
                                    condition = "input.exp == 'TMT'",
