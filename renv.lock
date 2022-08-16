@@ -155,23 +155,6 @@
         "snow"
       ]
     },
-    "BiocStyle": {
-      "Package": "BiocStyle",
-      "Version": "2.24.0",
-      "Source": "Bioconductor",
-      "git_url": "https://git.bioconductor.org/packages/BiocStyle",
-      "git_branch": "RELEASE_3_15",
-      "git_last_commit": "53095b5",
-      "git_last_commit_date": "2022-04-26",
-      "Hash": "7ba75b2a79d4efbf69dbcfc9334b5fa3",
-      "Requirements": [
-        "BiocManager",
-        "bookdown",
-        "knitr",
-        "rmarkdown",
-        "yaml"
-      ]
-    },
     "Biostrings": {
       "Package": "Biostrings",
       "Version": "2.64.0",
@@ -456,10 +439,10 @@
     },
     "MASS": {
       "Package": "MASS",
-      "Version": "7.3-56",
+      "Version": "7.3-58.1",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "af0e1955cb80bb36b7988cc657db261e",
+      "Hash": "762e1804143a332333c054759f89a706",
       "Requirements": []
     },
     "MSnbase": {
@@ -1935,10 +1918,10 @@
     },
     "nlme": {
       "Package": "nlme",
-      "Version": "3.1-157",
+      "Version": "3.1-159",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "dbca60742be0c9eddc5205e5c7ca1f44",
+      "Hash": "4a0b3a68f846cb999ff0e8e519524fbb",
       "Requirements": [
         "lattice"
       ]
