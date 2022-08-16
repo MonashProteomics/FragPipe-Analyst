@@ -66,10 +66,19 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
   }
   signif <- grep(paste("^",contrast, "_significant", sep = ""),
                  colnames(row_data))
+  # df_tmp <- data.frame(diff = row_data[, diff],
+  #                  p_values = -log10(row_data[, p_values]),
+  #                  signif = row_data[, signif],
+  #                  name = row_data$name)
+  
   df_tmp <- data.frame(diff = row_data[, diff],
-                   p_values = -log10(row_data[, p_values]),
-                   signif = row_data[, signif],
-                   name = row_data$name)
+                       p_values = -log10(row_data[, p_values]),
+                       signif = row_data[, signif],
+                       name = row_data$name,
+                       percent_imputation = paste0("(",round((row_data$num_NAs/length(colData(dep)$label))*100,1),"%)"))
+  
+  df_tmp$percent_imputation[df_tmp$percent_imputation=="(0%)"] <- ""
+  
    df<- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
     arrange(signif)
   
@@ -94,7 +103,8 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
   if (add_names) {
     p <- p + ggrepel::geom_text_repel(data = filter(df, signif),
-                                      aes(label = name),
+                                      # aes(label = name),
+                                      aes(label = paste(name,percent_imputation)),
                                       size = label_size,
                                       box.padding = unit(0.1, 'lines'),
                                       point.padding = unit(0.1, 'lines'),
@@ -190,23 +200,21 @@ get_volcano_df <- function(dep, contrast, adjusted = FALSE) {
 }
 
 ### Function to plot intensities of individual proteins
-plot_protein<-function(dep, protein, type, id="ID"){
+plot_protein<-function(dep, protein, type){
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
                           is.character(protein),
                           is.character(type))
-  print(id)
   subset<-dep[protein]
   
   df_reps <- data.frame(assay(subset)) %>%
     rownames_to_column() %>%
     gather(ID, val, -rowname) %>%
-    left_join(., data.frame(colData(subset)), by = c("ID"=id))
-  
+    left_join(., data.frame(colData(subset)), by = "ID")
   df_reps$rowname <- parse_factor(as.character(df_reps$rowname), levels = protein)
   
   df_CI<- df_reps %>%
     group_by(condition, rowname) %>%
-    summarize(mean = mean(val, na.rm = TRUE),
+    dplyr::summarize(mean = mean(val, na.rm = TRUE),
               sd = sd(val, na.rm = TRUE),
               n = n()) %>%
     mutate(error = qnorm(0.975) * sd / sqrt(n),
@@ -342,12 +350,22 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
   }
   signif <- grep(paste("^",contrast, "_significant", sep = ""),
                  colnames(row_data))
+  # df <- data.frame(x = row_data[, diff],
+  #                  y = -log10(row_data[, p_values]),
+  #                  significant = row_data[, signif],
+  #                  name = row_data$name) %>%
+  #   filter(!is.na(significant)) %>%
+  #   arrange(significant)
+  
   df <- data.frame(x = row_data[, diff],
                    y = -log10(row_data[, p_values]),
                    significant = row_data[, signif],
-                   name = row_data$name) %>%
+                   name = row_data$name,
+                   percent_imputation = paste0("(",round((row_data$num_NAs/length(colData(dep)$label))*100,1),"%)")) %>%
     filter(!is.na(significant)) %>%
     arrange(significant)
+  
+  df$percent_imputation[df$percent_imputation=="(0%)"] <- ""
   
   name1 <- gsub("_vs_.*", "", contrast)
   name2 <- gsub(".*_vs_", "", contrast)
@@ -370,7 +388,8 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
   if (add_names) {
     p <- p + ggrepel::geom_text_repel(data = filter(df, significant),
-                                      aes(label = name),
+                                      # aes(label = name),
+                                      aes(label = paste(name,percent_imputation)),
                                       size = label_size,
                                       box.padding = unit(0.1, 'lines'),
                                       point.padding = unit(0.1, 'lines'),
@@ -395,3 +414,49 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
   }
 }
 
+### Function to plot protein mean abundance and rank
+plot_abundance <- function(df, contrast, plot = TRUE) {
+  
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(
+    # inherits(df, "SummarizedExperiment"),
+    is.character(contrast),
+    length(contrast) == 1,
+    is.logical(plot),
+    length(plot) == 1)
+  
+  # Comparison of mean protein abundance
+  selected_contrast = contrast
+  contrast1 <- selected_contrast %>% gsub("_vs.*", "",.)
+  contrast2 <- selected_contrast %>% gsub("^.*vs_", "",.)
+  
+  x_index <- grep(paste("^mean",contrast1, sep = "_"), colnames(df))
+  y_index <- grep(paste("^mean",contrast2, sep = "_"), colnames(df))
+  mean_index <- grep("mean_abundance", colnames(df))
+  
+  p_rank <- df %>%
+    ggplot(aes(x = rank, y=mean_abundance)) + 
+    geom_point(shape = 1) +
+    labs(x = "Protein Rank",
+         y = "Mean Abundance") + 
+    ylim(min(df[,x_index],df[,y_index],df[,mean_index]), max(df[,x_index],df[,y_index],df[,mean_index])) +
+    theme_DEP1() +
+    scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
+  
+  p_comparison <- df %>% 
+    ggplot(aes(x = df[,x_index],
+               y = df[,y_index])) + 
+    geom_point() +
+    labs(x = paste("Mean abundance for ", contrast1, sep = ""),
+         y = paste("Mean abundance for ", contrast2, sep = "")) +
+    xlim(min(df[,x_index],df[,y_index],df[,mean_index]), max(df[,x_index],df[,y_index],df[,mean_index])) +
+    ylim(min(df[,x_index],df[,y_index],df[,mean_index]), max(df[,x_index],df[,y_index],df[,mean_index])) +
+    geom_abline(slope=1,intercept=0, linetype = "dashed") + 
+    geom_point(shape = 1,aes(alpha = 1/10)) +
+    theme_DEP1() +
+    theme(legend.position="none") +
+    scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
+  
+  p_list <- list(p_rank,p_comparison)
+  return(p_list)
+}

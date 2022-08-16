@@ -1,4 +1,4 @@
-R version 3.4.3 (2017-11-30)
+R version 4.2.0 (2022-04-22)
 Platform: x86_64-pc-linux-gnu (64-bit)
 Running under: Ubuntu 16.04.3 LTS
 

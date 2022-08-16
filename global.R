@@ -13,20 +13,14 @@ library("ggrepel")
 library("httr")
 library("rjson")
 library("svglite")
-library("ensembldb")
-library(EnsDb.Hsapiens.v86)
-library("conflicted")
-library("plotly")
-library("shinyWidgets")# new added
-library("ggVennDiagram") # new added
 library("rhandsontable") # new added
 library("shinyBS") # new added
+source("R/functions.R")
+source("R/volcano_function.R")
+source("R/tests.R")
+source("R/demo_functions.R")
+source("R/enrichment_functions.R")
+library("shinyWidgets")# new added
+library("ggVennDiagram") # new added
 
-conflict_prefer("box", "shinydashboard")
-conflict_prefer("select", "dplyr")
-conflict_prefer("filter", "dplyr")
-# source("R/functions.R")
-# source("R/volcano_function.R")
-# source("R/tests.R")
-# source("R/demo_functions.R")
-# source("R/enrichment_functions.R")
+

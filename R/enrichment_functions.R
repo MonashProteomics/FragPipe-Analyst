@@ -1,11 +1,5 @@
 enrichr_mod <- function(genes, databases = NULL) {
-  # TODO: check gene type
-  if (all(startsWith(genes, "ENSG"))) {
-    genes_map <- ensembldb::select(EnsDb.Hsapiens.v86,
-                               keys= genes, keytype = "GENEID", columns = c("SYMBOL","GENEID"))
-    genes <- genes_map$SYMBOL
-  }
-  httr::set_config(httr::config(ssl_verifypeer = 0L))
+httr::set_config(httr::config(ssl_verifypeer = 0L))    
   cat("Uploading data to Enrichr... ")
   if (is.vector(genes) & ! all(genes == "") & length(genes) != 0) {
     temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
