@@ -49,3 +49,8 @@ data_results2[data_results2["Gene Name"] == "CA9",]
 
 plot_pca_plotly(DE_result, n=500, indicate = "condition", ID_col="label")
 
+tested_contrasts<- gsub("_p.adj", "", 
+                        colnames(SummarizedExperiment::rowData(dep2))[grep("p.adj",
+                                                                           colnames(SummarizedExperiment::rowData(dep2)))])
+
+plot_volcano_customized(dep2, contrast = tested_contrasts[1],label_size = 2, add_names = F)

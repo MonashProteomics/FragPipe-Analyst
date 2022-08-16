@@ -563,13 +563,36 @@ server <- function(input, output, session) {
      } else {
          if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
            pca_plot<- plot_pca_plotly(dep(), ID_col=ID_col)
-           return(pca_plot)
          }
          else{
-           #pca_label<-SummarizedExperiment::colData(dep())$replicate
            pca_plot<-plot_pca_plotly(dep(), indicate = "condition", ID_col=ID_col)
-           #pca_plot<-pca_plot + geom_point()
          }
+     }
+     return(pca_plot)
+   })
+   
+   pca_static_input <- eventReactive(input$analyze ,{ 
+     if(input$analyze==0 | !start_analysis()){
+       return()
+     }
+     if (input$exp == "TMT" | input$exp == "DIA"){
+       ID_col <- "label"
+     } else if (input$exp == "LFQ") {
+       ID_col <- "ID"
+     }
+     if (num_total()<=500){
+       if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
+         pca_plot<- plot_pca_customized(dep(), n=num_total(), ID_col=ID_col) + labs(title = "PCA Plot")
+       } else{
+         pca_plot<- plot_pca_customized(dep(), n=num_total(), indicate = "condition", ID_col=ID_col)  + labs(title = "PCA Plot")
+       }
+     } else {
+       if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
+         pca_plot<-plot_pca_customized(dep(), ID_col=ID_col) + labs(title = "PCA Plot")
+       }
+       else{
+         pca_plot <-plot_pca_customized(dep(), indicate = "condition", ID_col=ID_col)  + labs(title = "PCA Plot")
+       }
      }
      return(pca_plot)
    })
@@ -1168,8 +1191,8 @@ output$download_hm_svg<-downloadHandler(
                      detect_input = detect_input,
                      imputation_input = imputation_input,
                      missval_input = missval_input,
-                     p_hist_input = p_hist_input,
-                     pca_input = pca_input,
+                     # p_hist_input = p_hist_input,
+                     pca_input = pca_static_input,
                      coverage_input= coverage_input,
                      correlation_input =correlation_input,
                      heatmap_input = heatmap_input,
