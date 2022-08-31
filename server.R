@@ -1068,7 +1068,7 @@ server <- function(input, output, session) {
   
   datasetInput <- reactive({
     switch(input$dataset,
-           "Results" = get_results_proteins(dep()),
+           "Results" = get_results_proteins(dep(), input$exp),
            "Original_matrix"= unimputed_table(),
            # "significant_proteins" = get_results(dep()) %>%
            #   filter(significant) %>%
