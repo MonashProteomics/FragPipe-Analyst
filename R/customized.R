@@ -786,7 +786,7 @@ plot_numbers_customized <- function(se, plot = TRUE) {
 
 plot_numbers_by_plex_set <- function(se, ...) {
   assertthat::assert_that(inherits(se, "SummarizedExperiment"))
-  unique_plexes <- unique(colData(se)$Plex)
+  unique_plexes <- unique(colData(se)$plex)
   prot_v <- c()
   for(i in 1:length(unique_plexes)){
     n_prot <- assay(se[, se$Plex == unique_plexes[i]]) %>%

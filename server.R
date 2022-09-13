@@ -279,6 +279,15 @@ server <- function(input, output, session) {
                               header = T,
                               sep="\t",
                               stringsAsFactors = FALSE)
+        # To support txt file
+        if (ncol(temp_df) == 1){
+          temp_df <- read.table(inFile$datapath,
+                                header = T,
+                                sep=" ",
+                                stringsAsFactors = FALSE)
+        }
+        # change it to lower case
+        colnames(temp_df) <- tolower(colnames(temp_df))
       } else if (input$exp == "LFQ"){
         temp_df <- read.table(inFile$datapath,
                               header = F,
