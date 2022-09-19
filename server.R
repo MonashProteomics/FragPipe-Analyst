@@ -793,9 +793,10 @@ server <- function(input, output, session) {
     enrichment_output_test(dep(), as.character(input$go_database))
     go_results<- test_gsea_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE)
     null_enrichment_test(go_results)
-    plot_go<- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts =input$contrast,
-    databases = as.character(input$go_database), nrow = 2, term_size = 8) + aes(stringr::str_wrap(Term, 60)) +
-     xlab(NULL)
+    plot_go <- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts =input$contrast,
+                               databases = as.character(input$go_database), nrow = 2, term_size = 8) + 
+      aes(stringr::str_wrap(Term, 60)) +
+      xlab(NULL)
     go_list<-list("go_result"=go_results, "plot_go"=plot_go)
     return(go_list)
     }
