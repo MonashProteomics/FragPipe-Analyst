@@ -418,7 +418,7 @@ server <- function(input, output, session) {
        # }
        # filtered_se <- filter_missval(data_se,thr = threshold)
        # return(filtered_se)
-     } else {
+     } else { # TMT
        temp_exp_design <- exp_design()
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
        temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
@@ -477,7 +477,9 @@ server <- function(input, output, session) {
    })
    
    imputed_data<-reactive({
-     if (input$exp == "DIA") { # need a customized function here since DIA data has several slashs in the column
+     if (input$exp == "DIA" | input$exp == "TMT") {
+       # need a customized function here since DIA data has several slashs in the column
+       # TMT report might has same issue for earlier version of FragPipe (<= 18.0)
       imputed <- impute_customized(filtered_data(),input$imputation)
      } else {
       imputed <- DEP::impute(filtered_data(),input$imputation)
