@@ -480,7 +480,11 @@ server <- function(input, output, session) {
    })
    
    imputed_data<-reactive({
-     if (input$exp == "DIA" | input$exp == "TMT") {
+     if (input$imputation == "none"){
+       imputed <- filtered_data()
+       rowData(imputed)$imputed <- apply(is.na(assay(filtered_data())), 1, any)
+       rowData(imputed)$num_NAs <- rowSums(is.na(assay(filtered_data())))
+     } else if (input$exp == "DIA" | input$exp == "TMT") {
        # need a customized function here since DIA data has several slashs in the column
        # TMT report might has same issue for earlier version of FragPipe (<= 18.0)
       imputed <- impute_customized(filtered_data(),input$imputation)
