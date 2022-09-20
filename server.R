@@ -791,12 +791,10 @@ server <- function(input, output, session) {
      
     if(!is.null(input$contrast)){
     enrichment_output_test(dep(), as.character(input$go_database))
-    go_results<- test_gsea_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE)
+    go_results <- test_gsea_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE)
     null_enrichment_test(go_results)
-    plot_go <- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts =input$contrast,
-                               databases = as.character(input$go_database), nrow = 2, term_size = 8) + 
-      aes(stringr::str_wrap(Term, 60)) +
-      xlab(NULL)
+    plot_go <- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts = input$contrast,
+                               databases = as.character(input$go_database), nrow = 2, term_size = 8)
     go_list<-list("go_result"=go_results, "plot_go"=plot_go)
     return(go_list)
     }
@@ -805,11 +803,10 @@ server <- function(input, output, session) {
    pathway_input<-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
      enrichment_output_test(dep(), as.character(input$pathway_database))
-     pathway_results<- test_gsea_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE)
+     pathway_results <- test_gsea_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE)
      null_enrichment_test(pathway_results)
      plot_pathway<-plot_enrichment(pathway_results, number = 5, alpha = 0.05, contrasts =input$contrast_1,
-               databases=as.character(input$pathway_database), nrow = 3, term_size = 8) + aes(stringr::str_wrap(Term, 30)) +
-       xlab(NULL)
+               databases=as.character(input$pathway_database), nrow = 3, term_size = 8)
      pathway_list<-list("pa_result"=pathway_results, "plot_pa"=plot_pathway)
      return(pathway_list)
      })
