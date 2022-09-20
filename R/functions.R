@@ -605,24 +605,25 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
          call. = FALSE)
   }
   
+  no_enrichment_text <- paste("\n   No enrichment found.\n",
+               "       You can still download enrichment result table. \n")
+  
   if(!is.null(contrasts)) {
     assertthat::assert_that(is.character(contrasts))
+    
     
     valid_contrasts <- unique(gsea_results$contrast)
     
     if(!all(contrasts %in% valid_contrasts)) {
-      valid_cntrsts_msg <- paste0("Valid contrasts are: '",
-                                  paste0(valid_contrasts, collapse = "', '"),
-                                  "'")
-      stop("Not a valid contrast, please run `plot_gsea()`",
-           "with a valid contrast as argument. Invalid contrast might be due to no enrichment found.\n",
-           valid_cntrsts_msg,
-           call. = FALSE)
+      return(ggplot() +
+               annotate("text", x = 4, y = 25, size=8, label = no_enrichment_text) + 
+               theme_void()
+      )
     }
     if(!any(contrasts %in% valid_contrasts)) {
       contrasts <- contrasts[contrasts %in% valid_contrasts]
       message("Not all contrasts found",
-              "\nPlotting the following contrasts: '",
+              "\n Following contrasts are found: '",
               paste0(contrasts, collapse = "', '"), "'")
     }
     
@@ -667,10 +668,8 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   subset$var <- readr::parse_factor(subset$var, levels = unique(subset$var))
 
   if (nrow(subset) == 0) {
-    text = paste("\n   No enrichment found.\n",
-                 "       You can still download enrichment result table. \n")
     return(ggplot() +
-             annotate("text", x = 4, y = 25, size=8, label = text) + 
+             annotate("text", x = 4, y = 25, size=8, label = no_enrichment_text) + 
              theme_void()
            )
   } else {
