@@ -789,7 +789,7 @@ plot_numbers_by_plex_set <- function(se, ...) {
   unique_plexes <- unique(colData(se)$plex)
   prot_v <- c()
   for(i in 1:length(unique_plexes)){
-    n_prot <- assay(se[, se$Plex == unique_plexes[i]]) %>%
+    n_prot <- assay(se[, se$plex == unique_plexes[i]]) %>%
       data.frame() %>%
       filter(if_all(everything(), ~!is.na(.))) %>%
       nrow()
