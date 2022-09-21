@@ -563,7 +563,7 @@ get_results_proteins <- function(dep, exp) {
     table<-as.data.frame(row_data) %>% 
       dplyr::select(name, imputed, num_NAs, Description) %>%
       dplyr::left_join(table, ., by = "name")
-  } else if (exp == "TMT") {
+  } else if (exp == "TMT" | exp == "DIA") {
     table<-as.data.frame(row_data) %>% 
       dplyr::select(name, imputed, num_NAs) %>%
       dplyr::left_join(table, ., by = "name")
@@ -605,24 +605,25 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
          call. = FALSE)
   }
   
+  no_enrichment_text <- paste("\n   No enrichment found.\n",
+               "       You can still download enrichment result table. \n")
+  
   if(!is.null(contrasts)) {
     assertthat::assert_that(is.character(contrasts))
+    
     
     valid_contrasts <- unique(gsea_results$contrast)
     
     if(!all(contrasts %in% valid_contrasts)) {
-      valid_cntrsts_msg <- paste0("Valid contrasts are: '",
-                                  paste0(valid_contrasts, collapse = "', '"),
-                                  "'")
-      stop("Not a valid contrast, please run `plot_gsea()`",
-           "with a valid contrast as argument\n",
-           valid_cntrsts_msg,
-           call. = FALSE)
+      return(ggplot() +
+               annotate("text", x = 4, y = 25, size=8, label = no_enrichment_text) + 
+               theme_void()
+      )
     }
     if(!any(contrasts %in% valid_contrasts)) {
       contrasts <- contrasts[contrasts %in% valid_contrasts]
       message("Not all contrasts found",
-              "\nPlotting the following contrasts: '",
+              "\n Following contrasts are found: '",
               paste0(contrasts, collapse = "', '"), "'")
     }
     
@@ -665,19 +666,28 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   
   subset$Term <- readr::parse_factor(subset$Term, levels = unique(subset$Term))
   subset$var <- readr::parse_factor(subset$var, levels = unique(subset$var))
-  
-  # Plot top enriched gene sets
-  return(ggplot(subset, aes(Term,
-                     y=-log10(`Adjusted.P.value`))) +
-    geom_col(aes(fill = log_odds )) +
-    facet_wrap(~contrast, nrow = nrow) +
-    coord_flip() +
-    labs(y = "-Log10 adjusted p-value",
-         fill = "Log2 odds ratio (vs. current background)") +
-    theme_bw() +
-    theme(legend.position = "top",
-          legend.text = element_text(size = 9)) +
-    scale_fill_distiller(palette="Spectral"))
+
+  if (nrow(subset) == 0) {
+    return(ggplot() +
+             annotate("text", x = 4, y = 25, size=8, label = no_enrichment_text) + 
+             theme_void()
+           )
+  } else {
+    # Plot top enriched gene sets
+    return(ggplot(subset, aes(Term,
+                              y=-log10(`Adjusted.P.value`))) +
+             geom_col(aes(fill = log_odds )) +
+             facet_wrap(~contrast, nrow = nrow) +
+             coord_flip() +
+             labs(y = "-Log10 adjusted p-value",
+                  fill = "Log2 odds ratio (vs. current background)") +
+             theme_bw() +
+             theme(legend.position = "top",
+                   legend.text = element_text(size = 9)) +
+             scale_fill_distiller(palette="Spectral") + 
+             aes(stringr::str_wrap(Term, 60)) +
+             xlab(NULL))
+  }
 }
                                   
 #### ==== get prefix function 

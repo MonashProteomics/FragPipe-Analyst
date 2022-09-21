@@ -789,7 +789,7 @@ plot_numbers_by_plex_set <- function(se, ...) {
   unique_plexes <- unique(colData(se)$plex)
   prot_v <- c()
   for(i in 1:length(unique_plexes)){
-    n_prot <- assay(se[, se$Plex == unique_plexes[i]]) %>%
+    n_prot <- assay(se[, se$plex == unique_plexes[i]]) %>%
       data.frame() %>%
       filter(if_all(everything(), ~!is.na(.))) %>%
       nrow()
@@ -1347,7 +1347,7 @@ impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE",
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(se, "SummarizedExperiment"),
                           is.character(fun))
-  
+
   # Show error if inputs do not contain required columns
   fun <- match.arg(fun)
   
@@ -1358,6 +1358,10 @@ impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE",
          call. = FALSE)
   }
   
+  # Annotate whether or not there are missing values and how many
+  rowData(se)$imputed <- apply(is.na(assay(se)), 1, any)
+  rowData(se)$num_NAs <- rowSums(is.na(assay(se)))
+  
   # Show error if there are no missing values
   if(!any(is.na(assay(se)))) {
     warning("No missing values in '", deparse(substitute(se)), "'. ",
@@ -1366,11 +1370,7 @@ impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE",
     return(se)
   }
   
-  # Annotate whether or not there are missing values and how many
-  rowData(se)$imputed <- apply(is.na(assay(se)), 1, any)
-  rowData(se)$num_NAs <- rowSums(is.na(assay(se)))
-  
-  # if the "man" function is selected, use the manual impution method
+  # if the "man" function is selected, use the manual imputation method
   if(fun == "man") {
     se <- manual_impute_customized(se, ...)
   }

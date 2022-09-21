@@ -418,7 +418,7 @@ server <- function(input, output, session) {
        # }
        # filtered_se <- filter_missval(data_se,thr = threshold)
        # return(filtered_se)
-     } else {
+     } else { # TMT
        temp_exp_design <- exp_design()
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
        temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
@@ -477,7 +477,9 @@ server <- function(input, output, session) {
    })
    
    imputed_data<-reactive({
-     if (input$exp == "DIA") { # need a customized function here since DIA data has several slashs in the column
+     if (input$exp == "DIA" | input$exp == "TMT") {
+       # need a customized function here since DIA data has several slashs in the column
+       # TMT report might has same issue for earlier version of FragPipe (<= 18.0)
       imputed <- impute_customized(filtered_data(),input$imputation)
      } else {
       imputed <- DEP::impute(filtered_data(),input$imputation)
@@ -789,11 +791,10 @@ server <- function(input, output, session) {
      
     if(!is.null(input$contrast)){
     enrichment_output_test(dep(), as.character(input$go_database))
-    go_results<- test_gsea_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE)
+    go_results <- test_gsea_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE)
     null_enrichment_test(go_results)
-    plot_go<- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts =input$contrast,
-    databases = as.character(input$go_database), nrow = 2, term_size = 8) + aes(stringr::str_wrap(Term, 60)) +
-     xlab(NULL)
+    plot_go <- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts = input$contrast,
+                               databases = as.character(input$go_database), nrow = 2, term_size = 8)
     go_list<-list("go_result"=go_results, "plot_go"=plot_go)
     return(go_list)
     }
@@ -802,11 +803,10 @@ server <- function(input, output, session) {
    pathway_input<-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
      enrichment_output_test(dep(), as.character(input$pathway_database))
-     pathway_results<- test_gsea_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE)
+     pathway_results <- test_gsea_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE)
      null_enrichment_test(pathway_results)
      plot_pathway<-plot_enrichment(pathway_results, number = 5, alpha = 0.05, contrasts =input$contrast_1,
-               databases=as.character(input$pathway_database), nrow = 3, term_size = 8) + aes(stringr::str_wrap(Term, 30)) +
-       xlab(NULL)
+               databases=as.character(input$pathway_database), nrow = 3, term_size = 8)
      pathway_list<-list("pa_result"=pathway_results, "plot_pa"=plot_pathway)
      return(pathway_list)
      })

@@ -1,42 +1,55 @@
 enrichr_mod <- function(genes, databases = NULL) {
-  # TODO: check gene type
-  if (all(startsWith(genes, "ENSG"))) {
-    genes_map <- ensembldb::select(EnsDb.Hsapiens.v86,
-                               keys= genes, keytype = "GENEID", columns = c("SYMBOL","GENEID"))
-    genes <- genes_map$SYMBOL
-  }
-  httr::set_config(httr::config(ssl_verifypeer = 0L))
-  cat("Uploading data to Enrichr... ")
-  if (is.vector(genes) & ! all(genes == "") & length(genes) != 0) {
-    temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
-                 body=list(list=paste(genes, collapse="\n")))
-  } else if (is.data.frame(genes)) {
-    temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
-                 body=list(list=paste(paste(genes[,1], genes[,2], sep=","),
-                                      collapse="\n")))
-  } else {
-    warning("genes must be a non-empty vector of gene names or a dataframe with genes and score.")
-  }
-  GET(url="http://maayanlab.cloud/Enrichr/share")
-  cat("Done.\n")
-  dbs <- as.list(databases)
-  dfSAF <- options()$stringsAsFactors
-  options(stringsAsFactors = FALSE)
-  result <- lapply(dbs, function(x) {
-    cat("  Querying ", x, "... ", sep="")
-    r <- GET(url="http://maayanlab.cloud/Enrichr/export",
-             query=list(file="API", backgroundType=x))
-    r <- gsub("&#39;", "'", intToUtf8(r$content))
-    tc <- textConnection(r)
-    r <- read.table(tc, sep = "\t", header = TRUE, quote = "", comment.char="")
-    close(tc)
+  # check gene type
+  if (length(genes) != 0){
+    if (all(startsWith(genes, "ENSG"))) {
+      genes_map <- ensembldb::select(EnsDb.Hsapiens.v86,
+                                 keys= genes, keytype = "GENEID", columns = c("SYMBOL","GENEID"))
+      genes <- genes_map$SYMBOL
+    }
+    httr::set_config(httr::config(ssl_verifypeer = 0L))
+    cat("Uploading data to Enrichr... ")
+    if (is.vector(genes) & ! all(genes == "") & length(genes) != 0) {
+      temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
+                   body=list(list=paste(genes, collapse="\n")))
+    } else if (is.data.frame(genes)) {
+      temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
+                   body=list(list=paste(paste(genes[,1], genes[,2], sep=","),
+                                        collapse="\n")))
+    } else {
+      warning("genes must be a non-empty vector of gene names or a dataframe with genes and score.")
+    }
+    GET(url="http://maayanlab.cloud/Enrichr/share")
     cat("Done.\n")
-    return(r)
-  })
-  options(stringsAsFactors = dfSAF)
-  cat("Parsing results... ")
-  names(result) <- dbs
-  cat("Done.\n")
+    dbs <- as.list(databases)
+    dfSAF <- options()$stringsAsFactors
+    options(stringsAsFactors = FALSE)
+    result <- lapply(dbs, function(x) {
+      cat("  Querying ", x, "... ", sep="")
+      r <- GET(url="http://maayanlab.cloud/Enrichr/export",
+               query=list(file="API", backgroundType=x))
+      r <- gsub("&#39;", "'", intToUtf8(r$content))
+      tc <- textConnection(r)
+      r <- read.table(tc, sep = "\t", header = TRUE, quote = "", comment.char="")
+      close(tc)
+      cat("Done.\n")
+      return(r)
+    })
+    options(stringsAsFactors = dfSAF)
+    cat("Parsing results... ")
+    names(result) <- dbs
+    cat("Done.\n")
+  } 
+  else { # no genes provided
+    result <- data.frame(Term=character(),
+                         Overlap=character(),
+                         P.value=double(),
+                         Adjusted.P.value=double(),
+                         Old.P.value=double(),
+                         Old.Adjusted.P.value=double(),
+                         Odds.Ratio=double(),
+                         Combined.Score=double(),
+                         Genes=character())
+  }
   return(result)
 }
 
@@ -102,30 +115,34 @@ test_gsea_mod <- function(dep,
       message(gsub("_significant", "", contrast))
       significant <- df[df[[contrast]],]
       genes <- significant$name
-      enriched <- enrichr_mod(genes, databases)
-      
-      # Tidy output
-      contrast_enrich <- NULL
-      for(database in databases) {
-        temp <- enriched[database][[1]] %>%
-          mutate(var = database)
-        contrast_enrich <- rbind(contrast_enrich, temp)
+      if (length(genes) != 0){
+        enriched <- enrichr_mod(genes, databases)
+        
+        # Tidy output
+        contrast_enrich <- NULL
+        for(database in databases) {
+          temp <- enriched[database][[1]] %>%
+            mutate(var = database)
+          contrast_enrich <- rbind(contrast_enrich, temp)
+        }
+        if (nrow(contrast_enrich) != 0) { # has enrichment
+          contrast_enrich$contrast <- contrast
+          contrast_enrich$n <- length(genes)
+          # Background correction
+          cat("Background correction... ")
+          contrast_enrich <- contrast_enrich %>%
+            mutate(IN = as.numeric(gsub("/.*", "", Overlap)),
+                   OUT = n - IN) %>%
+            select(-n) %>%
+            left_join(OUT, by = "Term") %>%
+            mutate(log_odds = log2((IN * bg_OUT) / (OUT * bg_IN)))
+          cat("Done.")
+        }
+        df_enrich <- rbind(df_enrich, contrast_enrich) %>%
+          mutate(contrast = gsub("_significant", "", contrast))
+      } else {
+        cat("No significant genes for enrichment analysis")
       }
-      contrast_enrich$contrast <- contrast
-      contrast_enrich$n <- length(genes)
-      
-      # Background correction
-      cat("Background correction... ")
-      contrast_enrich <- contrast_enrich %>%
-        mutate(IN = as.numeric(gsub("/.*", "", Overlap)),
-               OUT = n - IN) %>%
-        select(-n) %>%
-        left_join(OUT, by = "Term") %>%
-        mutate(log_odds = log2((IN * bg_OUT) / (OUT * bg_IN)))
-      cat("Done.")
-      
-      df_enrich <- rbind(df_enrich, contrast_enrich) %>%
-        mutate(contrast = gsub("_significant", "", contrast))
     }
   } else {
     # Get gene symbols
