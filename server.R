@@ -1072,7 +1072,7 @@ server <- function(input, output, session) {
     }
   )
   
-  output$llfq_manifest <- downloadHandler(
+  output$lfq_manifest <- downloadHandler(
     filename="lfq_manifest.tsv",  # desired file name on client 
     content=function(con) {
       file.copy("./data/LFQ_datasets/ubiquitin/fp-manifest.tsv", con)
