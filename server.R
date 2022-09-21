@@ -288,6 +288,10 @@ server <- function(input, output, session) {
         }
         # change it to lower case
         colnames(temp_df) <- tolower(colnames(temp_df))
+        validate(need(try(test_TMT_annotation(temp_df)),
+                           paste0("The input annotation file should have following columns: ",
+                                  "channel, label, plex, replicate, condition\n",
+                                  "your current input annotation file is with following columns: ", paste(colnames(temp_df), collapse=", "))))
       } else if (input$exp == "LFQ"){
         temp_df <- read.table(inFile$datapath,
                               header = F,
