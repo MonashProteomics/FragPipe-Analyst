@@ -76,7 +76,7 @@ ui <- function(request){shinyUI(
                           radioButtons("imputation",
                                        "Imputation type",
                                        choices = c("Perseus-type"="man", MsCoreUtils::imputeMethods())[1:9],
-                                       selected = "man"),
+                                       selected = "MLE"),
                           
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
