@@ -20,6 +20,12 @@ RUN apt-get update && apt-get install -yq \
 RUN Rscript -e 'install.packages("renv")'
 COPY ./ /srv/shiny-server/fragpipe-analyst
 WORKDIR /srv/shiny-server/fragpipe-analyst
+<<<<<<< HEAD
 ### RUN Rscript -e 'renv::init()' # This is already run and pushed to github.
 RUN Rscript -e 'renv::restore()'
 RUN chmod -R +r /srv/shiny-server/fragpipe-analyst
+=======
+### RUN Rscript -e 'renv::init()'
+RUN Rscript -e 'renv::restore()'
+RUN chmod -R +r /srv/shiny-server/fragpipe-analyst
+>>>>>>> 94d3c5fbbcd9d9ca73a7d2e17eb4d06c262d3794
