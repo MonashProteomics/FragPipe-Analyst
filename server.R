@@ -152,7 +152,7 @@ server <- function(input, output, session) {
      if (!is.null(comparisons())) {
        df <- SummarizedExperiment::rowData(dep())
        cols <- grep("_significant$",colnames(df))
-       selectizeInput("contrast",
+       selectizeInput("contrast_1",
                       "Comparison",
                       choices = gsub("_significant", "", colnames(df)[cols]))
      }
@@ -810,7 +810,7 @@ server <- function(input, output, session) {
      pathway_results <- test_gsea_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE)
      null_enrichment_test(pathway_results)
      plot_pathway<-plot_enrichment(pathway_results, number = 5, alpha = 0.05, contrasts =input$contrast_1,
-               databases=as.character(input$pathway_database), nrow = 3, term_size = 8)
+               databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
      pathway_list<-list("pa_result"=pathway_results, "plot_pa"=plot_pathway)
      return(pathway_list)
      })
