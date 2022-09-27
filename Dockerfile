@@ -1,7 +1,5 @@
 # syntax=docker/dockerfile:1
 FROM rocker/shiny-verse:4.2.1
-#RUN apt-get update && apt-get install -y libnetcdf-dev build-essential
-
 RUN apt-get update && apt-get install -yq \
     libbz2-dev \
     libhdf5-dev \
@@ -9,7 +7,8 @@ RUN apt-get update && apt-get install -yq \
     build-essential \
     libgd-dev \
     libudunits2-dev \
-    libproj-dev
+    libproj-dev \
+    libgdal-dev
 
 ### RUN Rscript -e 'install.packages(c("devtools", "BiocManager", "tidyverse", "ggrepel", "httr", "rjson", "mvtnorm", "tmvtnorm", "impute", \
 ### "pcaMethods", "imputeLCMD", "plotly", "DT", "testthat", "RColorBrewer", "shiny","shinyalert","shinydashboard", \
@@ -21,6 +20,6 @@ RUN apt-get update && apt-get install -yq \
 RUN Rscript -e 'install.packages("renv")'
 COPY ./ /srv/shiny-server/fragpipe-analyst
 WORKDIR /srv/shiny-server/fragpipe-analyst
-RUN Rscript -e 'renv::init()'
+### RUN Rscript -e 'renv::init()'
 RUN Rscript -e 'renv::restore()'
 RUN chmod -R +r /srv/shiny-server/fragpipe-analyst
