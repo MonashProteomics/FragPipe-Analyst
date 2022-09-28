@@ -34,7 +34,7 @@ server <- function(input, output, session) {
      } else { # DIA
        showTab(inputId="qc_tabBox", target="norm_tab")
        showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-       showTab(inputId = "tab_panels", target = "occ_panel")
+       hideTab(inputId = "tab_panels", target = "occ_panel") # hide for now, need to be fixed
        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
      }
      
