@@ -691,7 +691,7 @@ server <- function(input, output, session) {
     protein_input<-reactive({
       protein_selected  <- data_result()[input$contents_rows_selected,1]
       protein_selected <-as.character(protein_selected)
-      if (input$exp == "TMT"){
+      if (input$exp == "TMT" | input$exp == "DIA"){
         if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
           plot_protein(dep(), protein_selected, as.character(input$type), id="label")
         }
