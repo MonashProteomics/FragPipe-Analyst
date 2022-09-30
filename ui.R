@@ -734,7 +734,7 @@ ui <- function(request){shinyUI(
      #  ) # Tab items close
     ),
     tags$footer(
-      tags$p("Supported by: Proteomics & Integrative Bioinformatics Lab, University of Michigan"),
+      tags$p("Supported by: Proteomics & Integrative Bioinformatics Lab (University of Michigan) and the Monash Proteomics & Metabolomics Facility (Monash University)"),
       align = "right")
       ) # Dasbboardbody close
     ) #Dashboard page close

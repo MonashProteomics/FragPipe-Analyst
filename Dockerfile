@@ -22,4 +22,5 @@ COPY ./ /srv/shiny-server/fragpipe-analyst
 WORKDIR /srv/shiny-server/fragpipe-analyst
 ### RUN Rscript -e 'renv::init()' # This is already run and pushed to github.
 RUN Rscript -e 'renv::restore()'
+RUN Rscript -e 'renv::isolate()'
 RUN chmod -R +r /srv/shiny-server/fragpipe-analyst
