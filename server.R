@@ -765,8 +765,8 @@ server <- function(input, output, session) {
    })
    
    cvs_input<-reactive({
-     check.names <- T
      if (input$exp == "TMT") {
+       check.names <- F
        id <- "label"
      } else if (input$exp == "DIA"){
        check.names <- F

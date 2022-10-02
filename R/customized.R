@@ -985,7 +985,7 @@ plot_imputation_customized <- function(se, ...) {
   # annotated with sample info
   gather_join <- function(se) {
     assay(se) %>%
-      data.frame() %>%
+      data.frame(check.names = F) %>%
       gather(ID, val) %>%
       left_join(., data.frame(colData(se)), by = c("ID"="label"))
   }
