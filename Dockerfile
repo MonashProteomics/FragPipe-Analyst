@@ -8,7 +8,11 @@ RUN apt-get update && apt-get install -yq \
     libgd-dev \
     libudunits2-dev \
     libproj-dev \
-    libgdal-dev
+    libgdal-dev  \
+    texlive-latex-base \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-latex-extra
 
 ### RUN Rscript -e 'install.packages(c("devtools", "BiocManager", "tidyverse", "ggrepel", "httr", "rjson", "mvtnorm", "tmvtnorm", "impute", \
 ### "pcaMethods", "imputeLCMD", "plotly", "DT", "testthat", "RColorBrewer", "shiny","shinyalert","shinydashboard", \
@@ -19,6 +23,7 @@ RUN apt-get update && apt-get install -yq \
 
 RUN Rscript -e 'install.packages("renv")'
 COPY ./ /srv/shiny-server/fragpipe-analyst
+COPY shiny-server.conf.prod /etc/shiny-server/shiny-server.conf
 WORKDIR /srv/shiny-server/fragpipe-analyst
 ### RUN Rscript -e 'renv::init()' # This is already run and pushed to github.
 RUN Rscript -e 'renv::restore()'
