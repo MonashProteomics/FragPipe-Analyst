@@ -305,7 +305,7 @@ server <- function(input, output, session) {
         # colnames(temp_df) <- c("Path", "Experiment", "Bioreplicate", "Data.type")
         colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
         temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
-        temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=".")
+        temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=" ")
         # print(temp_df$label)
       } else if (input$exp == "DIA") {
         temp_df <- read.table(inFile$datapath,
@@ -401,7 +401,6 @@ server <- function(input, output, session) {
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
        data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
-
        return(data_se)
      } else if (input$exp == "DIA") {
        data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")

@@ -181,15 +181,17 @@ test_match_lfq_column_design<-function(unique_data, lfq_columns, exp_design){
     stop(safeError("specified 'columns' should be numeric
          Run make_se_parse() with the appropriate columns as argument"))
   }
-  
+
+  print(lfq_columns)
   raw <- unique_data[, lfq_columns]
   expdesign <- mutate(exp_design, condition = make.names(condition)) %>%
     unite(ID, label, remove = FALSE)
   rownames(expdesign) <- expdesign$ID
-  
+
   matched <- match(make.names(delete_prefix(expdesign$label)),
                    make.names(delete_prefix(colnames(raw))))
-
+  print(make.names(delete_prefix(expdesign$label)))
+  print(make.names(delete_prefix(colnames(raw))))
   # TODO: give warning message to indicate which columns are not matched
   # if(any(is.na(matched))) {
   if(all(is.na(matched))) {
@@ -229,8 +231,7 @@ test_match_lfq_column_manifest <-function(unique_data, lfq_columns, exp_design){
   rownames(expdesign) <- expdesign$ID
   
   matched <- match(make.names(expdesign$label),
-                   make.names(delete_prefix(colnames(raw))))
-  
+                   make.names(colnames(raw)))
   if(any(is.na(matched))) {
     stop(safeError("The labels/'run names' in the experimental design DID NOT match
          with lfq column names in maxquants proteinGroups file
