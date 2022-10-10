@@ -829,7 +829,7 @@ server <- function(input, output, session) {
      num_total <- dep() %>%
        nrow()
      num_signif <- dep() %>%
-       .[SummarizedExperiment::rowData(.)$significant, ] %>%
+       .[replace_na(SummarizedExperiment::rowData(.)$significant, F), ] %>%
        nrow()
      frac <- num_signif / num_total
      
@@ -1206,7 +1206,7 @@ output$download_hm_svg<-downloadHandler(
       # case we don't have write permissions to the current working dir (which
       # can happen when deployed).
       tempReport <- file.path(tempdir(), "LFQ_report.Rmd")
-      file.copy("./reports/LFQ_report.Rmd", tempReport, overwrite = TRUE)
+      file.copy(paste0("./reports/", input$exp, "_report.Rmd"), tempReport, overwrite = TRUE)
       
       sig_proteins<-dep() %>%
         .[SummarizedExperiment::rowData(.)$significant, ] %>%
