@@ -285,10 +285,16 @@ server <- function(input, output, session) {
                               stringsAsFactors = FALSE)
         # To support txt file
         if (ncol(temp_df) == 1){
-          temp_df <- read.table(inFile$datapath,
-                                header = T,
-                                sep=" ",
-                                stringsAsFactors = FALSE)
+          # submitting annotation.txt (not combined_annotation.txt) will crash here
+          tryCatch({
+            temp_df <- read.table(inFile$datapath,
+                                  header = T,
+                                  sep=" ",
+                                  stringsAsFactors = FALSE)
+          }, error=function(e){
+            validate(need(F,
+                     "Error: coudn't read the combined_annotation.txt. Note that combined_annotation.txt is not annotation.txt used to denote channel assignment in each plex set."))
+          })
         }
         # change it to lower case
         colnames(temp_df) <- tolower(colnames(temp_df))
