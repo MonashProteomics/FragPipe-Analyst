@@ -53,6 +53,8 @@ data_results2[data_results2["Gene Name"] == "CA9",]
 DE_result <- test_limma_customized(data_se, type = "all")
 dep <- add_rejections(DE_result, alpha=0.05, lfc=log2(1.5))
 plot_cor_customized(dep)
+plot_cvs(dep, "label", check.names=F)
+
 
 plot_pca_plotly(DE_result, n=500, indicate = "condition", ID_col="label")
 

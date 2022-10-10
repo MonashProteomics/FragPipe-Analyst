@@ -13,6 +13,11 @@ server <- function(input, output, session) {
    
    # Hide LFQ page if only have one replicate in each sample
    observeEvent(start_analysis() ,{
+     if (input$imputation == "none") {
+       hideTab(inputId="qc_tabBox", target="imputation_tab")
+     } else {
+       showTab(inputId="qc_tabBox", target="imputation_tab")
+     }
      if (input$exp == "LFQ"){
        exp <- exp_design_input()
        if (max(exp$replicate)==1){
@@ -37,7 +42,6 @@ server <- function(input, output, session) {
        hideTab(inputId = "tab_panels", target = "occ_panel") # hide for now, need to be fixed
        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
      }
-     
    })
    
    # observeEvent(start_analysis(),{ 
@@ -775,6 +779,7 @@ server <- function(input, output, session) {
        check.names <- F
        id <- "label"
      } else if (input$exp == "LFQ") {
+       check.names <- T
        id <- "ID"
      }
      plot_cvs(dep(), id, check.names=check.names)

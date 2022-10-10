@@ -400,7 +400,7 @@ ui <- function(request){shinyUI(
                             plotOutput("missval", height = 600),
                             downloadButton('download_missval_svg', "Save svg")
                             ),
-                   tabPanel(title = "Imputation",
+                   tabPanel(title = "Imputation", value="imputation_tab",
                             plotOutput("imputation", height = 600),
                             downloadButton('download_imp_svg', "Save svg")
                             )#,
