@@ -93,15 +93,15 @@ server <- function(input, output, session) {
      } else {
        if (input$exp == "LFQ"){
          inFile <- input$lfq_expr
-         exp_design_input <- input$lfq_manifest
+         exp_design_file <- input$lfq_manifest
        } else if (input$exp == "TMT") {
          inFile <- input$tmt_expr
-         exp_design_input <- input$tmt_annot
+         exp_design_file <- input$tmt_annot
        } else if (input$exp == "DIA") {
          inFile <- input$dia_expr
-         exp_design_input <- input$dia_manifest
+         exp_design_file <- input$dia_manifest
        }
-       if (is.null(inFile) | is.null(exp_design_input)) {
+       if (is.null(inFile) | is.null(exp_design_file)) {
          shinyalert("Input file missing!", "Please checkout your input files", type="info",
                     closeOnClickOutside = TRUE,
                     closeOnEsc = TRUE,
@@ -373,36 +373,8 @@ server <- function(input, output, session) {
        exp_design<-reactive({exp_design_input()})
      }
      
-     
-     message(exp_design())
      filtered_data<-fragpipe_data()
      if (input$exp == "LFQ"){
-       # else{filtered_data<-dplyr::filter(filtered_data,Razor...unique.peptides>=2)}
-       # id_columns<-c("Evidence.IDs", "MS/MS.IDs")
-       # if("Evidence.IDs" %in% colnames(filtered_data)){
-       # filtered_data$`Evidence.IDs`<-stringr::str_trunc(as.character(filtered_data$`Evidence.IDs`), 25000)
-       
-       #}
-       #if("MS.MS.IDs" %in% colnames(filtered_data)){
-       #  filtered_data$`MS.MS.IDs`<-stringr::str_trunc(as.character(filtered_data$`MS.MS.IDs`), 25000)
-       #}
-       # if(any(grepl('+',maxquant_data()$Reverse))){
-       # filtered_data<-dplyr::filter(maxquant_data(),Reverse!="+")
-       # }
-       # else{filtered_data<-maxquant_data()}
-       # if(any(grepl('+',filtered_data$Potential.contaminant))){
-       #   filtered_data<-dplyr::filter(filtered_data,Potential.contaminant!="+")
-       # }
-       # if(any(grepl('+',filtered_data$Only.identified.by.site))){
-       #   filtered_data<-dplyr::filter(filtered_data,Only.identified.by.site!="+") 
-       # }
-       # if(input$single_peptide==TRUE){
-       #   filtered_data <-filtered_data
-       # }
-       # else{filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)}
-       # filtered_data<-ids_test(filtered_data)
-       # data_unique<- DEP::make_unique(filtered_data,"Gene.names","Protein.IDs",delim=";")
-       # lfq_columns<-grep("LFQ.", colnames(data_unique))
        data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
        lfq_columns<-grep("MaxLFQ", colnames(data_unique))
        # alternatively,
@@ -1434,7 +1406,7 @@ output$download_imp_svg<-downloadHandler(
   ## Venn plot
   condition_list <- reactive({
     if(!is.null(exp_design_input())){
-      conditions <- colData(processed_data())$condition %>% unique()
+      conditions <- exp_design_input()$condition %>% unique()
       return(conditions)
     }
   })
