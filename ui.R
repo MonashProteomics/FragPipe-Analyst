@@ -75,9 +75,8 @@ ui <- function(request){shinyUI(
                           #               "Paired test", FALSE),
                           radioButtons("imputation",
                                        "Imputation type",
-                                       choices = c("Perseus-type"="man", MsCoreUtils::imputeMethods())[1:9],
-                                       selected = "MLE"),
-                          
+                                       choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero", "zero"),
+                                       selected = "none"),
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
                                        choices =  c("Benjamini Hochberg"="BH",
@@ -401,7 +400,7 @@ ui <- function(request){shinyUI(
                             plotOutput("missval", height = 600),
                             downloadButton('download_missval_svg', "Save svg")
                             ),
-                   tabPanel(title = "Imputation",
+                   tabPanel(title = "Imputation", value="imputation_tab",
                             plotOutput("imputation", height = 600),
                             downloadButton('download_imp_svg', "Save svg")
                             )#,

@@ -1512,3 +1512,141 @@ test_TMT_annotation <- function(df) {
   }
   return(TRUE)
 }
+
+# modified from DEP's plot_cor
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_explore.R
+plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
+                                pal = "PRGn", pal_rev = FALSE, indicate = NULL,
+                                font_size = 12, plot = TRUE, ...) {
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
+                          is.logical(significant),
+                          length(significant) == 1,
+                          is.numeric(lower),
+                          length(lower) == 1,
+                          is.numeric(upper),
+                          length(upper) == 1,
+                          is.character(pal),
+                          length(pal) == 1,
+                          is.logical(pal_rev),
+                          length(pal_rev) == 1,
+                          is.numeric(font_size),
+                          length(font_size) == 1,
+                          is.logical(plot),
+                          length(plot) == 1)
+  
+  # Check for valid lower and upper values
+  if(!(lower >= -1  & upper >= -1 & lower <= 1 & upper <= 1)) {
+    stop("'lower' and/or 'upper' arguments are not valid
+         Run plot_pca() with 'lower' and 'upper' between -1 and 1",
+         call. = FALSE)
+  }
+  
+  # Check for valid pal
+  pals <- RColorBrewer::brewer.pal.info %>%
+    rownames_to_column() %>%
+    filter(category != "qual")
+  if(!pal %in% pals$rowname) {
+    stop("'", pal,"' is not a valid color panel",
+         " (qualitative panels also not allowed)\n",
+         "Run plot_pca() with one of the following 'pal' options: ",
+         paste(pals$rowname, collapse = "', '"), "'",
+         call. = FALSE)
+  }
+  
+  # if(any(is.na(assay(dep)))) {
+  #   stop("Missing values in '", deparse(substitute(dep)), "'. Use plot_dist() instead")
+  # }
+  
+  # Heatmap annotation
+  if(!is.null(indicate)) {
+    assertthat::assert_that(is.character(indicate))
+    
+    col_data <- colData(dep) %>%
+      as.data.frame()
+    columns <- colnames(col_data)
+    if(any(!indicate %in% columns)) {
+      stop("'",
+           paste0(indicate, collapse = "' and/or '"),
+           "' column(s) is/are not present in ",
+           deparse(substitute(dep)),
+           ".\nValid columns are: '",
+           paste(columns, collapse = "', '"),
+           "'.",
+           call. = FALSE)
+    }
+    
+    # Get annotation
+    anno <- colData(dep) %>%
+      data.frame() %>%
+      select(indicate)
+    
+    # Annotation color
+    names <- colnames(anno)
+    anno_col <- vector(mode="list", length=length(names))
+    names(anno_col) <- names
+    for(i in names) {
+      var = anno[[i]] %>% unique() %>% sort()
+      if(length(var) == 1)
+        cols <- c("black")
+      if(length(var) == 2)
+        cols <- c("orangered", "cornflowerblue")
+      if(length(var) < 7 & length(var) > 2)
+        cols <- RColorBrewer::brewer.pal(length(var), "Pastel1")
+      if(length(var) >= 7)
+        cols <- RColorBrewer::brewer.pal(length(var), "Set3")
+      names(cols) <- var
+      anno_col[[i]] <-  cols
+    }
+    
+    # HeatmapAnnotation object
+    ha1 = HeatmapAnnotation(df = anno,
+                            col = anno_col,
+                            show_annotation_name = TRUE)
+  } else {
+    ha1 <- NULL
+  }
+  
+  # Filter for significant proteins
+  if(significant) {
+    
+    # Check for significant column
+    if(!"significant" %in% colnames(rowData(dep, use.names = FALSE))) {
+      stop("'significant' column is not present in '",
+           deparse(substitute(dep)),
+           "'\nRun add_rejections() to obtain the required column",
+           call. = FALSE)
+    }
+    
+    dep <- dep[replace_na(rowData(dep, use.names = FALSE)$significant, FALSE), ]
+  }
+  
+  # Calculate correlation matrix
+  cor_mat <- cor(assay(dep), use="complete.obs")
+  
+  # Plot heatmap
+  ht1 = Heatmap(cor_mat,
+                col = circlize::colorRamp2(
+                  seq(lower, upper, ((upper-lower)/7)),
+                  if(pal_rev) {
+                    rev(RColorBrewer::brewer.pal(8, pal))
+                  } else {
+                    RColorBrewer::brewer.pal(8, pal)
+                  }),
+                heatmap_legend_param = list(
+                  color_bar = "continuous",
+                  legend_direction = "horizontal",
+                  legend_width = unit(5, "cm"),
+                  title_position = "topcenter"),
+                name = "Pearson correlation",
+                column_names_gp = gpar(fontsize = font_size),
+                row_names_gp = gpar(fontsize = font_size),
+                top_annotation = ha1,
+                ...)
+  if(plot) {
+    draw(ht1, heatmap_legend_side = "top")
+  } else {
+    df <- as.data.frame(cor_mat)
+    return(df)
+  }
+}

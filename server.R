@@ -13,6 +13,11 @@ server <- function(input, output, session) {
    
    # Hide LFQ page if only have one replicate in each sample
    observeEvent(start_analysis() ,{
+     if (input$imputation == "none") {
+       hideTab(inputId="qc_tabBox", target="imputation_tab")
+     } else {
+       showTab(inputId="qc_tabBox", target="imputation_tab")
+     }
      if (input$exp == "LFQ"){
        exp <- exp_design_input()
        if (max(exp$replicate)==1){
@@ -37,7 +42,6 @@ server <- function(input, output, session) {
        hideTab(inputId = "tab_panels", target = "occ_panel") # hide for now, need to be fixed
        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
      }
-     
    })
    
    # observeEvent(start_analysis(),{ 
@@ -480,7 +484,11 @@ server <- function(input, output, session) {
    })
    
    imputed_data<-reactive({
-     if (input$exp == "DIA" | input$exp == "TMT") {
+     if (input$imputation == "none"){
+       imputed <- filtered_data()
+       rowData(imputed)$imputed <- apply(is.na(assay(filtered_data())), 1, any)
+       rowData(imputed)$num_NAs <- rowSums(is.na(assay(filtered_data())))
+     } else if (input$exp == "DIA" | input$exp == "TMT") {
        # need a customized function here since DIA data has several slashs in the column
        # TMT report might has same issue for earlier version of FragPipe (<= 18.0)
       imputed <- impute_customized(filtered_data(),input$imputation)
@@ -760,7 +768,7 @@ server <- function(input, output, session) {
    })
    
    correlation_input<-reactive({
-     plot_cor(dep(), significant=FALSE, indicate="condition")
+     plot_cor_customized(dep(), significant=FALSE, indicate="condition")
    })
    
    cvs_input<-reactive({
@@ -771,6 +779,7 @@ server <- function(input, output, session) {
        check.names <- F
        id <- "label"
      } else if (input$exp == "LFQ") {
+       check.names <- T
        id <- "ID"
      }
      plot_cvs(dep(), id, check.names=check.names)
