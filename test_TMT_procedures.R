@@ -1,6 +1,7 @@
 source("./R/tests.R")
 source("./R/customized.R")
 source("./R/functions.R")
+
 library(DEP)
 
 temp_data <- read.table("./data/TMT_datasets/luad_ratio_gene_MD_phospho_glyco.tsv",
@@ -16,6 +17,7 @@ temp_df <- read.table("./data/TMT_datasets/luad.annotation.updated_20220722.tsv"
 
 temp_exp_design <- temp_df[!is.na(temp_df$condition), ]
 temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
+colnames(temp_exp_design) <- tolower(colnames(temp_exp_design))
 
 data_unique <- DEP::make_unique(temp_data, "Index", "ProteinID")
 
@@ -46,6 +48,11 @@ dep2 <- add_rejections(DE_result2, alpha=0.05, lfc=log2(1.5))
 data_results2 <- get_results_proteins(dep2, "TMT")
 # data_results <- get_results_customized(dep)
 data_results2[data_results2["Gene Name"] == "CA9",]
+
+# no imputation case
+DE_result <- test_limma_customized(data_se, type = "all")
+dep <- add_rejections(DE_result, alpha=0.05, lfc=log2(1.5))
+plot_cor_customized(dep)
 
 plot_pca_plotly(DE_result, n=500, indicate = "condition", ID_col="label")
 

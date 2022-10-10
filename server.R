@@ -764,7 +764,7 @@ server <- function(input, output, session) {
    })
    
    correlation_input<-reactive({
-     plot_cor(dep(), significant=FALSE, indicate="condition")
+     plot_cor_customized(dep(), significant=FALSE, indicate="condition")
    })
    
    cvs_input<-reactive({
