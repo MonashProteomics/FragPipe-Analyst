@@ -1280,7 +1280,7 @@ output$download_imp_svg<-downloadHandler(
     for (i in 1:length(conditions)) {
       condition <- conditions[i]
       pattern <- paste(condition,"[[:digit:]]",sep = "_")
-      df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,grep(pattern, colnames(df))]))
+      df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,grep(pattern, colnames(df)), drop=F]))
       df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition), .before = paste(conditions[1],"1 MaxLFQ.Intensity", sep = "_"), .after = NULL)
       cols <- grep(paste0(condition, "$"),colnames(df))
       if (!is.null(input[[paste0("",condition)]])){
