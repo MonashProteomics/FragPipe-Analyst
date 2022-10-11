@@ -232,6 +232,8 @@ test_match_lfq_column_manifest <-function(unique_data, lfq_columns, exp_design){
   
   matched <- match(make.names(expdesign$label),
                    make.names(colnames(raw)))
+  # print(make.names(expdesign$label))
+  # print(make.names(colnames(raw)))
   if(any(is.na(matched))) {
     stop(safeError("The labels/'run names' in the experimental design DID NOT match
          with lfq column names in maxquants proteinGroups file

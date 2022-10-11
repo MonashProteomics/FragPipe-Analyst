@@ -31,6 +31,7 @@
 #' se <- make_se(data_unique, columns, exp_design)
 #' @export
 make_se_customized <- function(proteins_unique, columns, expdesign, log2transform=F) {
+  print(colnames(expdesign))
   # Show error if inputs are not the required classes
   assertthat::assert_that(is.data.frame(proteins_unique),
                           is.integer(columns),
@@ -1650,3 +1651,54 @@ plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
     return(df)
   }
 }
+
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+filter_missval_customized <- function(se, thr = 0) {
+  # Show error if inputs are not the required classes
+  if(is.integer(thr)) thr <- as.numeric(thr)
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"),
+                          is.numeric(thr),
+                          length(thr) == 1)
+  
+  # Show error if inputs do not contain required columns
+  if(any(!c("name", "ID") %in% colnames(rowData(se, use.names = FALSE)))) {
+    stop("'name' and/or 'ID' columns are not present in '",
+         deparse(substitute(se)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  if(any(!c("label", "condition", "replicate") %in% colnames(colData(se)))) {
+    stop("'label', 'condition' and/or 'replicate' columns are not present in '",
+         deparse(substitute(se)),
+         "'\nRun make_se() or make_se_parse() to obtain the required columns",
+         call. = FALSE)
+  }
+  max_repl <- max(colData(se)$replicate)
+  if(thr < 0 | thr > max_repl) {
+    stop("invalid filter threshold applied",
+         "\nRun filter_missval() with a threshold ranging from 0 to ",
+         max_repl)
+  }
+  
+  # Make assay values binary (1 = valid value)
+  bin_data <- assay(se)
+  idx <- is.na(assay(se))
+  bin_data[!idx] <- 1
+  bin_data[idx] <- 0
+  
+  # print(colData(se))
+  # Filter se on the maximum allowed number of
+  # missing values per condition (defined by thr)
+  keep <- bin_data %>%
+    data.frame(check.names = F) %>%
+    rownames_to_column() %>%
+    gather(label, value, -rowname) %>%
+    left_join(., data.frame(colData(se)), by = "label", check.names=F) %>%
+    group_by(rowname, condition) %>%
+    summarize(miss_val = n() - sum(value)) %>%
+    filter(miss_val <= thr) %>%
+    spread(condition, miss_val)
+  se_fltrd <- se[keep$rowname, ]
+  return(se_fltrd)
+}
+

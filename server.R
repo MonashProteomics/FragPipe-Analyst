@@ -382,7 +382,7 @@ server <- function(input, output, session) {
        
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
-       data_se<-DEP:::make_se(data_unique,lfq_columns,exp_design())
+       data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T)
        return(data_se)
      } else if (input$exp == "DIA") {
        data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
@@ -391,24 +391,12 @@ server <- function(input, output, session) {
        test_match_tmt_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
        return(data_se)
-       # Check number of replicates
-       # if(max(exp_design()$replicate)<3){
-       #   threshold<-0
-       # } else if(max(exp_design()$replicate)==3){
-       #   threshold<-1
-       # } else if(max(exp_design()$replicate)<6 ){
-       #   threshold<-2
-       # } else if (max(exp_design()$replicate)>=6){
-       #   threshold<-trunc(max(exp_design()$replicate)/2)
-       # }
-       # filtered_se <- filter_missval(data_se,thr = threshold)
-       # return(filtered_se)
      } else { # TMT
        temp_exp_design <- exp_design()
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
        temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
        # temp_exp_design[is.na(temp_exp_design), "replicate"] <- 1
-       #need to handle duplicate columns first
+       # need to handle duplicate columns first
        # filtered_data <- avearrays(filtered_data)
        # filtered_data <- as.data.frame(filtered_data)
        # print(apply(filtered_data, 2, is.numeric))
@@ -441,7 +429,7 @@ server <- function(input, output, session) {
        } else if (max(exp_design()$replicate)>=6){
          threshold<-trunc(max(exp_design()$replicate)/2)
        }
-       filtered_se <- filter_missval(processed_data(),thr = threshold)
+       filtered_se <- filter_missval_customized(processed_data(), thr = threshold)
        return(filtered_se)
      } else {
        return(processed_data())
@@ -549,11 +537,7 @@ server <- function(input, output, session) {
      if(input$analyze==0 | !start_analysis()){
        return()
      }
-     if (input$exp == "TMT" | input$exp == "DIA"){
-       ID_col <- "label"
-     } else if (input$exp == "LFQ") {
-       ID_col <- "ID"
-     }
+     ID_col <- "label"
      if (num_total()<=500){
        if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
          pca_plot<- plot_pca_plotly(dep(), n=num_total(), ID_col=ID_col)
@@ -575,11 +559,7 @@ server <- function(input, output, session) {
      if(input$analyze==0 | !start_analysis()){
        return()
      }
-     if (input$exp == "TMT" | input$exp == "DIA"){
-       ID_col <- "label"
-     } else if (input$exp == "LFQ") {
-       ID_col <- "ID"
-     }
+     ID_col <- "label"
      if (num_total()<=500){
        if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
          pca_plot<- plot_pca_customized(dep(), n=num_total(), ID_col=ID_col) + labs(title = "PCA Plot")
@@ -676,22 +656,11 @@ server <- function(input, output, session) {
     protein_input<-reactive({
       protein_selected  <- data_result()[input$contents_rows_selected,1]
       protein_selected <-as.character(protein_selected)
-      if (input$exp == "TMT" | input$exp == "DIA"){
-        if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
-          plot_protein(dep(), protein_selected, as.character(input$type), id="label")
-        }
-        else{
-          protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type), id="label")
-          protein_plot + scale_color_brewer(palette = "Paired")
-        }
-      } else if (input$exp == "LFQ"){
-        if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
-          plot_protein(dep(), protein_selected, as.character(input$type))
-        }
-        else{
-          protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type))
-          protein_plot + scale_color_brewer(palette = "Paired")
-        }
+      if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
+        plot_protein(dep(), protein_selected, as.character(input$type), id="label")
+      } else {
+        protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type), id="label")
+        protein_plot + scale_color_brewer(palette = "Paired")
       }
     })
      
@@ -704,8 +673,8 @@ server <- function(input, output, session) {
        plot_normalization_DIA_customized(filtered_data(),
                                      normalised_data())
      } else if (input$exp == "LFQ") {
-       plot_normalization(filtered_data(),
-                          normalised_data())
+       plot_normalization_DIA_customized(filtered_data(),
+                                     normalised_data())
      }
    })
    
@@ -723,7 +692,7 @@ server <- function(input, output, session) {
      } else if (input$exp == "DIA") {
        plot_imputation_DIA_customized(normalised_data(), diff_all())
      } else if (input$exp == "LFQ") {
-       plot_imputation(normalised_data(), diff_all())
+       plot_imputation_DIA_customized(normalised_data(), diff_all())
      } 
    })
    
@@ -734,9 +703,7 @@ server <- function(input, output, session) {
    numbers_input <- reactive({
      if (input$exp == "TMT") {
        plot_numbers_by_plex_set(normalised_data())
-     } else if (input$exp == "LFQ") { # prepared for the DIA 
-       plot_numbers(normalised_data())
-     } else if (input$exp == "DIA") {
+     } else {
        plot_numbers_customized(normalised_data())
      }
    })
@@ -750,17 +717,7 @@ server <- function(input, output, session) {
    })
    
    cvs_input<-reactive({
-     if (input$exp == "TMT") {
-       check.names <- F
-       id <- "label"
-     } else if (input$exp == "DIA"){
-       check.names <- F
-       id <- "label"
-     } else if (input$exp == "LFQ") {
-       check.names <- T
-       id <- "ID"
-     }
-     plot_cvs(dep(), id, check.names=check.names)
+     plot_cvs(dep(), id="label", check.names=F)
    })
    
    num_total<-reactive({
@@ -1299,10 +1256,10 @@ output$download_imp_svg<-downloadHandler(
 
   #### Occurrence page logic ####
   data_attendance<-reactive({
-    conditions <- colData(processed_data())$condition %>% unique()
+    conditions <- condition_list()
     
     
-    df <- as.data.frame(assay(processed_data()))
+    df <- as.data.frame(assay(processed_data()), check.names=F)
     sample_cols <- colnames(df)
     # MaxQuant Protein.names is Description in FragPipe output
     # MaxQuant Gene.names is Gene in FragPipe output
@@ -1314,14 +1271,17 @@ output$download_imp_svg<-downloadHandler(
       df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
     if ("" %in% df$Description){
       df$Description[df["Description"]==""] <- "NoProteinDescriptionAvailable"}
-    
+
     # filter if all intensity are NA
     df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
+
+    # print(conditions)
+    # print(colnames(df))
     for (i in 1:length(conditions)) {
       condition <- conditions[i]
       pattern <- paste(condition,"[[:digit:]]",sep = "_")
       df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,grep(pattern, colnames(df))]))
-      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_",condition), .before = paste(conditions[1],"1",sep = "_"), .after = NULL)
+      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition), .before = paste(conditions[1],"1 MaxLFQ.Intensity", sep = "_"), .after = NULL)
       cols <- grep(paste0(condition, "$"),colnames(df))
       if (!is.null(input[[paste0("",condition)]])){
         df <- df %>%
@@ -1623,13 +1583,11 @@ output$download_imp_svg<-downloadHandler(
  ### Volcano Plot for demo
  # volcano_input_dm <- reactive({
  #   if(!is.null(input$volcano_cntrst_dm)) {
- #     print("here")
  #     plot_volcano_new(dep_dm(),
  #                      input$volcano_cntrst_dm,
  #                      input$fontsize_dm,
  #                      input$check_names_dm,
  #                      input$p_adj_dm)
- #     print("here")
  #   }
  # })
  # 

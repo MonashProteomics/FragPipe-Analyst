@@ -194,10 +194,10 @@ plot_protein<-function(dep, protein, type, id="ID"){
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
                           is.character(protein),
                           is.character(type))
-  print(id)
+
   subset<-dep[protein]
   
-  df_reps <- data.frame(assay(subset)) %>%
+  df_reps <- data.frame(assay(subset), check.names = F) %>%
     rownames_to_column() %>%
     gather(ID, val, -rowname) %>%
     left_join(., data.frame(colData(subset)), by = c("ID"=id))
@@ -229,9 +229,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
       scale_color_brewer(palette = "Dark2")+
       theme_DEP1()+
       theme(axis.title.x = element_blank())
-    }
-  
-  if(type=="boxplot"){
+    } else if(type=="boxplot"){
     p<-ggplot(df_reps, aes(condition, val))+
       geom_boxplot()+
       geom_jitter(aes(color = factor(replicate)),
@@ -243,9 +241,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
       scale_color_brewer(palette = "Dark2")+
       theme_DEP1() +
       theme(axis.title.x = element_blank())
-  }
-  
-  if(type=="interaction"){
+  } else if(type=="interaction"){
     p<-ggplot(df_reps, aes(condition, val))+
       geom_point(aes(color = factor(replicate)),
                  size = 3) +
@@ -257,9 +253,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
       scale_color_brewer(palette = "Dark2")+
       theme_DEP1()+
       theme(axis.title.x = element_blank())
-  }
-  
-  if(type=="dot"){
+  } else if(type=="dot"){
     p<-ggplot(df_CI, aes(condition, mean))+
       geom_point(data=df_reps, aes(x=condition, y=val, color = factor(replicate)),
                  size = 3, position= position_dodge(width = 0.2)) +

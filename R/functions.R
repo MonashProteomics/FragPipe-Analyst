@@ -511,17 +511,11 @@ get_results_proteins <- function(dep, exp) {
   # Obtain average protein-centered enrichment values per condition
   row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
   centered <- assay(dep) - row_data$mean
-  if (exp == "LFQ") {
-    centered <- data.frame(centered) %>%
-      tibble::rownames_to_column() %>%
-      tidyr::gather(ID, val, -rowname) %>%
-      dplyr::left_join(., data.frame(colData(dep)), by = "ID")
-  } else if (exp == "TMT" | exp == "DIA") {
-    centered <- data.frame(centered) %>%
-      tibble::rownames_to_column() %>%
-      tidyr::gather(ID, val, -rowname) %>%
-      dplyr::left_join(., data.frame(colData(dep)), by = c("ID"="label"))
-  }
+  centered <- data.frame(centered) %>%
+    tibble::rownames_to_column() %>%
+    tidyr::gather(ID, val, -rowname) %>%
+    dplyr::left_join(., data.frame(colData(dep)), by = c("ID"="label"))
+
   centered <- dplyr::group_by(centered, rowname, condition) %>%
     dplyr::summarize(val = mean(val, na.rm = TRUE)) %>%
     dplyr::mutate(val = signif(val, digits = 3)) %>%
