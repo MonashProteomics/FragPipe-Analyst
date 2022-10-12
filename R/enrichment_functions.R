@@ -59,7 +59,7 @@ enrichr_mod <- function(genes, databases = NULL) {
 
 test_ora_mod <- function(dep,
                           databases,
-                          contrasts = TRUE) {
+                          contrasts = TRUE, direction="UP", log2_threshold=0.7, alpha=0.05) {
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
                           is.character(databases),
@@ -106,14 +106,25 @@ test_ora_mod <- function(dep,
     # Get gene symbols
     df <- row_data %>%
       as.data.frame() %>%
-      select(name, ends_with("_significant")) %>%
+      # select(name, ends_with("_significant")) %>%
       mutate(name = gsub("[.].*", "", name))
-    
+
+    constrast_columns <- df %>% select(ends_with("_significant")) %>% colnames()
+    constrasts <- gsub("_significant", "", constrast_columns)
+
     # Run enrichR for every contrast
     df_enrich <- NULL
-    for(contrast in colnames(df[2:ncol(df)])) {
+    for(contrast in constrast_columns) {
       message(gsub("_significant", "", contrast))
+      # contrast column might have NA
+      df[is.na(df[[contrast]]),contrast] <- F
       significant <- df[df[[contrast]],]
+      if (direction == "UP"){
+        significant <- significant[(significant[gsub("_significant", "_diff", contrast)] > log2_threshold),]
+      } else if (direction == "DOWN") {
+        significant <- significant[significant[gsub("_significant", "_diff", contrast)] < -log2_threshold,]
+      }
+      significant <- significant[significant[gsub("_significant", "_p.adj", contrast)] < alpha,]
       genes <- significant$name
       if (length(genes) != 0){
         enriched <- enrichr_mod(genes, databases)

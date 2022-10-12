@@ -259,7 +259,7 @@ ui <- function(request){shinyUI(
                                   width = 12,
                                   tabPanel(title = "Volcano plot",
                                            fluidRow(
-                                             box(uiOutput("volcano_cntrst"), width = 5),
+                                             box(uiOutput("volcano_cntrst"), width = 4),
                                              box(numericInput("fontsize",
                                                               "Font size",
                                                               min = 0, max = 8, value = 4),
@@ -368,7 +368,7 @@ ui <- function(request){shinyUI(
           id="qc_tab",
           column(
             width=6,
-            tabBox(title = "QC Plots", width = 12, id="qc_tabBox",
+            tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=700,
                    tabPanel(title = "PCA Plot",
                             plotlyOutput("pca_plot", height=600)
                                            # downloadButton('download_pca_svg', "Save svg")
@@ -411,30 +411,38 @@ ui <- function(request){shinyUI(
             ),
           column(
             width=6,
-            tabBox(title = "Enrichment", width = 12,
+            tabBox(title = "Enrichment", width = 12, height=600,
                    tabPanel(title="Gene Ontology",
-                            box(uiOutput("contrast"), width = 5),
-                            box(
-                                                  selectInput("go_database", "GO database:",
-                                                            c("Molecular Function"="GO_Molecular_Function_2017b",
-                                                              "Cellular Component"="GO_Cellular_Component_2017b",
-                                                              "Biological Process"="GO_Biological_Process_2017b")),
-                                                  width= 5),
-                                                actionButton("go_analysis", "Run Enrichment"),
-                                                plotOutput("go_enrichment", height=600),
-                                                downloadButton('downloadGO', 'Download Table')
+                            box(uiOutput("contrast"), width = 4),
+                            box(selectInput("go_database", "GO database:",
+                                            c("Molecular Function"="GO_Molecular_Function_2021",
+                                              "Cellular Component"="GO_Cellular_Component_2021",
+                                              "Biological Process"="GO_Biological_Process_2021")),
+                                width= 4),
+                            box(radioButtons("go_direction",
+                                             "Direction",
+                                             choices = c("Up"="UP", "Down"="DOWN"),
+                                             selected = "UP"), width = 2),
+                            actionButton("go_analysis", "Run Enrichment"),
+                            box(plotOutput("go_enrichment", height=500),
+                                width=12),
+                            downloadButton('downloadGO', 'Download Table')
                             ),
                    tabPanel(title= "Pathway enrichment",
-                            box(uiOutput("contrast_1"), width = 5),
-                            box(
-                                                  selectInput("pathway_database", "Pathway database:",
-                                                              c("Hallmark"="MSigDB_Hallmark_2020",
-								"KEGG"="KEGG_2021_Human",
-                                                                "Reactome"="Reactome_2022")),
-                                                  width= 5),
-                                                actionButton("pathway_analysis", "Run Enrichment"),
-                                                plotOutput("pathway_enrichment", height=600),
-                                                downloadButton('downloadPA', 'Download Table')
+                            box(uiOutput("contrast_1"), width = 4),
+                            box(selectInput("pathway_database", "Pathway database:",
+                                            c("Hallmark"="MSigDB_Hallmark_2020",
+                                              "KEGG"="KEGG_2021_Human",
+                                              "Reactome"="Reactome_2022")),
+                                width= 4),
+                            box(radioButtons("pathway_direction",
+                                             "Direction",
+                                             choices = c("Up"="UP", "Down"="DOWN"),
+                                             selected = "UP"), width = 2),
+                            actionButton("pathway_analysis", "Run Enrichment"),
+                            box(plotOutput("pathway_enrichment", height=500),
+                                width=12),
+                            downloadButton('downloadPA', 'Download Table')
                             )
                    ) # Tab box close
             ) # column end
@@ -733,9 +741,18 @@ ui <- function(request){shinyUI(
      #    ))) # fluidrow qc close
      #  ) # Tab items close
     ),
-    tags$footer(
-      tags$p("Supported by: Proteomics & Integrative Bioinformatics Lab (University of Michigan) and the Monash Proteomics & Metabolomics Facility (Monash University)"),
-      align = "right")
+        fluidRow(
+          tags$div(
+            tags$footer(
+              tags$p("Proteomics & Integrative Bioinformatics Lab (University of Michigan) and the Monash Proteomics & Metabolomics Facility (Monash University)"),
+              align = "left",
+              style = "margin-left: 20px;")
+              # style = "position:absolute;
+              #         bottom:0;
+              #         width:100%;
+              #         height:50px;   /* Height of the footer */")
+            )
+          )
       ) # Dasbboardbody close
     ) #Dashboard page close
   )#Shiny U Close
