@@ -429,8 +429,8 @@ ui <- function(request){shinyUI(
                             box(
                                                   selectInput("pathway_database", "Pathway database:",
                                                               c("Hallmark"="MSigDB_Hallmark_2020",
-								"KEGG"="KEGG_2016",
-                                                                "Reactome"="Reactome_2016")),
+								"KEGG"="KEGG_2021_Human",
+                                                                "Reactome"="Reactome_2022")),
                                                   width= 5),
                                                 actionButton("pathway_analysis", "Run Enrichment"),
                                                 plotOutput("pathway_enrichment", height=600),
