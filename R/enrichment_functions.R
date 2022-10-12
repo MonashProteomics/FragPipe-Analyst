@@ -57,7 +57,7 @@ enrichr_mod <- function(genes, databases = NULL) {
 ###### ========= Test_gsea new
 
 
-test_gsea_mod <- function(dep,
+test_ora_mod <- function(dep,
                           databases,
                           contrasts = TRUE) {
   # Show error if inputs are not the required classes

@@ -241,20 +241,6 @@ test_match_lfq_column_manifest <-function(unique_data, lfq_columns, exp_design){
   }
 }
 
-
-enrichment_output_test<-function(dep, database){
-  significant <- SummarizedExperiment::rowData(dep) %>%
-    as.data.frame() %>%
-    dplyr::select(name, significant) %>%
-    dplyr::filter(significant) %>%
-    dplyr::mutate(name = gsub("[.].*", "", name))
-  test_enrichment_output<-enrichr_mod(significant$name, databases = database)
-  if(nrow(test_enrichment_output[[1]])==0)
-    stop(safeError("Enrichment analysis failed. 
-                   Please check if the gene names are in Entrenz Gene Symbol format. 
-                   (eg. ASM24, MYO6)"))
-}
-
 null_enrichment_test<-function(gsea_result,alpha=0.05){
   gsea_df<-gsea_result %>% group_by(contrast, var) %>% dplyr::filter(Adjusted.P.value <= alpha)
   if(nrow(gsea_df)==0){

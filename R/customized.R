@@ -31,7 +31,6 @@
 #' se <- make_se(data_unique, columns, exp_design)
 #' @export
 make_se_customized <- function(proteins_unique, columns, expdesign, log2transform=F) {
-  print(colnames(expdesign))
   # Show error if inputs are not the required classes
   assertthat::assert_that(is.data.frame(proteins_unique),
                           is.integer(columns),
@@ -255,7 +254,7 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
   
   # Retrieve the differential expression test results
   limma_res <- map_df(cntrst, retrieve_fun)
-  
+
   # Select the logFC, CI and qval variables
   table <- limma_res %>%
     select(rowname, logFC, CI.L, CI.R, P.Value, qval, comparison) %>%
