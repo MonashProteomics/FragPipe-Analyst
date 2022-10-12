@@ -75,7 +75,7 @@ ui <- function(request){shinyUI(
                           #               "Paired test", FALSE),
                           radioButtons("imputation",
                                        "Imputation type",
-                                       choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero", "zero"),
+                                       choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
                                        selected = "none"),
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
