@@ -124,7 +124,7 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
   }
   
   # Filter for significant proteins only
-  filtered <- dep[row_data$significant, ]
+  filtered <- dep[replace_na(row_data$significant, FALSE), ]
   
   # Check for missing values
   if(any(is.na(assay(filtered)))) {
