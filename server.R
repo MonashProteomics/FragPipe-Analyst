@@ -996,12 +996,24 @@ server <- function(input, output, session) {
   })
   
   ## Enrichment Outputs
+  output$spinner_go <- renderUI({
+    req(input$go_analysis)
+    shinycssloaders::withSpinner(plotOutput("go_enrichment"), color = "#3c8dbc")
+  })
+  
   output$go_enrichment<-renderPlot({
+    Sys.sleep(2)
     go_input()$plot_go
   })
   
+  output$spinner_pa <- renderUI({
+    req(input$pathway_analysis)
+    shinycssloaders::withSpinner(plotOutput("pathway_enrichment"), color = "#3c8dbc")
+  })
+  
   output$pathway_enrichment<-renderPlot({
-   pathway_input()$plot_pa
+    Sys.sleep(2)
+    pathway_input()$plot_pa
   })
   
   ##### Download Functions

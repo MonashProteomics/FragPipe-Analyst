@@ -21,6 +21,7 @@ library("shinyWidgets")# new added
 library("ggVennDiagram") # new added
 library("rhandsontable") # new added
 library("shinyBS") # new added
+library("shinycssloaders") # new added
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")

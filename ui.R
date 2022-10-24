@@ -240,7 +240,8 @@ ui <- function(request){shinyUI(
                           fluidRow(id="results_tab",
                               box(
                                 title = "Results Table",
-                                DT::dataTableOutput("contents"),
+                                shinycssloaders::withSpinner(DT::dataTableOutput("contents"),
+                                                             color = "#3c8dbc"),
                                 #  actionButton("clear", "Deselect Rows"),
                                 actionButton("original", "Refresh Table"),
                                 width = 6,
@@ -259,7 +260,7 @@ ui <- function(request){shinyUI(
                                   width = 12,
                                   tabPanel(title = "Volcano plot",
                                            fluidRow(
-                                             box(uiOutput("volcano_cntrst"), width = 4),
+                                             box(uiOutput("volcano_cntrst"), width = 5),
                                              box(numericInput("fontsize",
                                                               "Font size",
                                                               min = 0, max = 8, value = 4),
@@ -279,19 +280,19 @@ ui <- function(request){shinyUI(
                                              ),
                                            
                                            fluidRow(
-                                             plotOutput("volcano", height = 600,
+                                             shinycssloaders::withSpinner(plotOutput("volcano", height = 600,
                                                         # hover = "protein_hover"),
                                                         #),
                                                         # click = "protein_click"),
                                                         brush = "protein_brush",
-                                                        click = "protein_click"),
+                                                        click = "protein_click"), color = "#3c8dbc"),
                                              downloadButton('downloadVolcano', 'Save Highlighted Plot'),
                                              actionButton("resetPlot", "Clear Selection")
                                              #)),
                                            )),
                                   tabPanel(title= "Heatmap",
                                            fluidRow(
-                                             plotOutput("heatmap", height = 600)
+                                             shinycssloaders::withSpinner(plotOutput("heatmap", height = 600), color = "#3c8dbc")
                                            ),
                                            fluidRow(
                                              box(numericInput("cluster_number",
@@ -322,7 +323,7 @@ ui <- function(request){shinyUI(
                                                     protein intesities across conditions and replicates")
                                              ),
                                            fluidRow(
-                                             plotOutput("protein_plot"),
+                                             shinycssloaders::withSpinner(plotOutput("protein_plot"), color = "#3c8dbc"),
                                              downloadButton('downloadProtein', 'Download Plot')
                                              )
                                             )
@@ -370,38 +371,38 @@ ui <- function(request){shinyUI(
             width=6,
             tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=700,
                    tabPanel(title = "PCA Plot",
-                            plotlyOutput("pca_plot", height=600)
+                            shinycssloaders::withSpinner(plotlyOutput("pca_plot", height=600), color = "#3c8dbc")
                                            # downloadButton('download_pca_svg', "Save svg")
                             ),
                    tabPanel(title="Sample Correlation",
-                            plotOutput("sample_corr", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("sample_corr", height = 600), color = "#3c8dbc"),
                             downloadButton('download_corr_svg', "Save svg")
                             ),
                    tabPanel(title= "Sample CVs",
-                            plotOutput("sample_cvs", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("sample_cvs", height = 600), color = "#3c8dbc"),
                             downloadButton('download_cvs_svg', "Save svg")
                             ),
                    # conditionalPanel(condition="input.exp != 'TMT'",
                    tabPanel(title = "Protein Numbers",
-                            plotOutput("numbers", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("numbers", height = 600), color = "#3c8dbc"),
                             downloadButton('download_num_svg', "Save svg")),
                    # conditionalPanel(condition="input.exp != 'TMT'",
                    tabPanel(title = "Sample coverage", value="sample_coverage_tab",
-                            plotOutput("coverage", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("coverage", height = 600), color = "#3c8dbc"),
                             downloadButton('download_cov_svg', "Save svg")),
                    tabPanel(title = "Normalization", value="norm_tab",
-                            plotOutput("norm", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("norm", height = 600), color = "#3c8dbc"),
                             downloadButton('download_norm_svg', "Save svg")
                             ),
                    # tabPanel(title = "Missing values - Quant",
                    #          plotOutput("detect", height = 600)
                    # ),
                    tabPanel(title = "Missing values - Heatmap",
-                            plotOutput("missval", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("missval", height = 600), color = "#3c8dbc"),
                             downloadButton('download_missval_svg', "Save svg")
                             ),
                    tabPanel(title = "Imputation", value="imputation_tab",
-                            plotOutput("imputation", height = 600),
+                            shinycssloaders::withSpinner(plotOutput("imputation", height = 600), color = "#3c8dbc"),
                             downloadButton('download_imp_svg', "Save svg")
                             )#,
                    # tabPanel(title = "p-value Histogram",
@@ -413,36 +414,44 @@ ui <- function(request){shinyUI(
             width=6,
             tabBox(title = "Enrichment", width = 12, height=600,
                    tabPanel(title="Gene Ontology",
-                            box(uiOutput("contrast"), width = 4),
-                            box(selectInput("go_database", "GO database:",
-                                            c("Molecular Function"="GO_Molecular_Function_2021",
-                                              "Cellular Component"="GO_Cellular_Component_2021",
-                                              "Biological Process"="GO_Biological_Process_2021")),
-                                width= 4),
-                            box(radioButtons("go_direction",
-                                             "Direction",
-                                             choices = c("Up"="UP", "Down"="DOWN"),
-                                             selected = "UP"), width = 2),
-                            actionButton("go_analysis", "Run Enrichment"),
-                            box(plotOutput("go_enrichment", height=500),
-                                width=12),
-                            downloadButton('downloadGO', 'Download Table')
+                            fluidRow(
+                              column(4,uiOutput("contrast")),
+                              column(4, selectInput("go_database", "GO database:",
+                                                    c("Molecular Function"="GO_Molecular_Function_2021",
+                                                      "Cellular Component"="GO_Cellular_Component_2021",
+                                                      "Biological Process"="GO_Biological_Process_2021"))),
+                              column(2, radioButtons("go_direction",
+                                                     "Direction",
+                                                     choices = c("Up"="UP", "Down"="DOWN"),
+                                                     selected = "UP")),
+                              column(12, actionButton("go_analysis", "Run Enrichment")),
+                              column(12,
+                                     box(width = 12, uiOutput("spinner_go"),height = 500)
+                                     ),
+                              column(12,
+                                     downloadButton('downloadGO', 'Download Table')
+                                     )
+                              )
                             ),
                    tabPanel(title= "Pathway enrichment",
-                            box(uiOutput("contrast_1"), width = 4),
-                            box(selectInput("pathway_database", "Pathway database:",
-                                            c("Hallmark"="MSigDB_Hallmark_2020",
-                                              "KEGG"="KEGG_2021_Human",
-                                              "Reactome"="Reactome_2022")),
-                                width= 4),
-                            box(radioButtons("pathway_direction",
-                                             "Direction",
-                                             choices = c("Up"="UP", "Down"="DOWN"),
-                                             selected = "UP"), width = 2),
-                            actionButton("pathway_analysis", "Run Enrichment"),
-                            box(plotOutput("pathway_enrichment", height=500),
-                                width=12),
-                            downloadButton('downloadPA', 'Download Table')
+                            fluidRow(
+                              column(4,uiOutput("contrast_1")),
+                              column(4, selectInput("pathway_database", "Pathway database:",
+                                                    c("Hallmark"="MSigDB_Hallmark_2020",
+                                                      "KEGG"="KEGG_2021_Human",
+                                                      "Reactome"="Reactome_2022"))),
+                              column(2, radioButtons("pathway_direction",
+                                                     "Direction",
+                                                     choices = c("Up"="UP", "Down"="DOWN"),
+                                                     selected = "UP")),
+                              column(12, actionButton("pathway_analysis", "Run Enrichment")),
+                              column(12,
+                                     box(width = 12, uiOutput("spinner_pa"),height = 500)
+                              ),
+                              column(12,
+                                     downloadButton('downloadPA', 'Download Table')
+                              )
+                              )
                             )
                    ) # Tab box close
             ) # column end
@@ -481,7 +490,7 @@ ui <- function(request){shinyUI(
                    column(9,
                           box(width = NULL,
                               title = "Results Table",
-                              DT::dataTableOutput("contents_occ"),
+                              shinycssloaders::withSpinner(DT::dataTableOutput("contents_occ"), color = "#3c8dbc"),
                               downloadButton('download_attendance', 'Download Table'),
                               status = "success",
                               solidHeader = TRUE),
@@ -494,7 +503,7 @@ ui <- function(request){shinyUI(
                                      box(width = 4,id = "con_2", uiOutput("condition_2")),
                                      box(width = 4,id = "con_3", uiOutput("condition_3"))),
                               column(12,
-                                     plotOutput("venn_plot")),
+                                     shinycssloaders::withSpinner(plotOutput("venn_plot"), color = "#3c8dbc")),
                               column(12, downloadButton('download_venn_svg', "Save svg")),
                               status = "success",
                               solidHeader = TRUE)
