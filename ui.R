@@ -311,8 +311,7 @@ ui <- function(request){shinyUI(
                                              box(radioButtons("type",
                                                               "Plot type",
                                                               choices = c("Box Plot"= "boxplot",
-                                                                          "Violin Plot"="violin", 
-                                                                          "Interaction Plot"= "interaction",
+                                                                          "Violin Plot"="violin",
                                                                           "Intensity Plot"="dot"
                                                               ),
                                                               selected = "boxplot", 
