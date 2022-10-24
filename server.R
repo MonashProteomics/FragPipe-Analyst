@@ -1141,7 +1141,7 @@ output$download_hm_svg<-downloadHandler(
       file.copy(paste0("./reports/", input$exp, "_report.Rmd"), tempReport, overwrite = TRUE)
       
       sig_proteins<-dep() %>%
-        .[SummarizedExperiment::rowData(.)$significant, ] %>%
+        .[replace_na(SummarizedExperiment::rowData(.)$significant, FALSE), ] %>%
         nrow()
       
       tested_contrasts<- gsub("_p.adj", "", 
