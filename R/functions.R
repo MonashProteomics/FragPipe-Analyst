@@ -63,7 +63,7 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
                                 col_limit = 6, indicate = NULL,
                                 clustering_distance = c("euclidean", "maximum", "manhattan", "canberra",
                                                         "binary", "minkowski", "pearson", "spearman", "kendall", "gower"),
-                                row_font_size = 6, col_font_size = 10, plot = TRUE, ...) {
+                                row_font_size = 6, col_font_size = 10, plot = TRUE, exp="LFQ", ...) {
   
   # Show error if inputs are not the required classes
   if(is.integer(k)) k <- as.numeric(k)
@@ -211,6 +211,9 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
                    "log2 Fold change",
                    "log2 Centered intensity")
   
+  if (exp == "DIA") {
+    colnames(df) <- paste(colData(dep)$experiment, colData(dep)$replicate, sep="_")
+  }
   # Heatmap
   ht1 = Heatmap(df,
                 col = circlize::colorRamp2(

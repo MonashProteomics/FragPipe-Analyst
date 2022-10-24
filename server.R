@@ -483,7 +483,7 @@ server <- function(input, output, session) {
      #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
      if(input$fdr_correction=="BH"){
        diff_all <- test_limma_customized(imputed_data(), type='all', paired = F)
-     } else {
+     } else { # t-statistics-based
        diff_all <- test_diff_customized(imputed_data(), type = "all")
      }
      add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
@@ -572,7 +572,7 @@ server <- function(input, output, session) {
      get_cluster_heatmap(dep(),
                          type="centered",kmeans = TRUE,
                          k=input$k_number, col_limit = 6,
-                         indicate = "condition"
+                         indicate = "condition", exp=input$exp
                          )
    })
    
@@ -666,7 +666,7 @@ server <- function(input, output, session) {
    })
    
    missval_input <- reactive({
-     plot_missval(filtered_data())
+     plot_missval_customized(filtered_data(), input$exp)
    })
    
    detect_input <- reactive({
@@ -676,11 +676,9 @@ server <- function(input, output, session) {
    imputation_input <- reactive({
      if (input$exp == "TMT") {
        plot_imputation_customized(normalised_data(), diff_all())
-     } else if (input$exp == "DIA") {
+     } else {
        plot_imputation_DIA_customized(normalised_data(), diff_all())
-     } else if (input$exp == "LFQ") {
-       plot_imputation_DIA_customized(normalised_data(), diff_all())
-     } 
+     }
    })
    
    # p_hist_input <- reactive({
@@ -691,7 +689,7 @@ server <- function(input, output, session) {
      if (input$exp == "TMT") {
        plot_numbers_by_plex_set(normalised_data())
      } else {
-       plot_numbers_customized(normalised_data())
+       plot_numbers_customized(normalised_data(), exp=input$exp)
      }
    })
    
@@ -700,7 +698,7 @@ server <- function(input, output, session) {
    })
    
    correlation_input<-reactive({
-     plot_cor_customized(dep(), significant=FALSE, indicate="condition")
+     plot_cor_customized(dep(), significant=FALSE, indicate="condition", exp=input$exp)
    })
    
    cvs_input<-reactive({
