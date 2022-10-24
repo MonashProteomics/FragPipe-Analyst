@@ -226,8 +226,8 @@ test_match_lfq_column_manifest <-function(unique_data, lfq_columns, exp_design){
   
   raw <- unique_data[, lfq_columns]
   
-  expdesign <- mutate(exp_design, condition = make.names(condition)) %>%
-    unite(ID, condition, replicate, remove = FALSE)
+  expdesign <- mutate(exp_design, experiment = make.names(experiment)) %>%
+    unite(ID, experiment, replicate, remove = FALSE)
   rownames(expdesign) <- expdesign$ID
   
   matched <- match(make.names(expdesign$label),

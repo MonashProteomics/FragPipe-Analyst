@@ -313,8 +313,9 @@ server <- function(input, output, session) {
         
         # make it compatible to original LFQ-Analyst design
         # colnames(temp_df) <- c("Path", "Experiment", "Bioreplicate", "Data.type")
-        colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
-        temp_df$label <- paste(temp_df$condition, temp_df$replicate, sep="_")
+        colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
+        temp_df$condition <- gsub("_.*", "", temp_df$experiment)
+        temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
         temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=" ")
         # print(temp_df$label)
       } else if (input$exp == "DIA") {
@@ -322,7 +323,8 @@ server <- function(input, output, session) {
                               header = F,
                               sep="\t",
                               stringsAsFactors = FALSE)
-        colnames(temp_df) <- c("path", "condition", "replicate", "Data.type")
+        colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
+        temp_df$condition <- gsub("_.*", "", temp_df$experiment)
         temp_df$label <- temp_df$path
       }
       return(temp_df)
@@ -472,32 +474,19 @@ server <- function(input, output, session) {
    })
    
    diff_all<-reactive({
-     if (input$exp == "TMT" | input$exp == "DIA") {
-       # test_diff_customized(imputed_data(), type = "manual", 
-       #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
-       test_diff_customized(imputed_data(), type = "all")
-     } else if (input$exp == "LFQ") {
-       test_diff(imputed_data(), type = 'all')
-     }
+     test_diff_customized(imputed_data(), type = "all")
    })
 
    dep<-reactive({
-     if (input$exp == "TMT" | input$exp == "DIA") {
-       # TODO: test_limma for paired
-       # diff_all <- test_diff_customized(imputed_data(), type = "manual", 
-       #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
-       if(input$fdr_correction=="BH"){
-         diff_all <- test_limma_customized(imputed_data(), type='all', paired = F)
-       } else {
-         diff_all <- test_diff_customized(imputed_data(), type = "all")
-       }
-       add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-     } else if (input$exp == "LFQ") {
-       if(input$fdr_correction=="BH"){
-         diff_all<-test_limma(imputed_data(),type='all', paired = F)
-         add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
-       }
+     # TODO: test_limma for paired
+     # diff_all <- test_diff_customized(imputed_data(), type = "manual",
+     #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+     if(input$fdr_correction=="BH"){
+       diff_all <- test_limma_customized(imputed_data(), type='all', paired = F)
+     } else {
+       diff_all <- test_diff_customized(imputed_data(), type = "all")
      }
+     add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
    })
    
    comparisons<-reactive ({
