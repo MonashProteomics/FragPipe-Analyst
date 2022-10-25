@@ -4,7 +4,7 @@ library(dplyr)
 ui <- function(request){shinyUI(
   dashboardPage(
     skin = "blue",
-    dashboardHeader(title = "Fragpipe-Analyst"),
+    dashboardHeader(title = "FragPipe-Analyst"),
     # disable = TRUE),# Disable title bar
     dashboardSidebar(
       sidebarMenu(
@@ -128,14 +128,14 @@ ui <- function(request){shinyUI(
              fluidRow( 
                box(
                 title = "Overview",
-                  h3("Fragpipe-Analyst: An customized version of LFQ-Analyst for FragPipe."),
-                p(HTML(paste0("Fragpipe-Analyst is an easy-to-use, interactive web application developed to perform 
+                  h3("FragPipe-Analyst: An customized version of LFQ-Analyst for FragPipe."),
+                p(HTML(paste0("FragPipe-Analyst is an easy-to-use, interactive web application developed to perform 
                   differential expression analysis with “one click” and to visualize label-free quantitative proteomic 
                   datasets preprocessed with ",
                   a(href="https://fragpipe.nesvilab.org/", target="_blank", "FragPipe"), 
                   ". It's based on the origianl ",
                   a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blanl", "LFQ-Analyst"),
-                  ". Fragpipe-Analyst provides a wealth of user-analytic features 
+                  ". FragPipe-Analyst provides a wealth of user-analytic features 
                   and offers numerous publication-quality result output graphics and tables to facilitate statistical 
                   and exploratory analysis of label-free quantitative datasets. "))), 
                 br(),
@@ -144,7 +144,7 @@ ui <- function(request){shinyUI(
                 h4("Sidebar tabs"),
                 tags$ul(
                 tags$li(tags$b("Analysis: "),"perform your own analysis"), 
-                # tags$li(tags$b("Demo: "),"familiarise yourself with Fragpipe-Analyst by browsing through pre-analysed results"), 
+                # tags$li(tags$b("Demo: "),"familiarise yourself with FragPipe-Analyst by browsing through pre-analysed results"), 
                 tags$li(tags$b("User Guide: "), "download an in-depth manual") 
                 ),
                 width = 12,
@@ -522,20 +522,20 @@ ui <- function(request){shinyUI(
               fluidRow( 
                box(
                    title = "User Guide",
-                   h3("Fragpipe-Analyst Documentation"),
+                   h3("FragPipe-Analyst Documentation"),
                    div(p(HTML(paste0('Learn more about our FragPipe',
                                      a(href = 'https://monashbioinformaticsplatform.github.io/LFQ-Analyst/', target='_blank', 'here'))))),
                    div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
 			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
 			                              target='_blank', tags$b("here.")))))),
                    h4("Contact Us"),
-			p("For any feedback or question regarding Fragpipe-Analyst, please contact the 
+			p("For any feedback or question regarding FragPipe-Analyst, please contact the 
 			  Proteomics & Integrative Bioinformatics Lab, University of Michigan:"),
       tags$ul(
 			tags$li("Professor Alexey Nesvizhskii: nesvi@med.umich.edu")
       ),
 			
-			h4("How to Cite Fragpipe-Analyst?"),
+			h4("How to Cite FragPipe-Analyst?"),
 			div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
 		LFQ-Analyst: An easy-to-use interactive web-platform to analyze and 
 		visualize proteomics data preprocessed with MaxQuant. DOI:",
@@ -546,19 +546,7 @@ ui <- function(request){shinyUI(
       h4("News and Updates"),
 			
       tags$ul(
-        tags$li("07-13-2022: Fragpipe-Analyst first created")
-#       tags$li("27-12-2021: LFQ-Analyst being accessed by more than 5000 users worldwide"),
-#       tags$li("30-09-2021: LFQ-Analyst being accessed by more than 4000 users worldwide"),
-#       tags$li("03-05-2021: LFQ-Analyst being accessed by more than 3000 users worldwide"),
-#       tags$li("24-02-2021: Correlation plot now use all protein expression data"),
-#       tags$li("25-11-2020: LFQ-Analyst being accessed by more than 2000 users worldwide"),
-# 			tags$li("07-04-2020: LFQ-Analyst being accessed by more than 1000 users worldwide"),
-#       tags$li("03-01-2020: LFQ-Analyst manuscript published in volume 19 of JPR"),
-#       tags$li("28-10-2019: LFQ-Analyst paper published online in Journal of Proteome Research (JPR)"),
-#       tags$li("02-10-2019: Svg figures download feature added"),
-#       tags$li("09-09-2019: Paired test support added"),
-#       tags$li("09-09-2019: Option to include single peptide observations in the analysis"),
-#       tags$li("19-02-2019: LFQ-Analyst made public")
+        tags$li("07-13-2022: FragPipe-Analyst first created")
       ),   
                 width = 12,
                 solidHeader = TRUE,

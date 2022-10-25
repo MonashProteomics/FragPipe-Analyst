@@ -78,11 +78,11 @@ fragpipe_input_test<-function(fragpipe_input){
   col_names<-colnames(fragpipe_input)
   if(!"Gene" %in% col_names){
     print(col_names)
-    stop(safeError("The column 'Gene' is not found in the Fragpipe combined_protein File"))
+    stop(safeError("The column 'Gene' is not found in the FragPipe combined_protein File"))
   }
   
   else if (any(grepl("Intensity", col_names))==FALSE){
-    stop(safeError("Columns ending with 'Intensity' are not found in the Fragpipe combined_protein File"))
+    stop(safeError("Columns ending with 'Intensity' are not found in the FragPipe combined_protein File"))
   }
   
   # More like razor proteins
@@ -107,7 +107,7 @@ fragpipe_input_test<-function(fragpipe_input){
   # }
   
   else if (!"Description" %in% col_names){
-    stop(safeError("The column 'Description' is not found in the Fragpipe combined_protein File"))
+    stop(safeError("The column 'Description' is not found in the FragPipe combined_protein.tsv"))
   }
   
 }
@@ -115,10 +115,10 @@ fragpipe_input_test<-function(fragpipe_input){
 fragpipe_DIA_input_test<-function(fragpipe_input){
   col_names<-colnames(fragpipe_input)
   if(!"Genes" %in% col_names){
-    stop(safeError("The column 'Genes' is not found in the Fragpipe combined_protein File"))
+    stop(safeError("The column 'Genes' is not found in the uploaded PG matrix file"))
   }
   # else if (!"Description" %in% col_names){
-  #   stop(safeError("The column 'Description' is not found in the Fragpipe combined_protein File"))
+  #   stop(safeError("The column 'Description' is not found in the FragPipe combined_protein File"))
   # }
 
 }
@@ -127,34 +127,14 @@ fragpipe_DIA_input_test<-function(fragpipe_input){
 tmt_input_test<-function(tmt_input){
   col_names<-colnames(tmt_input)
   if(!"Index" %in% col_names){
-    stop(safeError("The column 'Index' is not found in the Fragpipe combined_protein File"))
+    stop(safeError("The column 'Index' is not found in the FragPipe combined_protein.tsv"))
   }
   else if(!"ProteinID" %in% col_names){
-    stop(safeError("The column 'ProteinID' is not found in the Fragpipe combined_protein File"))
+    stop(safeError("The column 'ProteinID' is not found in the FragPipe combined_protein.tsv"))
   }
   else if(!"NumberPSM" %in% col_names){
-    stop(safeError("The column 'NumberPSM' is not found in the Fragpipe combined_protein File"))
+    stop(safeError("The column 'NumberPSM' is not found in the FragPipe combined_protein.tsv"))
   }
-  # More like razor proteins
-  # else if (!"Protein.IDs" %in% col_names){
-  #   stop(safeError("The column 'Protein IDs' is not found in the MaxQuant proteinGroups File"))
-  # }
-  
-  # else if (!"Reverse" %in% col_names){
-  #   stop(safeError("The column 'Reverse' is not found in the MaxQuant proteinGroups File"))
-  # }
-  
-  # else if (!"Potential.contaminant" %in% col_names){
-  #   stop(safeError("The column 'Potential contaminant' is not found in the MaxQuant proteinGroups File"))
-  # }
-  
-  # else if (!"Only.identified.by.site" %in% col_names){
-  #   stop(safeError("The column 'Only identified by site' is not found in the MaxQuant proteinGroups File"))
-  # }
-  
-  # else if (!"Razor...unique.peptides" %in% col_names){
-  #   stop(safeError("The column 'Razor + unique peptides' is not found in the MaxQuant proteinGroups File"))
-  # }
 }
 
 ### Test if experimental design names and LFQ column names match
