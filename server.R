@@ -746,7 +746,7 @@ server <- function(input, output, session) {
    
 #### Interactive UI
    output$significantBox <- renderInfoBox({
-     num_total <- dep() %>%
+     num_total <- assay(processed_data()) %>%
        nrow()
      num_signif <- dep() %>%
        .[replace_na(SummarizedExperiment::rowData(.)$significant, F), ] %>%
@@ -1278,13 +1278,14 @@ output$download_imp_svg<-downloadHandler(
       condition <- conditions[i]
       pattern <- paste(condition,"[[:digit:]]",sep = "_")
       df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,grep(pattern, colnames(df)), drop=F]))
-      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition), .before = paste(conditions[1],"1 MaxLFQ.Intensity", sep = "_"), .after = NULL)
+      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
       cols <- grep(paste0(condition, "$"),colnames(df))
       if (!is.null(input[[paste0("",condition)]])){
         df <- df %>%
           dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
       }
     }
+    df <- dplyr::relocate(df, "Gene", "Description", "Combined.Total.Peptides")
     return(df)
   })
   
