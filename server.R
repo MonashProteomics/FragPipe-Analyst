@@ -527,16 +527,16 @@ server <- function(input, output, session) {
      ID_col <- "label"
      if (num_total()<=500){
        if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
-         pca_plot<- plot_pca_plotly(dep(), n=num_total(), ID_col=ID_col)
+         pca_plot<- plot_pca_plotly(dep(), n=num_total(), ID_col=ID_col, exp=input$exp)
        } else{
-           pca_plot<- plot_pca_plotly(dep(), n=num_total(), indicate = "condition", ID_col=ID_col)
+           pca_plot<- plot_pca_plotly(dep(), n=num_total(), indicate = "condition", ID_col=ID_col, exp=input$exp)
        }
      } else {
          if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
-           pca_plot<- plot_pca_plotly(dep(), ID_col=ID_col)
+           pca_plot<- plot_pca_plotly(dep(), ID_col=ID_col, exp=input$exp)
          }
          else{
-           pca_plot<-plot_pca_plotly(dep(), indicate = "condition", ID_col=ID_col)
+           pca_plot<-plot_pca_plotly(dep(), indicate = "condition", ID_col=ID_col, exp=input$exp)
          }
      }
      return(pca_plot)
