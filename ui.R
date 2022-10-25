@@ -280,15 +280,13 @@ ui <- function(request){shinyUI(
                                              ),
                                            
                                            fluidRow(
-                                             shinycssloaders::withSpinner(plotOutput("volcano", height = 600,
-                                                        # hover = "protein_hover"),
-                                                        #),
-                                                        # click = "protein_click"),
-                                                        brush = "protein_brush",
-                                                        click = "protein_click"), color = "#3c8dbc"),
+                                             shinycssloaders::withSpinner(
+                                               plotOutput("volcano",
+                                                          height = 600,
+                                                          brush = "protein_brush" # click = "protein_click"
+                                                        ), color = "#3c8dbc"),
                                              downloadButton('downloadVolcano', 'Save Highlighted Plot'),
                                              actionButton("resetPlot", "Clear Selection")
-                                             #)),
                                            )),
                                   tabPanel(title= "Heatmap",
                                            fluidRow(

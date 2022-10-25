@@ -509,15 +509,8 @@ server <- function(input, output, session) {
        trimws(temp)
      }
    })
-   
-   ## Select point on volcano plot
-   # protein_graph_selected<- reactive({
-   #   protein_row<-nearPoints(data_result(), input$protein_click,
-   #                           maxpoints = 1)
-   #  # as.character(protein_row$name)
-   # })
-   # 
-   
+
+
    ## Results plot inputs
    ## PCA Plot
    pca_input<-eventReactive(input$analyze ,{ 
@@ -601,10 +594,9 @@ server <- function(input, output, session) {
       if(!is.null(input$volcano_cntrst)){
         
         if (!is.null(input$contents_rows_selected)){
-        proteins_selected<-data_result()[c(input$contents_rows_selected),]## get all rows selected
-        }
-        else if(!is.null(input$protein_brush)){
-        proteins_selected<-data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ] 
+          proteins_selected<-data_result()[c(input$contents_rows_selected),]## get all rows selected
+        } else if(!is.null(input$protein_brush)){
+          proteins_selected <- data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ] 
         }
         
        ## convert contrast to x and padj to y
@@ -795,116 +787,32 @@ server <- function(input, output, session) {
       return(df)
     },
     options = list(scrollX = TRUE,
-     autoWidth=TRUE,
-                columnDefs= list(list(width = '400px', targets = c(-1))))
+                   autoWidth=TRUE,
+                   columnDefs= list(list(width = '400px', targets = c(-1))))
     )
   })
 
-   protein_name_brush<- reactive({
-     #protein_tmp<-nearPoints(volcano_df(), input$protein_click, maxpoints = 1)
-     protein_tmp<-brushedPoints(volcano_df(), input$protein_brush, 
-                                xvar = "diff", yvar = "p_values")
-     protein_selected<-protein_tmp$name
-     }) 
-   protein_name_click<- reactive({
-     protein_tmp<-nearPoints(volcano_df(), input$protein_click, maxpoints = 1)
-    # protein_tmp<-brushedPoints(volcano_df(), input$protein_brush, 
-                                #xvar = "diff", yvar = "p_values")
-     protein_selected<-protein_tmp$name
-   }) 
- #   observeEvent(input$protein_brush,{
- # output$protein_info<-renderPrint({
- # #  protein_selected()
- #   #nearPoints(rowData(dep()), input$protein_click, maxpoints = 1)
- #   brushedPoints(volcano_df(), input$protein_brush, 
- #               xvar = "diff", yvar = "p_values")
- #  # head(volcano_df())
- #   #input$protein_click
- #  # str(input$protein_hover)
- # })
- #  })
+  protein_name_brush<- reactive({
+    protein_tmp<-brushedPoints(volcano_df(), input$protein_brush,
+                               xvar = "diff", yvar = "p_values")
+    return(protein_tmp$name)
+  })
   
   ## Select rows dynamically
-   
-   brush <- NULL
-   makeReactiveBinding("brush")
-   
+  brush <- NULL
+  makeReactiveBinding("brush")
   observeEvent(input$protein_brush,{
-    output$contents <- DT::renderDataTable({
-      df<- data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ]
-      return(df)
-    },
-    options = list(scrollX= TRUE)
-    )
-    
-    proteins_selected<-data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ] ## get all rows selected
-    ## convert contrast to x and padj to y
-    diff_proteins <- grep(paste("^",input$volcano_cntrst, "_log2", sep = ""),
-                          colnames(proteins_selected))
-    if(input$p_adj=="FALSE"){
-      padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.val", sep = ""),
-                            colnames(proteins_selected))
-    }
-    else{
-      padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
-                            colnames(proteins_selected))
-    }
-    df_protein <- data.frame(x = proteins_selected[, diff_proteins],
-                             y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
-                             name = proteins_selected$`Gene Name`)
-    #print(df_protein)
-    
-    p<-plot_volcano_new(dep(),
-                        input$volcano_cntrst,
-                        input$fontsize,
-                        input$check_names,
-                        input$p_adj)
-    
-      p<- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-      ggrepel::geom_text_repel(data = df_protein,
-                               aes(x, y, label = name),
-                               size = 4,
-                               box.padding = unit(0.1, 'lines'),
-                               point.padding = unit(0.1, 'lines'),
-                               segment.size = 0.5)
-    
-    # output$volcano <- renderPlot({
-    #   withProgress(message = 'Volcano Plot calculations are in progress',
-    #                detail = 'Please wait for a while', value = 0, {
-    #                  for (i in 1:15) {
-    #                    incProgress(1/15)
-    #                    Sys.sleep(0.25)
-    #                  }
-    #                })
-    #  p
-    # })
-    return(p)
+    data <- data_result()
+    proxy %>% selectRows(which(data[["Gene Name"]] %in% protein_name_brush()))
   })
  
  observeEvent(input$resetPlot,{
    session$resetBrush("protein_brush")
    brush <<- NULL
    
-   output$contents <- DT::renderDataTable({
-     df<- data_result()
-     return(df)
-   },
-   options = list(scrollX = TRUE,
-                  autoWidth=TRUE,
-                  columnDefs= list(list(width = '400px', targets = c(-1))))
-   )
+   proxy %>% selectRows(NULL)
  })
 
- observeEvent(input$protein_click,{
-   output$contents <- DT::renderDataTable({
-     df<- data_result()[data_result()[["Gene Name"]] %in% protein_name_click(), ]
-     return(df)
-   },
-   options = list(scrollX= TRUE,
-   autoWidth=TRUE,
-                columnDefs= list(list(width = '400px', targets = c(-1))))
-   )
- })
  
   ## Render Result Plots
   output$pca_plot<-renderPlotly({
@@ -931,11 +839,10 @@ server <- function(input, output, session) {
                    }
                  })
     if(is.null(input$contents_rows_selected)){
-   volcano_input()
-     }
-    else if(!is.null(input$volcano_cntrst)){
+      volcano_input()
+    } else if(!is.null(input$volcano_cntrst)){
       volcano_input_selected()
-      }# else close
+    }# else close
   })
   
   output$protein_plot<-renderPlot({
@@ -1837,12 +1744,6 @@ output$download_imp_svg<-downloadHandler(
 #                               xvar = "diff", yvar = "p_values")
 #    protein_selected<-protein_tmp$name
 #  }) 
-#  protein_name_click_dm<- reactive({
-#    protein_tmp<-nearPoints(volcano_df_dm(), input$protein_click_dm, maxpoints = 1)
-#    # protein_tmp<-brushedPoints(volcano_df(), input$protein_brush, 
-#    #xvar = "diff", yvar = "p_values")
-#    protein_selected<-protein_tmp$name
-#  }) 
 #  
 #  
 #  ## Select rows dynamically
@@ -1915,14 +1816,6 @@ output$download_imp_svg<-downloadHandler(
 #    )
 #  })
 #  
-#  observeEvent(input$protein_click_dm,{
-#    output$contents_dm <- DT::renderDataTable({
-#      df<- data_result_dm()[data_result_dm()[["Gene Name"]] %in% protein_name_click_dm(), ]
-#      return(df)
-#    },
-#    options = list(scrollX= TRUE)
-#    )
-#  })
 #  ## Render Result Plots
 #  output$pca_plot_dm<-renderPlot({
 #    pca_input_dm()
