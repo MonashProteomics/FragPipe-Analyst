@@ -415,7 +415,7 @@ get_results_customized <- function(dep) {
 }
 
 plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replicate"),
-                    label = FALSE, n = 500, point_size = 8, label_size = 3, plot = TRUE, ID_col="ID") {
+                    label = FALSE, n = 500, point_size = 8, label_size = 3, plot = TRUE, ID_col="ID", exp="LFQ") {
   if(is.integer(x)) x <- as.numeric(x)
   if(is.integer(y)) y <- as.numeric(y)
   if(is.integer(n)) n <- as.numeric(n)
@@ -494,42 +494,168 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
   }
   
   if(length(indicate) == 1) {
-    p <- plot_ly(data=pca_df, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
-      plotly::layout(title = 'PCA plot', xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")), yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"))) %>%
-      # add_markers(color=as.formula(paste0("~", indicate[1])))
-      add_trace(type = "scatter",
-       x = ~PC1,
-       y = ~PC2,
-       color = as.formula(paste0('~', indicate[1])),
-       mode = 'markers',
-       legendgroup=indicate[1],
-       legendgrouptitle_text=indicate[1])
-  }
-  if(length(indicate) == 2) {
-    p <- plot_ly(data=pca_df, type = 'scatter',
-                 mode = 'markers', marker = list(size = point_size), text=~rowname) %>%
-      #Overlay color for gears
-      add_trace(type = "scatter",
-                x = ~PC1,
-                y = ~PC2,
-                symbol = as.formula(paste0('~', indicate[2])),
-                marker = list(color = "grey", size = point_size + 3),
+    if (exp == "TMT") {
+    pca_df$plex <- as.factor(pca_df$plex)
+    p <- plot_ly() %>%
+      add_trace(data=pca_df, type = 'scatter', marker = list(size = point_size),
                 mode = 'markers',
-                legendgroup=indicate[2],
-                legendgrouptitle_text=indicate[2]) %>%
-      add_trace(type = "scatter",
                 x = ~PC1,
                 y = ~PC2,
                 color = as.formula(paste0('~', indicate[1])),
-                mode = 'markers',
+                xaxis="x",
+                yaxis="y",
                 legendgroup=indicate[1],
                 legendgrouptitle_text=indicate[1]) %>%
+      add_trace(data=pca_df, type = "scatter", marker = list(size = point_size),
+                mode = 'markers',
+                x = ~PC1,
+                y = ~PC2,
+                color = as.formula(paste0('~', "plex")),
+                legendgroup="plex",
+                legendgrouptitle_text="plex",
+                xaxis="x2",
+                yaxis="y2", visible = FALSE, inherit = FALSE) %>%
       plotly::layout(title = 'PCA plot',
                      xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
+                     xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"), overlaying="x", visible=F),
                      yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
-                     legend=list(itemclick = FALSE,
-                                 itemdoubleclick = FALSE,
-                                 groupclick = FALSE))
+                     yaxis2 = list(title = paste0("PC", y, ": ", percent[y], "%"), overlaying="y", visible=F),
+                     updatemenus = list(
+                       list(
+                         y = 0.8,
+                         buttons = list(
+                           list(method = "update",
+                                args = list(list(visible=unlist(Map(rep, x = c(T, F), each = c(length(unique(pca_df$condition)),
+                                                                                               length(unique(pca_df$plex)))))),
+                                            list(xaxis = list(title = paste0("PC", x, ": ", percent[x], "%"),
+                                                              visible = TRUE),
+                                                 xaxis2 = list(overlaying = "x", visible = FALSE),
+                                                 yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"),
+                                                              visible = TRUE),
+                                                 yaxis2 = list(overlaying = "y", visible = FALSE))),
+                                label = "by condition"),
+                           list(method = "update",
+                                args = list(list(visible=unlist(Map(rep, x = c(F, T), each = c(length(unique(pca_df$condition)),
+                                                                                               length(unique(pca_df$plex)))))),
+                                            list(xaxis = list(visible = F),
+                                                 xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"),
+                                                               overlaying = "x", visible = T),
+                                                 yaxis = list(visible = F),
+                                                 yaxis2 = list(title = paste0("PC", y, ": ", percent[y], "%"),
+                                                               overlaying = "y", visible = T))),
+                                label = "by plex")
+                         )
+                       )
+                     )
+                  )
+    } else {
+      p <- plot_ly(data=pca_df, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
+        plotly::layout(title = 'PCA plot', xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")), yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"))) %>%
+        # add_markers(color=as.formula(paste0("~", indicate[1])))
+        add_trace(type = "scatter",
+                  x = ~PC1,
+                  y = ~PC2,
+                  color = as.formula(paste0('~', indicate[1])),
+                  mode = 'markers',
+                  legendgroup=indicate[1],
+                  legendgrouptitle_text=indicate[1])
+    }
+  } else if(length(indicate) == 2) {
+    if (exp == "TMT"){
+      pca_df$plex <- as.factor(pca_df$plex)
+      p <- plot_ly() %>%
+        #Overlay color for gears
+        add_trace(data=pca_df, type = "scatter",
+                  x = ~PC1,
+                  y = ~PC2,
+                  symbol = as.formula(paste0('~', indicate[2])),
+                  marker = list(color = "grey", size = point_size + 3),
+                  mode = 'markers',
+                  legendgroup=indicate[2],
+                  legendgrouptitle_text=indicate[2]) %>%
+        add_trace(data=pca_df, type = "scatter",
+                  x = ~PC1,
+                  y = ~PC2,
+                  text=~rowname,
+                  marker = list(size = point_size),
+                  color = as.formula(paste0('~', indicate[1])),
+                  mode = 'markers',
+                  legendgroup=indicate[1],
+                  legendgrouptitle_text=indicate[1]) %>%
+        add_trace(data=pca_df, type = "scatter",
+                  x = ~PC1,
+                  y = ~PC2,
+                  text=~rowname,
+                  marker = list(size = point_size),
+                  color = as.formula(paste0('~', "plex")),
+                  mode = 'markers',
+                  legendgroup="plex",
+                  legendgrouptitle_text="plex",
+                  xaxis="x2", yaxis="y2", visible=F) %>%
+        plotly::layout(title = 'PCA plot',
+                       xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
+                       xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"), overlaying="x", visible=F),
+                       yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
+                       yaxis2 = list(title = paste0("PC", y, ": ", percent[y], "%"), overlaying="y", visible=F),
+                       legend=list(itemclick = FALSE,
+                                   itemdoubleclick = FALSE,
+                                   groupclick = FALSE),
+                       updatemenus = list(
+                         list(
+                           y = 0.8,
+                           buttons = list(
+                             list(method = "update",
+                                  args = list(list(visible=unlist(Map(rep, x = c(T, T, F), each = c(length(unique(pca_df$condition)),
+                                                                                                    length(unique(pca_df$replicate)),
+                                                                                                    length(unique(pca_df$plex)))))),
+                                              list(xaxis = list(title = paste0("PC", x, ": ", percent[x], "%"),
+                                                                visible = TRUE),
+                                                   xaxis2 = list(overlaying = "x", visible = FALSE),
+                                                   yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"),
+                                                                visible = TRUE),
+                                                   yaxis2 = list(overlaying = "y", visible = FALSE))),
+                                  label = "by condition"),
+                             list(method = "update",
+                                  args = list(list(visible=unlist(Map(rep, x = c(F, F, T), each = c(length(unique(pca_df$condition)),
+                                                                                                    length(unique(pca_df$replicate)),
+                                                                                                    length(unique(pca_df$plex)))))),
+                                              list(xaxis = list(visible = F),
+                                                   xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"),
+                                                                 overlaying = "x", visible = T),
+                                                   yaxis = list(visible = F),
+                                                   yaxis2 = list(title = paste0("PC", y, ": ", percent[y], "%"),
+                                                                 overlaying = "y", visible = T))),
+                                  label = "by plex")
+                           )
+                         )
+                       )
+                       )
+    } else {
+      p <- plot_ly(data=pca_df, type = 'scatter',
+                   mode = 'markers', marker = list(size = point_size), text=~rowname) %>%
+        #Overlay color for gears
+        add_trace(type = "scatter",
+                  x = ~PC1,
+                  y = ~PC2,
+                  symbol = as.formula(paste0('~', indicate[2])),
+                  marker = list(color = "grey", size = point_size + 3),
+                  mode = 'markers',
+                  legendgroup=indicate[2],
+                  legendgrouptitle_text=indicate[2]) %>%
+        add_trace(type = "scatter",
+                  x = ~PC1,
+                  y = ~PC2,
+                  color = as.formula(paste0('~', indicate[1])),
+                  mode = 'markers',
+                  legendgroup=indicate[1],
+                  legendgrouptitle_text=indicate[1]) %>%
+        plotly::layout(title = 'PCA plot',
+                       xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
+                       yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
+                       legend=list(itemclick = FALSE,
+                                   itemdoubleclick = FALSE,
+                                   groupclick = FALSE))
+    }
   }
   
   if(plot) {
