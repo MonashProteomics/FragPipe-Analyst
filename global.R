@@ -7,6 +7,7 @@ library("shinydashboard")
 library("shinyjs")
 library("shinyalert")
 library("ComplexHeatmap")
+library("dplyr")
 library("limma")
 library("DT")
 library("ggrepel")
@@ -22,6 +23,7 @@ library("ggVennDiagram") # new added
 library("rhandsontable") # new added
 library("shinyBS") # new added
 library("shinycssloaders") # new added
+library("shiny.info")
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")

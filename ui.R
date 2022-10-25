@@ -1,5 +1,6 @@
 # Define UI for data upload app ----
-library(dplyr)
+VERSION <- "v0.4"
+
 
 ui <- function(request){shinyUI(
   dashboardPage(
@@ -745,7 +746,8 @@ ui <- function(request){shinyUI(
               #         bottom:0;
               #         width:100%;
               #         height:50px;   /* Height of the footer */")
-            )
+            ),
+          shiny.info::version(position = "bottom left")
           )
       ) # Dasbboardbody close
     ) #Dashboard page close
