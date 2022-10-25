@@ -446,15 +446,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
          call. = FALSE)
   }
   
-  # Check for valid 'n' value
-  if(n > nrow(dep)) {
-    stop(paste0("'n' argument is not valid.\n",
-                "Run plot_pca() with 'n' <= ",
-                nrow(dep),
-                "."),
-         call. = FALSE)
-  }
-  
+
   # Check for valid 'indicate'
   columns <- colnames(colData(dep))
   if(!is.null(indicate)) {
@@ -473,10 +465,20 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
            call. = FALSE)
     }
   }
-  
+
+  data <- assay(dep)
+  data <- data[complete.cases(data), ]
   # Get the variance per protein and take the top n variable proteins
-  var <- apply(assay(dep), 1, sd)
-  df <- assay(dep)[order(var, decreasing = TRUE)[seq_len(n)],]
+  var <- apply(data, 1, sd)
+  # Check for valid 'n' value
+  if(n > nrow(data)) {
+    message(paste("'n' argument is larger than number of features availble(",
+                  nrow(data), ").", nrow(data), "features will be used for PCA calculation."))
+    df <- data
+    n <- nrow(data)
+  } else {
+    df <- data[order(var, decreasing = TRUE)[seq_len(n)],]
+  }
   
   # Calculate PCA
   pca <- prcomp(t(df), scale = FALSE)
@@ -515,7 +517,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                 legendgrouptitle_text="plex",
                 xaxis="x2",
                 yaxis="y2", visible = FALSE, inherit = FALSE) %>%
-      plotly::layout(title = 'PCA plot',
+      plotly::layout(title = paste0('PCA plot (', n, " features used)"),
                      xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
                      xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"), overlaying="x", visible=F),
                      yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
@@ -550,8 +552,9 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   )
     } else {
       p <- plot_ly(data=pca_df, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
-        plotly::layout(title = 'PCA plot', xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")), yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"))) %>%
-        # add_markers(color=as.formula(paste0("~", indicate[1])))
+        plotly::layout(title = paste0('PCA plot (', n, " features used)"),
+                       xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
+                       yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"))) %>%
         add_trace(type = "scatter",
                   x = ~PC1,
                   y = ~PC2,
@@ -592,7 +595,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   legendgroup="plex",
                   legendgrouptitle_text="plex",
                   xaxis="x2", yaxis="y2", visible=F) %>%
-        plotly::layout(title = 'PCA plot',
+        plotly::layout(title = paste0('PCA plot (', n, " features used)"),
                        xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
                        xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"), overlaying="x", visible=F),
                        yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
@@ -649,7 +652,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   mode = 'markers',
                   legendgroup=indicate[1],
                   legendgrouptitle_text=indicate[1]) %>%
-        plotly::layout(title = 'PCA plot',
+        plotly::layout(title = paste0('PCA plot (', n, " features used)"),
                        xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
                        yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
                        legend=list(itemclick = FALSE,
@@ -753,15 +756,6 @@ plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "re
          call. = FALSE)
   }
   
-  # Check for valid 'n' value
-  if(n > nrow(dep)) {
-    stop(paste0("'n' argument is not valid.\n",
-                "Run plot_pca() with 'n' <= ",
-                nrow(dep),
-                "."),
-         call. = FALSE)
-  }
-  
   # Check for valid 'indicate'
   columns <- colnames(colData(dep))
   if(!is.null(indicate)) {
@@ -781,9 +775,19 @@ plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "re
     }
   }
   
+  data <- assay(dep)
+  data <- data[complete.cases(data), ]
   # Get the variance per protein and take the top n variable proteins
-  var <- apply(assay(dep), 1, sd)
-  df <- assay(dep)[order(var, decreasing = TRUE)[seq_len(n)],]
+  var <- apply(data, 1, sd)
+  # Check for valid 'n' value
+  if(n > nrow(data)) {
+    message(paste("'n' argument is larger than number of features availble(",
+                  nrow(data), ").", nrow(data), "features will be used for PCA calculation."))
+    df <- data
+    n <- nrow(data)
+  } else {
+    df <- data[order(var, decreasing = TRUE)[seq_len(n)],]
+  }
   
   # Calculate PCA
   pca <- prcomp(t(df), scale = FALSE)

@@ -31,10 +31,31 @@ imputed <- data_se
 rowData(imputed)$imputed <- apply(is.na(assay(data_se)), 1, any)
 rowData(imputed)$num_NAs <- rowSums(is.na(assay(data_se)))
 normalised_data <- normalize_vsn(data_se)
+
 plot_numbers_customized(normalised_data, exp="DIA")
 
 DE_result <- test_limma_customized(imputed, type = "all")
 dep <- add_rejections(DE_result, alpha=0.05, lfc=log2(1.5))
+
+ID_col <- "label"
+exp <- "DIA"
+num_total <- dep %>% nrow()
+if (num_total<=500){
+  if(length(levels(as.factor(colData(dep)$replicate))) <= 6){
+    pca_plot<- plot_pca_plotly(dep, n=num_total(), ID_col=ID_col, exp=exp)
+  } else{
+    pca_plot<- plot_pca_plotly(dep, n=num_total, indicate = "condition", ID_col=ID_col, exp=exp)
+  }
+} else {
+  if(length(levels(as.factor(colData(dep)$replicate))) <= 6){
+    pca_plot<- plot_pca_plotly(dep, ID_col=ID_col, exp=exp)
+  }
+  else{
+    pca_plot<-plot_pca_plotly(dep, indicate = "condition", ID_col=ID_col, exp=exp)
+  }
+}
+pca_plot
+
 
 plot_cvs(dep, id="label", check.names=F)
 plot_cor_customized(dep, significant=FALSE, indicate="condition", exp="DIA")
