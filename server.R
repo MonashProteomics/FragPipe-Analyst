@@ -39,7 +39,7 @@ server <- function(input, output, session) {
      } else { # DIA
        showTab(inputId="qc_tabBox", target="norm_tab")
        showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-       hideTab(inputId = "tab_panels", target = "occ_panel") # hide for now, need to be fixed
+       showTab(inputId = "tab_panels", target = "occ_panel")
        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
      }
    })
@@ -1165,16 +1165,24 @@ output$download_imp_svg<-downloadHandler(
     
     df <- as.data.frame(assay(processed_data()), check.names=F)
     sample_cols <- colnames(df)
-    # MaxQuant Protein.names is Description in FragPipe output
-    # MaxQuant Gene.names is Gene in FragPipe output
-    df$Gene <- rowData(processed_data())$Gene
-    df$Description <- rowData(processed_data())$Description
-    df$Combined.Total.Peptides <- as.data.frame(rowData(processed_data())["Combined Total Peptides"])
+   
+    if (input$exp == "LFQ"){
+      # MaxQuant Protein.names is Description in FragPipe output
+      # MaxQuant Gene.names is Gene in FragPipe output
+      df$Gene <- rowData(processed_data())$Gene
+      df$Description <- rowData(processed_data())$Description
+      df$Combined.Total.Peptides <- as.data.frame(rowData(processed_data())["Combined Total Peptides"])
+      
+      if ("" %in% df$Gene){
+        df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
+      if ("" %in% df$Description){
+        df$Description[df["Description"]==""] <- "NoProteinDescriptionAvailable"}
+    } else { # DIA
+      # "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description" "name"
+      df$Gene <- rowData(processed_data())$Genes
+      df$Description <- rowData(processed_data())$First.Protein.Description
+    }
     
-    if ("" %in% df$Gene){
-      df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
-    if ("" %in% df$Description){
-      df$Description[df["Description"]==""] <- "NoProteinDescriptionAvailable"}
 
     # filter if all intensity are NA
     df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
@@ -1183,8 +1191,10 @@ output$download_imp_svg<-downloadHandler(
     # print(colnames(df))
     for (i in 1:length(conditions)) {
       condition <- conditions[i]
-      pattern <- paste(condition,"[[:digit:]]",sep = "_")
-      df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,grep(pattern, colnames(df)), drop=F]))
+      temp <- as.data.frame(colData(processed_data()))
+      temp <- temp[temp$condition==condition,]
+      selected_cols <- rownames(temp)
+      df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,selected_cols, drop=F]))
       df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
       cols <- grep(paste0(condition, "$"),colnames(df))
       if (!is.null(input[[paste0("",condition)]])){
@@ -1192,7 +1202,11 @@ output$download_imp_svg<-downloadHandler(
           dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
       }
     }
-    df <- dplyr::relocate(df, "Gene", "Description", "Combined.Total.Peptides")
+    if (input$exp == "LFQ"){
+      df <- dplyr::relocate(df, "Gene", "Description", "Combined.Total.Peptides")
+    } else {
+      df <- dplyr::relocate(df, "Gene", "Description")
+    }
     return(df)
   })
   
@@ -1317,17 +1331,18 @@ output$download_imp_svg<-downloadHandler(
   
   venn_plot_input <- reactive({
     df<- data_attendance_filtered()
+    
     if(length(condition_list()) < 2){
       stop(safeError("Venn plot should contain at least two sets"))
     } else if(length(condition_list()) < 3){
-      set1 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
-      set2 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
+      set1 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
+      set2 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
       x <- list(set1,set2)
       names(x) <- c("Condition 1", "Condition 2")
     } else {
-      set1 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
-      set2 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
-      set3 <- df$Description[df[grep(paste0("#Occurences",sep = "_",input$condition_3),colnames(df))] != 0]
+      set1 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
+      set2 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
+      set3 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_3),colnames(df))] != 0]
       x <- list(set1,set2,set3)
       names(x) <- c("Condition 1", "Condition 2", "Condition 3")
       if (!is.null(input$condition_3)){
