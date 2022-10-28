@@ -523,10 +523,10 @@ ui <- function(request){shinyUI(
                    title = "User Guide",
                    h3("FragPipe-Analyst Documentation"),
                    div(p(HTML(paste0('Learn more about our FragPipe',
-                                     a(href = 'https://monashbioinformaticsplatform.github.io/LFQ-Analyst/', target='_blank', 'here'))))),
+                                     a(href = 'https://monashbioinformaticsplatform.github.io/LFQ-Analyst/', target='_blank', tags$b('here')))))),
                    div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
 			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
-			                              target='_blank', tags$b("here.")))))),
+			                              target='_blank', tags$b("here")))))),
                    h4("Contact Us"),
 			p("For any feedback or question regarding FragPipe-Analyst, please contact the 
 			  Proteomics & Integrative Bioinformatics Lab, University of Michigan:"),

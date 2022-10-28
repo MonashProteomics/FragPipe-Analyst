@@ -126,6 +126,12 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
   # Filter for significant proteins only
   filtered <- dep[replace_na(row_data$significant, FALSE), ]
   
+  if (nrow(filtered) == 0){
+    return(ggplot() +
+      annotate("text", x = 4, y = 25, size=8, label = "No differential expressed genes for the heatmap") + 
+      theme_void())
+  }
+  
   # Check for missing values
   if(any(is.na(assay(filtered)))) {
     warning("Missing values in '", deparse(substitute(dep)), "'. ",
