@@ -41,6 +41,7 @@ server <- function(input, output, session) {
        showTab(inputId="qc_tabBox", target="sample_coverage_tab")
        showTab(inputId = "tab_panels", target = "occ_panel")
        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+       shinyjs::hide("venn_filter")
      }
    })
    
