@@ -30,6 +30,7 @@ server <- function(input, output, session) {
          showTab(inputId = "tab_panels", target = "occ_panel")
          updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
        }
+       shinyjs::show("venn_filter")
      } else if (input$exp == "TMT") {
        hideTab(inputId = "tab_panels", target = "occ_panel")
        hideTab(inputId="qc_tabBox", target="norm_tab")
