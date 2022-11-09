@@ -84,10 +84,10 @@ ui <- function(request){shinyUI(
                                                     "t-statistics-based"="fdrtool"
                                        ), selected= "BH"),
                           checkboxInput("replicate_filter",
-                                        "Replicate filtering", T),
-                          numericInput("k_number",
-                                       "Number of clusters in heatmap",
-                                       min = 1, max = 10, value = 3)
+                                        "Replicate filtering", T)
+                          # numericInput("k_number",
+                          #              "Number of clusters in heatmap",
+                          #              min = 1, max = 10, value = 3)
                  ),
                tags$hr(),
                actionButton("analyze", "Start Analysis"),
@@ -280,12 +280,13 @@ ui <- function(request){shinyUI(
                                              shinycssloaders::withSpinner(plotOutput("heatmap", height = 600), color = "#3c8dbc")
                                            ),
                                            fluidRow(
-                                             box(numericInput("cluster_number",
-                                                              "Cluster to download",
-                                                              min=1, max=6, value = 3), width = 6),
-                                             box(downloadButton('downloadCluster',"Save Cluster"),
-                                                 downloadButton('download_hm_svg', "Save svg"),
-                                                  width = 5)
+                                             # box(numericInput("cluster_number",
+                                             #                  "Cluster to download",
+                                             #                  min=1, max=6, value = 3), width = 6),
+                                             box(
+                                               # downloadButton('downloadCluster',"Save Cluster"),
+                                                downloadButton('download_hm_svg', "Save svg"),
+                                                width = 5)
                                            ),
                                       # align save button
                                       tags$style(type='text/css', "#downloadCluster {margin-top: 25px;}"),

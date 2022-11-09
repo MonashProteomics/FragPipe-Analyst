@@ -566,8 +566,8 @@ server <- function(input, output, session) {
        return()
      }
      heatmap_list <- get_cluster_heatmap(dep(),
-                         type="centered",kmeans = TRUE,
-                         k=input$k_number, col_limit = 6,
+                         type="centered", kmeans = F,
+                         k=6, col_limit = 6,
                          indicate = "condition", exp=input$exp
                          )
      return(heatmap_list)
@@ -1080,7 +1080,7 @@ output$download_hm_svg<-downloadHandler(
                      pca_input = pca_static_input,
                      coverage_input= coverage_input,
                      correlation_input =correlation_input,
-                     heatmap_input = heatmap_input,
+                     heatmap_input = heatmap_input[[2]],
                      cvs_input = cvs_input,
                      volcano_input = volcano_input,
                      dep = dep
