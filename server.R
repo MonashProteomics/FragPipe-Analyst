@@ -561,15 +561,21 @@ server <- function(input, output, session) {
    })
    
    ### Heatmap Differentially expressed proteins
-   heatmap_input<-eventReactive(input$analyze, { 
+   heatmap_cluster<-eventReactive(input$analyze, { 
      if(input$analyze==0 | !start_analysis()){
        return()
      }
-     get_cluster_heatmap(dep(),
+     heatmap_list <- get_cluster_heatmap(dep(),
                          type="centered",kmeans = TRUE,
                          k=input$k_number, col_limit = 6,
                          indicate = "condition", exp=input$exp
                          )
+     return(heatmap_list)
+   })
+   
+   heatmap_input <- reactive({
+     heatmap_list <- heatmap_cluster()
+     heatmap_list[[1]]
    })
    
    ### Volcano Plot
@@ -954,9 +960,10 @@ server <- function(input, output, session) {
   
   individual_cluster <- reactive({
       cluster_number <- input$cluster_number
-      cluster_all <- heatmap_input()
-      data_result()[cluster_all[[cluster_number]],]
-    })
+      cluster_all <- heatmap_input()[[2]]
+      df <- data_result()[cluster_all[[cluster_number]],]
+      return(df)
+  })
   
   # output$text1 <- renderPrint({
   #   paste(individual_cluster())
@@ -1032,7 +1039,7 @@ output$download_hm_svg<-downloadHandler(
   filename = function() { "heatmap.svg" }, 
   ## use = instead of <-
   content = function(file) {
-    heatmap_plot<-DEP::plot_heatmap(dep(),"centered", k=6, indicate = "condition")
+    heatmap_plot<-DEP::plot_heatmap(dep(),"centered", k=k_number, indicate = "condition")
     svg(file)
     print(heatmap_plot)
     dev.off()

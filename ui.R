@@ -1,5 +1,5 @@
 # Define UI for data upload app ----
-VERSION <- "v0.4"
+VERSION <- "v0.5"
 
 
 ui <- function(request){shinyUI(
@@ -366,11 +366,9 @@ ui <- function(request){shinyUI(
                             shinycssloaders::withSpinner(plotOutput("sample_cvs", height = 600), color = "#3c8dbc"),
                             downloadButton('download_cvs_svg', "Save svg")
                             ),
-                   # conditionalPanel(condition="input.exp != 'TMT'",
                    tabPanel(title = "Protein Numbers",
                             shinycssloaders::withSpinner(plotOutput("numbers", height = 600), color = "#3c8dbc"),
                             downloadButton('download_num_svg', "Save svg")),
-                   # conditionalPanel(condition="input.exp != 'TMT'",
                    tabPanel(title = "Sample coverage", value="sample_coverage_tab",
                             shinycssloaders::withSpinner(plotOutput("coverage", height = 600), color = "#3c8dbc"),
                             downloadButton('download_cov_svg', "Save svg")),
@@ -495,10 +493,6 @@ ui <- function(request){shinyUI(
                    ) # Venn plot column closed
                  ) # fuildRow closed
               )  # occurrence panel closed
-              # conditionalPanel(condition = "input.exp == 'LFQ' ", value = "test-lfq",
-              #                  tabPanel('test Conditional LFQ', textOutput("This is test conditionalpanel LFQ"))),
-              # conditionalPanel(condition = "input.exp == 'TMT' ", value = "test-tmt",
-              #                  tabPanel('test Conditional TMT', textOutput("This is test conditionalpanel TMT")))
             ) # panel_list close
           ) # div close
       #bookmarkButton()
@@ -510,7 +504,7 @@ ui <- function(request){shinyUI(
                    title = "User Guide",
                    h3("FragPipe-Analyst Documentation"),
                    div(p(HTML(paste0('Learn more about our FragPipe',
-                                     a(href = 'https://monashbioinformaticsplatform.github.io/LFQ-Analyst/', target='_blank', tags$b('here')))))),
+                                     a(href = '"https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')))))),
                    div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
 			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
 			                              target='_blank', tags$b("here")))))),
