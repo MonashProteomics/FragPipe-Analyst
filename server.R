@@ -720,7 +720,7 @@ server <- function(input, output, session) {
     go_results <- test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
                                direction = input$go_direction, log2_threshold = input$lfc, alpha = input$p)
     null_enrichment_test(go_results)
-    plot_go <- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts = input$contrast,
+    plot_go <- plot_enrichment(go_results, number = 10, alpha = 0.05, contrasts = input$contrast,
                                databases = as.character(input$go_database), nrow = 2, term_size = 8)
     go_list<-list("go_result"=go_results, "plot_go"=plot_go)
     return(go_list)
@@ -732,7 +732,7 @@ server <- function(input, output, session) {
      pathway_results <- test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
                                      direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p)
      null_enrichment_test(pathway_results)
-     plot_pathway<-plot_enrichment(pathway_results, number = 5, alpha = 0.05, contrasts =input$contrast_1,
+     plot_pathway<-plot_enrichment(pathway_results, number = 10, alpha = 0.05, contrasts =input$contrast_1,
                databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
      pathway_list<-list("pa_result"=pathway_results, "plot_pa"=plot_pathway)
      return(pathway_list)
@@ -1669,7 +1669,7 @@ output$download_imp_svg<-downloadHandler(
  #   if(!is.null(input$contrast_dm)){
  #     enrichment_output_test(dep_dm(), as.character(input$go_database_dm))
  #     go_results<- test_ora_mod(dep_dm(), databases = as.character(input$go_database_dm), contrasts = TRUE)
- #     plot_go<- plot_enrichment(go_results, number = 5, alpha = 0.05, contrasts =input$contrast_dm,
+ #     plot_go<- plot_enrichment(go_results, number = 10, alpha = 0.05, contrasts =input$contrast_dm,
  #                               databases = as.character(input$go_database_dm), nrow = 2, term_size = 8) + 
  #       aes(stringr::str_wrap(Term, 60)) +
  #       xlab(NULL)
@@ -1688,7 +1688,7 @@ output$download_imp_svg<-downloadHandler(
  #                })
  #   enrichment_output_test(dep_dm(), as.character(input$pathway_database_dm))
  #   pathway_results<- test_ora_mod(dep_dm(), databases=as.character(input$pathway_database_dm), contrasts = TRUE)
- #   plot_pathway<-plot_enrichment(pathway_results, number = 5, alpha = 0.05, contrasts =input$contrast_dm_1,
+ #   plot_pathway<-plot_enrichment(pathway_results, number = 10, alpha = 0.05, contrasts =input$contrast_dm_1,
  #                                 databases=as.character(input$pathway_database_dm), nrow = 3, term_size = 8) + 
  #     aes(stringr::str_wrap(Term, 30)) +
  #     xlab(NULL)
