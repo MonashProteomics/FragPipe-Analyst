@@ -1,5 +1,5 @@
 # Define UI for data upload app ----
-VERSION <- "v0.5"
+VERSION <- "v0.4"
 
 
 ui <- function(request){shinyUI(
@@ -83,8 +83,8 @@ ui <- function(request){shinyUI(
                                        choices =  c("Benjamini Hochberg"="BH",
                                                     "t-statistics-based"="fdrtool"
                                        ), selected= "BH"),
-                          # checkboxInput("single_peptide",
-                          #               "Include single peptide identifications", FALSE),
+                          checkboxInput("replicate_filter",
+                                        "Replicate filtering", T),
                           numericInput("k_number",
                                        "Number of clusters in heatmap",
                                        min = 1, max = 10, value = 3)

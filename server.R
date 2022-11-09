@@ -421,23 +421,24 @@ server <- function(input, output, session) {
    
    filtered_data <- reactive({
      if (input$exp == "LFQ"){ # Check number of replicates
-       if(!is.null (exp_design_input() )){
-         exp_design<-reactive({exp_design_input()})
+       if (input$replicate_filter){
+         if(!is.null (exp_design_input() )){
+           exp_design<-reactive({exp_design_input()})
+         }
+         if(max(exp_design()$replicate)<3){
+           threshold<-0
+         } else if(max(exp_design()$replicate)==3){
+           threshold<-1
+         } else if(max(exp_design()$replicate)<6 ){
+           threshold<-2
+         } else if (max(exp_design()$replicate)>=6){
+           threshold<-trunc(max(exp_design()$replicate)/2)
+         }
+         filtered_se <- filter_missval_customized(processed_data(), thr = threshold)
+         return(filtered_se)
        }
-       if(max(exp_design()$replicate)<3){
-         threshold<-0
-       } else if(max(exp_design()$replicate)==3){
-         threshold<-1
-       } else if(max(exp_design()$replicate)<6 ){
-         threshold<-2
-       } else if (max(exp_design()$replicate)>=6){
-         threshold<-trunc(max(exp_design()$replicate)/2)
-       }
-       filtered_se <- filter_missval_customized(processed_data(), thr = threshold)
-       return(filtered_se)
-     } else {
-       return(processed_data())
      }
+     return(processed_data())
    })
    
    unimputed_table<-reactive({
