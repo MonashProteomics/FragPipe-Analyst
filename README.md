@@ -37,42 +37,40 @@ A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fra
     - Unimputed data matrix: Original protein intensities before imputation
     - Imputed data matrix: Protein intensities after performing selected imputation method
 
-## Local installation
+## Installation
 
 ### Prerequisite
-
 - R 4.2
 - PDFlatex
   
-  Once all the dependencies are installed, follow steps below to run the server locally. You can build it natively or run it through Docker:
+### Multiple options
+Once all the dependencies are installed, follow steps below to run the server locally.
+You can build it natively:
 
-  - Native installation
-  ``` sh
-  # Clone the repository
-  git clone https://github.com/MonashProteomics/FragPipe-Analys.git
+``` sh
+# Clone the repository
+git clone https://github.com/MonashProteomics/FragPipe-Analys.git
 
-  # Move to the folder
-  cd FragPipe-Analyst
+# Move to the folder
+cd FragPipe-Analyst
 
-  ## Inside R console or R studio
-  > library("shiny")
-  > runApp()
-  ```
+# Inside R console or R studio
+> library("shiny")
+> runApp()
+```
 
-  - Use Docker
-  ``` sh
-  # Clone the repository
-  git clone https://github.com/MonashProteomics/FragPipe-Analys.git
+Or run it through Docker:
 
-  # Move to the folder
-  cd FragPipe-Analyst
+``` sh
+# Clone the repository
+git clone https://github.com/MonashProteomics/FragPipe-Analys.git
 
-  # Build FragPipe-Analyst (Any name after -t)
-  docker build -f Dockerfile -t FragPipe-Analyst .
+# Move to the folder
+cd FragPipe-Analyst
 
-  # Run FragPipe-Analyst
-  docker run -p 3838:3838 FragPipe-Analyst
+# Build FragPipe-Analyst (Any name after -t)
+docker build -f Dockerfile -t FragPipe-Analyst .
 
-  # Browse the page
-  https://localhost:3838/FragPipe-Analyst
-  ```
+# Run FragPipe-Analyst
+docker run -p 3838:3838 FragPipe-Analyst
+```
