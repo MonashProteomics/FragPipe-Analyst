@@ -22,13 +22,13 @@ A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fra
   -   Benjamin Hochberg (BH) method
   -   Local and tail area-based by [fdrtool](http://strimmerlab.org/software/fdrtool/)
 - A variety of QC Plots
-  1. PCA plot (Could move to QC section)
+  1. PCA plot
   2. Sample Correlation (pearson correlation)
   3. Sample Coefficient of variations (CVs)
   4. Number of proteins per sample
   5. Sample coverage (overlap of identified proteins across every sample)
   6. Missing value heatmap
-  7. Imputation effect on sample distribution
+  7. Imputation effect evaluation
 
 - Report and multiple levels of exportable tables for further analysis
   - Table options

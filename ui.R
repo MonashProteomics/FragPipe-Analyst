@@ -124,35 +124,54 @@ ui <- function(request){shinyUI(
       ## Add tabItems
      # id="body",
       tabItems(
-        
-      tabItem(tabName = "home",
-             fluidRow( 
-               box(
-                title = "Overview",
-                  h3("FragPipe-Analyst"),
-                p(HTML(paste0("FragPipe-Analyst is an easy-to-use, interactive web application developed to perform 
-                  differential expression analysis with “one click” and to visualize quantitative proteomic datasets analyzed using ",
-                              a(href="https://fragpipe.nesvilab.org/", target="_blank", "FragPipe"), " computational platform.",
-                  " It is compatible with the LFQ-MBR, TMT, and DIA quantification workflows in FragPipe.",
-                  " FragPipe-Analyst is based on the original ",
-                  a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blanl", "LFQ-Analyst"),
-                  " code."))), 
-                br(),
-                # HTML('<center><img src="./LFQ_analyst.svg" width="600px"></center>'),
-                br(),
-                h4("Sidebar tabs"),
-                tags$ul(
-                tags$li(tags$b("Analysis: "),"perform your own analysis"), 
-                # tags$li(tags$b("Demo: "),"familiarise yourself with FragPipe-Analyst by browsing through pre-analysed results"), 
-                tags$li(tags$b("User Guide: "), "download an in-depth manual") 
-                ),
-                width = 12,
-                solidHeader = TRUE,
-                status = "primary"
-                 )#box 1 closed
-               
-             ) #fluidrow close
-            ), # home tab close
+        tabItem(tabName = "home",
+                fluidRow(
+                  box(
+                    title = "Overview",
+                    width = 12,
+                    solidHeader = TRUE,
+                    status = "primary",
+                    h3("FragPipe-Analyst"),
+                    p(HTML(paste0("FragPipe-Analyst is an easy-to-use, interactive web application developed to perform 
+                      differential expression analysis with “one click” and to visualize quantitative proteomic datasets analyzed using ",
+                                  a(href="https://fragpipe.nesvilab.org/", target="_blank", "FragPipe"), " computational platform.",
+                      " It is compatible with the LFQ-MBR, TMT, and DIA quantification workflows in FragPipe.",
+                      " FragPipe-Analyst is based on the original ",
+                      a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blanl", "LFQ-Analyst"),
+                      " code."))),
+                    br(),
+                    h4("Features"),
+                    tags$ul(
+                      tags$li("Differential expression analysis with FDR correction options"),
+                      tags$li("Imputation (optional)"),
+                      tags$li("A variety of QC Plots"),
+                      tags$ul(
+                        tags$li("PCA"),
+                        tags$li("Sample correlation"),
+                        tags$li("Missing values inspection"),
+                        tags$li("Sample coverage"),
+                        tags$li("Heatmap for protein markers"),
+                        tags$li("Protein intensity plots for a single or group of selected proteins"),
+                        tags$li("Imputation effect evaluation")
+                      ),
+                    ),
+                    br(),
+                    h4("Example Results"),
+                    fluidRow(style='margin: 0px;',
+                             column(width = 4, box(width="100%", img(src="PCA_plot.png", style="width: 100%;"))),
+                             column(width = 4, box(width="100%", img(src="heatmap.png", style="width: 100%;"))),
+                             column(width = 4, box(width="100%", img(src="missing_heatmap.png", style="width: 100%;")))
+                    ),
+                    br(),
+                    h4("Sidebar tabs"),
+                    tags$ul(
+                      tags$li(tags$b("Analysis: "),"perform your own analysis"),
+                      # tags$li(tags$b("Demo: "),"familiarise yourself with FragPipe-Analyst by browsing through pre-analysed results"),
+                      tags$li(tags$b("User Guide: "), "download an in-depth manual") 
+                    )
+                  ) # box 1 closed
+                 ) # fluidRow close
+                ), # home tab close
       tabItem(tabName = "analysis",
       div(id="quickstart_info",
                     fluidPage(
