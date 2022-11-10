@@ -81,7 +81,7 @@ ui <- function(request){shinyUI(
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
                                        choices =  c("Benjamini Hochberg"="BH",
-                                                    "t-statistics-based"="fdrtool"
+                                                    "Local and tail area-based"="fdrtool"
                                        ), selected= "BH"),
                           checkboxInput("replicate_filter",
                                         "Replicate filtering", T)
