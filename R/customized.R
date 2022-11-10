@@ -1781,7 +1781,34 @@ plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
   }
 }
 
-# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+# customized from https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' Filter on missing values
+#'
+#' \code{filter_missval_customized} filters a proteomics dataset based on missing values.
+#' The dataset is filtered for proteins that have a maximum of 'thr' missing values in at least one condition.
+#'
+#' @param se SummarizedExperiment,
+#' Proteomics data (output from \code{\link{make_se}()} or
+#' \code{\link{make_se_parse}()}).
+#' @param thr Integer(1),
+#' Sets the threshold for the allowed number of missing values
+#' in at least one condition.
+#' @return A filtered SummarizedExperiment object.
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter
+#' stringent_filter <- filter_missval_customized(se, thr = 0)
+#' less_stringent_filter <- filter_missval_customized(se, thr = 1)
+#' @export
 filter_missval_customized <- function(se, thr = 0) {
   # Show error if inputs are not the required classes
   if(is.integer(thr)) thr <- as.numeric(thr)
