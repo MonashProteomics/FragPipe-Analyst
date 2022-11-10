@@ -20,8 +20,7 @@ A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fra
   - A number of missing value imputation options available including mean, knn, MLE etc.
 - FDR correction
   -   Benjamin Hochberg (BH) method
-  -   t-statistics correction: Implemented in
-    [fdrtool](http://strimmerlab.org/software/fdrtool/)
+  -   Local and tail area-based by [fdrtool](http://strimmerlab.org/software/fdrtool/)
 - A variety of QC Plots
   1. PCA plot (Could move to QC section)
   2. Sample Correlation (pearson correlation)
