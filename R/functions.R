@@ -1,4 +1,9 @@
 
+# make make.unique generates new names strat from 1 rather than nothing
+make.unique.2 = function(x, sep='.'){
+  ave(x, x, FUN=function(a){if(length(a) > 1){paste(a, 1:length(a), sep=sep)} else {a}})
+}
+
 matrixplot_modify<-function(data, mapping, pts=list(), smt=list(), ...){
     ggplot(data = data, mapping = mapping, ...) + 
         do.call(geom_point, pts) +

@@ -236,8 +236,8 @@ server <- function(input, output, session) {
                  quote = "",
                  comment.char = "",
                  blank.lines.skip = F,
-                 check.names = F
-      )
+                 check.names = F)
+      colnames(temp_data) <- make.unique.2(colnames(temp_data), "_")
       # validate(maxquant_input_test(temp_data))
       if (input$exp == "TMT") {
         validate(tmt_input_test(temp_data))
@@ -304,6 +304,12 @@ server <- function(input, output, session) {
                            paste0("The input annotation file should have following columns: ",
                                   "channel, label, plex, replicate, condition\n",
                                   "your current input annotation file is with following columns: ", paste(colnames(temp_df), collapse=", "))))
+        # add _number for repeat labels, but need to remove _1
+        temp_df$label <- paste(temp_df$label, temp_df$replicate, sep="_")
+        temp_df$label <- gsub("_1", "", temp_df$label)
+        samples_with_replicate <- temp_df$label[grepl("_", temp_df$label)]
+        samples_with_replicate <- unique(gsub("_.*", "", samples_with_replicate))
+        temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
       } else if (input$exp == "LFQ"){
         temp_df <- read.table(inFile$datapath,
                               header = F,
@@ -397,6 +403,7 @@ server <- function(input, output, session) {
        return(data_se)
      } else { # TMT
        temp_exp_design <- exp_design()
+       # sample without specified contion will be removed
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
        temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
        # temp_exp_design[is.na(temp_exp_design), "replicate"] <- 1
