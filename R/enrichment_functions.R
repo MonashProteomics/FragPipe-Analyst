@@ -128,7 +128,7 @@ test_ora_mod <- function(dep,
       genes <- significant$name
       if (length(genes) != 0){
         enriched <- enrichr_mod(genes, databases)
-        
+        # print(colnames(enriched[["KEGG_2021_Human"]]))
         # Tidy output
         contrast_enrich <- NULL
         for(database in databases) {
@@ -191,5 +191,138 @@ test_ora_mod <- function(dep,
   return(df_enrich)
 }
 
+
+
+#######################################################
+## Plot Enrichment Results
+#######################################################
+
+plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
+                            contrasts = NULL, databases = NULL,
+                            nrow = 1,term_size = 8) {
+  assertthat::assert_that(is.data.frame(gsea_results),
+                          is.numeric(number),
+                          length(number) == 1,
+                          is.numeric(alpha),
+                          length(alpha) == 1,
+                          is.numeric(term_size),
+                          length(term_size) == 1,
+                          is.numeric(nrow),
+                          length(nrow) == 1)
+  
+  # Check gsea_results object
+  if(any(!c("Term", "var",
+            "contrast","Adjusted.P.value")
+         %in% colnames(gsea_results))) {
+    stop("'", deparse(substitute(gsea_results)),
+         "' does not contain the required columns",
+         "\nMake sure that HGNC gene symbols are present",
+         "\n in your 'Gene Names' column of Results table",
+         call. = FALSE)
+  }
+  
+  no_enrichment_text <- paste("\n   No enrichment found.\n",
+                              "       You can still download enrichment result table. \n")
+  
+  if(!is.null(contrasts)) {
+    assertthat::assert_that(is.character(contrasts))
+    
+    
+    valid_contrasts <- unique(gsea_results$contrast)
+    
+    if(!all(contrasts %in% valid_contrasts)) {
+      return(ggplot() +
+               annotate("text", x = 4, y = 25, size=8, label = no_enrichment_text) + 
+               theme_void()
+      )
+    }
+    if(!any(contrasts %in% valid_contrasts)) {
+      contrasts <- contrasts[contrasts %in% valid_contrasts]
+      message("Not all contrasts found",
+              "\n Following contrasts are found: '",
+              paste0(contrasts, collapse = "', '"), "'")
+    }
+    
+    gsea_results <- filter(gsea_results, contrast %in% contrasts)
+  }
+  if(!is.null(databases)) {
+    assertthat::assert_that(is.character(databases))
+    
+    valid_databases <- unique(gsea_results$var)
+    
+    if(all(!databases %in% valid_databases)) {
+      valid_cntrsts_msg <- paste0("Valid databases are: '",
+                                  paste0(valid_databases, collapse = "', '"),
+                                  "'")
+      stop("Not a valid database, please run `plot_gsea()`",
+           "with valid databases as argument\n",
+           valid_cntrsts_msg,
+           call. = FALSE)
+    }
+    if(any(!databases %in% valid_databases)) {
+      databases <- databases[databases %in% valid_databases]
+      message("Not all databases found",
+              "\nPlotting the following databases: '",
+              paste0(databases, collapse = "', '"), "'")
+    }
+    
+    gsea_results <- filter(gsea_results, var %in% databases)
+  }
+  
+  # Get top enriched gene sets
+  terms <- gsea_results %>%
+    dplyr::group_by(contrast, var) %>%
+    dplyr::filter(Adjusted.P.value <= alpha) %>%
+    dplyr::arrange(Adjusted.P.value) %>%
+    dplyr::slice(seq_len(number)) %>%
+    .$Term
+  subset <- gsea_results %>%
+    dplyr::filter(Term %in% terms) %>%
+    dplyr::arrange(var, Adjusted.P.value)
+  
+  subset$Term <- readr::parse_factor(subset$Term, levels = unique(subset$Term))
+  subset$var <- readr::parse_factor(subset$var, levels = unique(subset$var))
+  
+  if (nrow(subset) == 0) {
+    return(ggplot() +
+             annotate("text", x = 4, y = 25, size=8, label = no_enrichment_text) + 
+             theme_void()
+    )
+  } else {
+    # Plot top enriched gene sets
+    subset$Overlap_ratio <- sapply(subset$Overlap, function(x) eval(parse(text=x)))
+    # return(ggplot(subset, aes(y = reorder(Term, Overlap_ratio), x=Overlap_ratio, size=IN, color=Adjusted.P.value)) +
+    #   geom_point() +
+    #   facet_wrap(~contrast, nrow = nrow) +
+    #   scale_color_continuous(low="red", high="blue", name = "Adjusted.P.value",
+    #                            guide=guide_colorbar(reverse=TRUE)) +
+    #   labs(y = "Term") +
+    #   theme_bw() +
+    #   theme(legend.position = "top", legend.text = element_text(size = 9))
+    # )
+    return(ggplot(subset, aes(y = reorder(Term, Overlap_ratio), x=Overlap_ratio, size=IN, color=log_odds)) +
+             geom_point() +
+             facet_wrap(~contrast, nrow = nrow) +
+             scale_color_continuous(low="blue", high="red", name = "log_odds",
+                                    guide=guide_colorbar(reverse=T)) +
+             labs(y = "Term", size="size") +
+             theme_bw() +
+             theme(legend.position = "top", legend.text = element_text(size = 9))
+    )
+    # return(ggplot(subset, aes(Term,
+    #                           y=-log10(`Adjusted.P.value`))) +
+    #          geom_col(aes(fill = log_odds )) +
+    #          facet_wrap(~contrast, nrow = nrow) +
+    #          coord_flip() +
+    #          labs(y = "-Log10 adjusted p-value",
+    #               fill = "Log2 odds ratio (vs. current background)") +
+    #          theme_bw() +
+    #          theme(legend.position = "top",
+    #                legend.text = element_text(size = 9)) +
+    #          scale_fill_distiller(palette="Spectral") + 
+    #          aes(stringr::str_wrap(Term, 60)) +
+    #          xlab(NULL))
+  }
+}
 
 #gene_names_true<-read_table("R/gene_names.txt",col_names = F)

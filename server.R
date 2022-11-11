@@ -745,11 +745,9 @@ server <- function(input, output, session) {
      pathway_results <- test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
                                      direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p)
      null_enrichment_test(pathway_results)
-     plot_pathway<-plot_enrichment(pathway_results, number = 10, alpha = 0.05, contrasts =input$contrast_1,
-               databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
-     pathway_list<-list("pa_result"=pathway_results, "plot_pa"=plot_pathway)
+     pathway_list<-list("pa_result"=pathway_results)
      return(pathway_list)
-     })
+   })
 
    
 #### Interactive UI
@@ -923,7 +921,9 @@ server <- function(input, output, session) {
   
   output$pathway_enrichment<-renderPlot({
     Sys.sleep(2)
-    pathway_input()$plot_pa
+    plot_pathway <-plot_enrichment(pathway_input()$pa_result, number = 10, alpha = 0.05, contrasts =input$contrast_1,
+                                  databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
+    return(plot_pathway)
   })
   
   ##### Download Functions
