@@ -216,55 +216,101 @@ plot_protein<-function(dep, protein, type, id="ID"){
   df_CI$rowname <- parse_factor(as.character(df_CI$rowname), levels = protein)
   
   if(type=="violin"){
-    p<-ggplot(df_reps, aes(condition, val))+
-      geom_violin(fill="grey90", scale = "width",
-                  draw_quantiles = 0.5,
-                  trim =TRUE) +
-      geom_jitter(aes(color = factor(replicate)),
-                  size = 3, position = position_dodge(width=0.3)) +
-      labs(
-        y = expression(log[2]~"Intensity"),
-        col = "Replicates") +
-      facet_wrap(~rowname) +
-      scale_color_brewer(palette = "Dark2")+
-      theme_DEP1()+
-      theme(axis.title.x = element_blank())
-    } else if(type=="boxplot"){
-    p<-ggplot(df_reps, aes(condition, val))+
-      geom_boxplot()+
-      geom_jitter(aes(color = factor(replicate)),
-                  size = 3, position = position_dodge(width=0.3)) +
-      labs(
-        y = expression(log[2]~"Intensity"),
-        col = "Replicates") +
-      facet_wrap(~rowname) +
-      scale_color_brewer(palette = "Dark2")+
-      theme_DEP1() +
-      theme(axis.title.x = element_blank())
+    if (max(df_reps$replicate) == 1){
+      p<-ggplot(df_reps, aes(condition, val)) +
+        geom_violin(fill="grey90", scale = "width",
+                      draw_quantiles = 0.5,
+                      trim =TRUE) +
+          geom_jitter(size = 3, position = position_dodge(width=0.3)) +
+          labs(
+            y = expression(log[2]~"Intensity")) +
+          facet_wrap(~rowname) +
+          theme_DEP1()+
+          theme(axis.title.x = element_blank())
+    } else {
+        p<-ggplot(df_reps, aes(condition, val))+
+          geom_violin(fill="grey90", scale = "width",
+                      draw_quantiles = 0.5,
+                      trim =TRUE) +
+          geom_jitter(aes(color = factor(replicate)),
+                      size = 3, position = position_dodge(width=0.3)) +
+          labs(
+            y = expression(log[2]~"Intensity"),
+            col = "Replicates") +
+          facet_wrap(~rowname) +
+          scale_color_brewer(palette = "Dark2")+
+          theme_DEP1()+
+          theme(axis.title.x = element_blank())
+        }
+  } else if(type=="boxplot"){
+    if (max(df_reps$replicate) == 1){
+      p<-ggplot(df_reps, aes(condition, val))+
+          geom_boxplot()+
+          geom_jitter(size = 3, position = position_dodge(width=0.3)) +
+          labs(y = expression(log[2]~"Intensity")) +
+          facet_wrap(~rowname) +
+          theme_DEP1() +
+          theme(axis.title.x = element_blank())
+    } else {
+        p<-ggplot(df_reps, aes(condition, val))+
+          geom_boxplot()+
+          geom_jitter(aes(color = factor(replicate)),
+                      size = 3, position = position_dodge(width=0.3)) +
+          labs(
+            y = expression(log[2]~"Intensity"),
+            col = "Replicates") +
+          facet_wrap(~rowname) +
+          scale_color_brewer(palette = "Dark2")+
+          theme_DEP1() +
+          theme(axis.title.x = element_blank())
+    }
   } else if(type=="interaction"){
-    p<-ggplot(df_reps, aes(condition, val))+
-      geom_point(aes(color = factor(replicate)),
-                 size = 3) +
-      geom_line(aes(group= factor(replicate), color= factor(replicate)))+
-      labs(
-        y = expression(log[2]~"Intensity"),
-        col = "Replicates") +
-      facet_wrap(~rowname) +
-      scale_color_brewer(palette = "Dark2")+
-      theme_DEP1()+
-      theme(axis.title.x = element_blank())
+    if (max(df_reps$replicate) == 1){
+      p<-ggplot(df_reps, aes(condition, val))+
+        geom_point(size = 3) +
+        geom_line(aes(group= factor(replicate), color= factor(replicate)))+
+        labs(y = expression(log[2]~"Intensity")) +
+        facet_wrap(~rowname) +
+        scale_color_brewer(palette = "Dark2")+
+        theme_DEP1()+
+        theme(axis.title.x = element_blank())
+    } else {
+      p<-ggplot(df_reps, aes(condition, val))+
+        geom_point(aes(color = factor(replicate)),
+                   size = 3) +
+        geom_line(aes(group= factor(replicate), color= factor(replicate)))+
+        labs(
+          y = expression(log[2]~"Intensity"),
+          col = "Replicates") +
+        facet_wrap(~rowname) +
+        scale_color_brewer(palette = "Dark2")+
+        theme_DEP1()+
+        theme(axis.title.x = element_blank())
+    }
   } else if(type=="dot"){
-    p<-ggplot(df_CI, aes(condition, mean))+
-      geom_point(data=df_reps, aes(x=condition, y=val, color = factor(replicate)),
-                 size = 3, position= position_dodge(width = 0.2)) +
-      geom_errorbar(aes(ymin = CI.L, ymax = CI.R), width = 0.2)+
-      labs(
-        y = expression(log[2]~"Intensity"~"(\u00B195% CI)"),
-        col = "Replicates") +
-      facet_wrap(~rowname) +
-      scale_color_brewer(palette = "Dark2")+
-      theme_DEP1() +
-      theme(axis.title.x = element_blank())
+    if (max(df_reps$replicate) == 1){
+      p<-ggplot(df_CI, aes(condition, mean))+
+        geom_point(data=df_reps, aes(x=condition, y=val),
+                   size = 3, position= position_dodge(width = 0.2)) +
+        geom_errorbar(aes(ymin = CI.L, ymax = CI.R), width = 0.2)+
+        labs(y = expression(log[2]~"Intensity"~"(\u00B195% CI)")) +
+        facet_wrap(~rowname) +
+        scale_color_brewer(palette = "Dark2")+
+        theme_DEP1() +
+        theme(axis.title.x = element_blank()) 
+    } else {
+      p<-ggplot(df_CI, aes(condition, mean))+
+        geom_point(data=df_reps, aes(x=condition, y=val, color = factor(replicate)),
+                   size = 3, position= position_dodge(width = 0.2)) +
+        geom_errorbar(aes(ymin = CI.L, ymax = CI.R), width = 0.2)+
+        labs(
+          y = expression(log[2]~"Intensity"~"(\u00B195% CI)"),
+          col = "Replicates") +
+        facet_wrap(~rowname) +
+        scale_color_brewer(palette = "Dark2")+
+        theme_DEP1() +
+        theme(axis.title.x = element_blank()) 
+    }
   }
   
   return(p)
