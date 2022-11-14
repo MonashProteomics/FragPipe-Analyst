@@ -140,27 +140,32 @@ ui <- function(request){shinyUI(
                       a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blanl", "LFQ-Analyst"),
                       " code."))),
                     br(),
-                    h4("Features"),
-                    tags$ul(
-                      tags$li("Differential expression analysis with FDR correction options"),
-                      tags$li("Imputation (optional)"),
-                      tags$li("A variety of QC Plots"),
-                      tags$ul(
-                        tags$li("PCA"),
-                        tags$li("Sample correlation"),
-                        tags$li("Missing values inspection"),
-                        tags$li("Sample coverage"),
-                        tags$li("Heatmap for protein markers"),
-                        tags$li("Protein intensity plots for a single or group of selected proteins"),
-                        tags$li("Imputation effect evaluation")
+                    fluidRow(
+                      column(width = 4,
+                        h4("Features"),
+                        tags$ul(
+                          tags$li("Differential expression analysis"),
+                          tags$li("Enrichment analysis (GO/Pathways)"),
+                          tags$li("Imputation (optional)"),
+                          tags$li("Data visualization"),
+                          tags$ul(
+                            tags$li("PCA"),
+                            tags$li("Sample correlation"),
+                            tags$li("Heatmaps"),
+                            tags$li("Missing values inspection"),
+                            tags$li("Sample coverage"),
+                            tags$li("Protein intensity plots for selected protein(s)"),
+                            tags$li("Imputation effect evaluation")
+                          ),
+                        )
                       ),
-                    ),
-                    br(),
-                    h4("Example Results"),
-                    fluidRow(style='margin: 0px;',
-                             column(width = 4, box(width="100%", img(src="PCA_plot.png", style="width: 100%;"))),
-                             column(width = 4, box(width="100%", img(src="heatmap.png", style="width: 100%;"))),
-                             column(width = 4, box(width="100%", img(src="missing_heatmap.png", style="width: 100%;")))
+                      column(width = 8,
+                        h4("Example Results"),
+                        fluidRow(style='margin: 0px;',
+                                 column(width = 6, box(width="100%", img(src="PCA_plot.png", style="width: 100%;"))),
+                                 column(width = 6, box(width="100%", img(src="heatmap.png", style="width: 100%;")))
+                        )
+                      )
                     ),
                     br(),
                     h4("Sidebar tabs"),
@@ -444,6 +449,9 @@ ui <- function(request){shinyUI(
                                                      choices = c("Up"="UP", "Down"="DOWN"),
                                                      selected = "UP")),
                               column(12, actionButton("pathway_analysis", "Run Enrichment")),
+                              # column(12, radioButtons("pathway_sort", "Sort By",
+                              #                        choices = c("log odds"="log Odds", "Combined score"="Combined score"),
+                              #                        selected = "log Odds")),
                               column(12,
                                      box(width = 12, uiOutput("spinner_pa"),height = 500)
                               ),
