@@ -188,6 +188,9 @@ test_ora_mod <- function(dep,
     cat("Done.")
   }
   
+  df_enrich$p_hyper = phyper(q=(df_enrich$IN-1), m = df_enrich$bg_IN, n = df_enrich$bg_OUT, k = (df_enrich$IN+df_enrich$OUT),
+                             lower.tail = F )
+  df_enrich$p.adjust_hyper = p.adjust(df_enrich$p_hyper, method = "BH")
   return(df_enrich)
 }
 
@@ -272,13 +275,13 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   # Get top enriched gene sets
   terms <- gsea_results %>%
     dplyr::group_by(contrast, var) %>%
-    dplyr::filter(Adjusted.P.value <= alpha) %>%
-    dplyr::arrange(Adjusted.P.value) %>%
+    dplyr::filter(p.adjust_hyper <= alpha) %>%
+    dplyr::arrange(p.adjust_hyper) %>%
     dplyr::slice(seq_len(number)) %>%
     .$Term
   subset <- gsea_results %>%
     dplyr::filter(Term %in% terms) %>%
-    dplyr::arrange(var, Adjusted.P.value)
+    dplyr::arrange(var, p.adjust_hyper)
   
   subset$Term <- readr::parse_factor(subset$Term, levels = unique(subset$Term))
   subset$var <- readr::parse_factor(subset$var, levels = unique(subset$var))
@@ -300,11 +303,13 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
     #   theme_bw() +
     #   theme(legend.position = "top", legend.text = element_text(size = 9))
     # )
-    return(ggplot(subset, aes(y = reorder(Term, Overlap_ratio), x=Overlap_ratio, size=IN, color=log_odds)) +
+    return(ggplot(subset, aes(y = reorder(Term, log_odds), x=log_odds, size=IN, color=p.adjust_hyper)) +
              geom_point() +
              facet_wrap(~contrast, nrow = nrow) +
-             scale_color_continuous(low="blue", high="red", name = "log_odds",
-                                    guide=guide_colorbar(reverse=T)) +
+             scale_color_continuous(low="red", high="blue", name = "p.adjust",
+                                    guide=guide_colorbar(reverse=T,
+                                                         label.theme = element_text(angle = 90),
+                                                         label.vjust = 0.5)) +
              labs(y = "Term", size="size") +
              theme_bw() +
              theme(legend.position = "top", legend.text = element_text(size = 9))
