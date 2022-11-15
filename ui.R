@@ -1,5 +1,5 @@
 # Define UI for data upload app ----
-VERSION <- "v0.6"
+VERSION <- "v0.7"
 
 
 ui <- function(request){shinyUI(
