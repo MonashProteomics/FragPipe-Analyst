@@ -324,7 +324,14 @@ server <- function(input, output, session) {
         colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
         temp_df$condition <- gsub("_.*", "", temp_df$experiment)
         temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
-        temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=" ")
+        if (input$lfq_type == "Intensity") { 
+          temp_df$label <- paste(temp_df$label, "Intensity", sep=" ")
+        } else if (input$lfq_type == "MaxLFQ") {
+          temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=" ")
+        }  else if (input$lfq_type == "Spectral Count") {
+          temp_df$label <- paste(temp_df$label, "Spectral.Count", sep=" ")
+        }
+          
         # print(temp_df$label)
       } else if (input$exp == "DIA") {
         temp_df <- read.table(inFile$datapath,
@@ -386,9 +393,14 @@ server <- function(input, output, session) {
      filtered_data<-fragpipe_data()
      if (input$exp == "LFQ"){
        data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
-       lfq_columns<-grep("MaxLFQ", colnames(data_unique))
-       # alternatively,
-       # lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
+       
+       if (input$lfq_type == "Intensity") {
+         lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
+       } else if (input$lfq_type == "MaxLFQ") {
+         lfq_columns<-grep("MaxLFQ", colnames(data_unique))
+       } else if (input$lfq_type == "Spectral Count") {
+         lfq_columns<-grep("Spectral", colnames(data_unique))
+       }
        
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
@@ -427,25 +439,35 @@ server <- function(input, output, session) {
    })
    
    filtered_data <- reactive({
-     if (input$exp == "LFQ"){ # Check number of replicates
-       if (input$replicate_filter){
-         if(!is.null (exp_design_input() )){
-           exp_design<-reactive({exp_design_input()})
-         }
-         if(max(exp_design()$replicate)<3){
-           threshold<-0
-         } else if(max(exp_design()$replicate)==3){
-           threshold<-1
-         } else if(max(exp_design()$replicate)<6 ){
-           threshold<-2
-         } else if (max(exp_design()$replicate)>=6){
-           threshold<-trunc(max(exp_design()$replicate)/2)
-         }
-         filtered_se <- filter_missval_customized(processed_data(), thr = threshold)
-         return(filtered_se)
-       }
+     # if (input$exp == "LFQ"){ # Check number of replicates
+     #   if (input$replicate_filter){
+     #     if(!is.null (exp_design_input() )){
+     #       exp_design<-reactive({exp_design_input()})
+     #     }
+     #     if(max(exp_design()$replicate)<3){
+     #       threshold<-0
+     #     } else if(max(exp_design()$replicate)==3){
+     #       threshold<-1
+     #     } else if(max(exp_design()$replicate)<6 ){
+     #       threshold<-2
+     #     } else if (max(exp_design()$replicate)>=6){
+     #       threshold<-trunc(max(exp_design()$replicate)/2)
+     #     }
+     #     filtered_se <- filter_missval_customized(processed_data(), thr = threshold)
+     #     return(filtered_se)
+     #   }
+     # }
+     filtered_se <- processed_data()
+     # filter by global missingness
+     if (input$min_global_appearance != 0){
+       filtered_se <- global_filter(processed_data(), 100 - input$min_global_appearance)
      }
-     return(processed_data())
+     
+     # filter by checking percentage of missingness in each condition
+     if (input$min_appearance_each_condition != 0){
+      filtered_se <- filter_by_condition(filtered_se, input$min_appearance_each_condition)
+     }
+     return(filtered_se)
    })
    
    unimputed_table<-reactive({

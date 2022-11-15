@@ -26,16 +26,16 @@ ui <- function(request){shinyUI(
                                                'text/tab-separated-values,text/plain',
                                                '.tsv',
                                                '.fp-manifest')),
+                                   radioButtons("lfq_type",
+                                                "Intensity Type",
+                                                choices = c("Intensity"="Intensity",
+                                                            "MaxLFQ"="MaxLFQ.Intensity",
+                                                            "Spectral Count"="Spectral Count"),
+                                                selected = "Intensity"),
                                    tags$hr(),
                                    downloadLink("lfq_example", label="Example LFQ data"),
                                    br(),
                                    downloadLink("lfq_manifest", label="Example FragPipe Manifest")
-                                   # p(a("Example LFQ data", target= "_blank",
-                                   #     href="data/LFQ_datasets/ubiquitin/combined_protein.tsv", 
-                                   #     download="combined_protein.tsv")),
-                                   # p(a("Example Manifest", target= "_blank",
-                                   #     href="data/LFQ_datasets/ubiquitin/lfq_manifest.tsv", 
-                                   #     download="lfq_manifest.tsv"))
                                  ),
                                  conditionalPanel(
                                    condition = "input.exp == 'TMT'",
@@ -65,7 +65,13 @@ ui <- function(request){shinyUI(
                                                       '.fp-manifest')),
                                  ),
                  tags$hr(),
-                 menuItem("Advanced Options",tabName="advanced", icon = icon("cogs"), 
+                 menuItem("Advanced Options",tabName="advanced", icon = icon("cogs"),
+                          numericInput("min_global_appearance",
+                                       "Least percentage of non-missing values globally",
+                                       min = 0, max = 100, value = 0),
+                          numericInput("min_appearance_each_condition",
+                                       "Least percentage of non-missing values in at least one condition",
+                                       min = 0, max = 100, value = 0),
                           numericInput("p", 
                                        "Adjusted p-value cutoff",
                                        min = 0.0001, max = 0.1, value = 0.05),
@@ -82,9 +88,9 @@ ui <- function(request){shinyUI(
                                        "Type of FDR correction",
                                        choices =  c("Benjamini Hochberg"="BH",
                                                     "Local and tail area-based"="fdrtool"
-                                       ), selected= "BH"),
-                          checkboxInput("replicate_filter",
-                                        "Replicate filtering", T)
+                                       ), selected= "BH")
+                          # checkboxInput("replicate_filter",
+                          #               "Replicate filtering", T)
                           # numericInput("k_number",
                           #              "Number of clusters in heatmap",
                           #              min = 1, max = 10, value = 3)
