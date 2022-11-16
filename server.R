@@ -46,6 +46,14 @@ server <- function(input, output, session) {
      }
    })
    
+   observeEvent(input$exp, {
+     if (input$exp == "TMT") {
+       hideTab(inputId = "tab_panels", target = "occ_panel")
+     } else {
+       showTab(inputId = "tab_panels", target = "occ_panel")
+     }
+   })
+   
    # observeEvent(start_analysis(),{ 
    #     if(input$analyze==0 | !start_analysis()){
    #       return()
@@ -796,7 +804,7 @@ server <- function(input, output, session) {
    })
 
   ##### Get results dataframe from Summarizedexperiment object
-   data_result<-reactive({
+   data_result<-eventReactive(start_analysis(),{
       get_results_proteins(dep(), input$exp)
       #get_results(dep())
     })
@@ -1198,7 +1206,7 @@ output$download_imp_svg<-downloadHandler(
 )
 
   #### Occurrence page logic ####
-  data_attendance<-reactive({
+  data_attendance<-eventReactive(start_analysis(),{
     conditions <- condition_list()
     
     
