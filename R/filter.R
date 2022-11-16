@@ -14,7 +14,6 @@ filter_by_condition <- function(se, min_percentage=50) {
     ridx <- rowSums(!is.na(assay(se_c))) / ncol(assay(se_c)) >= min_percentage
     row_ids <- row_ids + ridx
   }
-  print(row_ids)
   se <- se[row_ids > 0,]
   return(se)
 }
