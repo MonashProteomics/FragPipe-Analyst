@@ -1109,7 +1109,7 @@ output$download_hm_svg<-downloadHandler(
                      pca_input = pca_static_input,
                      coverage_input= coverage_input,
                      correlation_input =correlation_input,
-                     heatmap_input = heatmap_input[[2]],
+                     heatmap_input = heatmap_input,
                      cvs_input = cvs_input,
                      volcano_input = volcano_input,
                      dep = dep
