@@ -104,11 +104,11 @@ ui <- function(request){shinyUI(
                   })
                 "))
                  ), tabName = 'analysis'),
-                  
-        # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),
-       convertMenuItem(menuItem('User Guide', icon=icon("question"), 
-		#href = "https://monashbioinformaticsplatform.github.io/LFQ-Analyst/", 
-		tabName = "info"), tabName = "info")
+
+       # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),
+       convertMenuItem(menuItem('Documentation', icon=icon("question"), 
+                                # href = "https://monashbioinformaticsplatform.github.io/LFQ-Analyst/",
+                                tabName = "info"), tabName = "info")
       )
     ), # sidebar close
     
