@@ -29,7 +29,7 @@ ui <- function(request){shinyUI(
                                    radioButtons("lfq_type",
                                                 "Intensity Type",
                                                 choices = c("Intensity"="Intensity",
-                                                            "MaxLFQ"="MaxLFQ.Intensity",
+                                                            "MaxLFQ"="MaxLFQ",
                                                             "Spectral Count"="Spectral Count"),
                                                 selected = "Intensity"),
                                    tags$hr(),
