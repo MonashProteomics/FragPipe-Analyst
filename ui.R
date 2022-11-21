@@ -535,7 +535,7 @@ ui <- function(request){shinyUI(
                    title = "User Guide",
                    h3("FragPipe-Analyst Documentation"),
                    div(p(HTML(paste0('Learn more about our FragPipe',
-                                     a(href = '"https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')))))),
+                                     a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')))))),
                    div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
 			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
 			                              target='_blank', tags$b("here")))))),
