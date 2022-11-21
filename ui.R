@@ -10,8 +10,13 @@ ui <- function(request){shinyUI(
     dashboardSidebar(
       sidebarMenu(
         id="tabs_selected",
-        convertMenuItem(menuItem('Home', icon=icon("home"), selected = TRUE, tabName = "home"), tabName = "home"),
-        convertMenuItem(menuItem("Analysis",  tabName="analysis", icon=icon("flask"),
+        convertMenuItem(
+          tabName = "home",
+          menuItem('Home', icon=icon("home"), selected = TRUE, tabName = "home")
+        ),
+        convertMenuItem(
+          tabName = 'analysis',
+          menuItem("Analysis", tabName="analysis", icon=icon("flask"),
                                  selectInput("exp", "Experiment type:", c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA"), selected = "LFQ"),
                                  conditionalPanel(
                                    condition = "input.exp == 'LFQ'",
@@ -77,7 +82,7 @@ ui <- function(request){shinyUI(
                                        min = 0.0001, max = 0.1, value = 0.05),
                           numericInput("lfc",
                                        "Log2 fold change cutoff",
-                                       min = 0, max = 10, value = 0.7),
+                                       min = 0, max = 10, value = 1),
                           # checkboxInput("paired",
                           #               "Paired test", FALSE),
                           radioButtons("imputation",
@@ -102,16 +107,25 @@ ui <- function(request){shinyUI(
                  $(document).ready(function() {
                     $('#analyze').on('click', function(){$(this).blur()});
                   })
+                
+                 $(document).on('shiny:inputchanged', function(event) {
+                    if (event.name === 'exp') {
+                      if (event.value === 'TMT'){
+                        $('#lfc').val('0.7');
+                      } else {
+                        $('#lfc').val('1.0');
+                      }
+                    }});
                 "))
-                 ), tabName = 'analysis'),
-
-       # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),
-       convertMenuItem(menuItem('Documentation', icon=icon("question"), 
-                                # href = "https://monashbioinformaticsplatform.github.io/LFQ-Analyst/",
-                                tabName = "info"), tabName = "info")
-      )
+        )),
+        # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),
+        convertMenuItem(
+          tabName = "info",
+          menuItem('Documentation', icon=icon("question"),
+                    tabName = "info"))
+        )
     ), # sidebar close
-    
+
  ################################################################ 
     ## DASHBOARD BODY
  ################################################################ 
