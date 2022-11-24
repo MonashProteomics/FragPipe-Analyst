@@ -2,50 +2,50 @@
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   
-   #  Show elements on clicking Start analysis button
-   observeEvent(start_analysis(),{ 
-     if(input$analyze==0 | !start_analysis()){
-       return()
-     }
+  #  Show elements on clicking Start analysis button
+  observeEvent(start_analysis(),{
+    if(input$analyze==0 | !start_analysis()){
+      return()
+    }
     shinyjs::hide("quickstart_info")
     shinyjs::show("panel_list")
-    })
+  })
    
-   # Hide LFQ page if only have one replicate in each sample
-   observeEvent(start_analysis() ,{
-     if (input$imputation == "none") {
-       hideTab(inputId="qc_tabBox", target="imputation_tab")
-     } else {
-       showTab(inputId="qc_tabBox", target="imputation_tab")
-     }
-     if (input$exp == "LFQ"){
-       exp <- exp_design_input()
-       if (max(exp$replicate)==1){
-         hideTab(inputId = "tab_panels", target = "quantification_panel")
-       } else {
-         showTab(inputId = "tab_panels", target = "quantification_panel")
-         showTab(inputId="qc_tabBox", target="norm_tab")
-         showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-         # make sure occ_panel visible after users updating their analysis
-         showTab(inputId = "tab_panels", target = "occ_panel")
-         updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-       }
-       shinyjs::show("venn_filter")
-     } else if (input$exp == "TMT") {
-       hideTab(inputId = "tab_panels", target = "occ_panel")
-       hideTab(inputId="qc_tabBox", target="norm_tab")
-       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
-       showTab(inputId = "tab_panels", target = "quantification_panel")
-       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-     } else { # DIA
-       showTab(inputId="qc_tabBox", target="norm_tab")
-       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-       showTab(inputId = "tab_panels", target = "occ_panel")
-       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-       shinyjs::hide("venn_filter")
-     }
-   })
-   
+  observeEvent(start_analysis() ,{
+    if (input$imputation == "none") {
+      hideTab(inputId="qc_tabBox", target="imputation_tab")
+    } else {
+      showTab(inputId="qc_tabBox", target="imputation_tab")
+    }
+    if (input$exp == "LFQ"){
+      exp <- exp_design_input()
+      # Hide LFQ page if only have one replicate in each sample
+      if (max(exp$replicate)==1){
+        hideTab(inputId = "tab_panels", target = "quantification_panel")
+      } else {
+        showTab(inputId = "tab_panels", target = "quantification_panel")
+        showTab(inputId="qc_tabBox", target="norm_tab")
+        showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+        # make sure occ_panel visible after users updating their analysis
+        showTab(inputId = "tab_panels", target = "occ_panel")
+        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+      }
+      shinyjs::show("venn_filter")
+    } else if (input$exp == "TMT") {
+      hideTab(inputId = "tab_panels", target = "occ_panel")
+      hideTab(inputId="qc_tabBox", target="norm_tab")
+      hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      showTab(inputId = "tab_panels", target = "quantification_panel")
+      updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+    } else { # DIA
+      showTab(inputId="qc_tabBox", target="norm_tab")
+      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      showTab(inputId = "tab_panels", target = "occ_panel")
+      updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+      shinyjs::hide("venn_filter")
+    }
+  })
+
    # observeEvent(start_analysis(),{ 
    #     if(input$analyze==0 | !start_analysis()){
    #       return()
@@ -304,12 +304,15 @@ server <- function(input, output, session) {
                            paste0("The input annotation file should have following columns: ",
                                   "channel, label, plex, replicate, condition\n",
                                   "your current input annotation file is with following columns: ", paste(colnames(temp_df), collapse=", "))))
-        # add _number for repeat labels, but need to remove _1
-        temp_df$label <- paste(temp_df$label, temp_df$replicate, sep="_")
-        temp_df$label <- gsub("_1", "", temp_df$label)
-        samples_with_replicate <- temp_df$label[grepl("_", temp_df$label)]
-        samples_with_replicate <- unique(gsub("_.*", "", samples_with_replicate))
-        temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
+        # if duplicate label exists
+        if (anyDuplicated(temp_df$label)) {
+          # add _number for repeat labels, but need to remove _1
+          temp_df$label <- paste(temp_df$label, temp_df$replicate, sep="_")
+          temp_df$label <- gsub("_1", "", temp_df$label)
+          samples_with_replicate <- temp_df$label[grepl("_", temp_df$label)]
+          samples_with_replicate <- unique(gsub("_\\d+", "", samples_with_replicate))
+          temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
+        }
       } else if (input$exp == "LFQ"){
         temp_df <- read.table(inFile$datapath,
                               header = F,

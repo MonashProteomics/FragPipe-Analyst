@@ -34,7 +34,7 @@ ui <- function(request){shinyUI(
                                    radioButtons("lfq_type",
                                                 "Intensity Type",
                                                 choices = c("Intensity"="Intensity",
-                                                            "MaxLFQ"="MaxLFQ",
+                                                            "MaxLFQ Intensity"="MaxLFQ",
                                                             "Spectral Count"="Spectral Count"),
                                                 selected = "Intensity"),
                                    tags$hr(),
@@ -181,9 +181,10 @@ ui <- function(request){shinyUI(
                       ),
                       column(width = 8,
                         h4("Example Results"),
-                        fluidRow(style='margin: 0px;',
-                                 column(width = 6, box(width="100%", img(src="PCA_plot.png", style="width: 100%;"))),
-                                 column(width = 6, box(width="100%", img(src="heatmap.png", style="width: 100%;")))
+                        fluidRow(
+                          style='margin: 0px;',
+                          column(width = 6, box(width="100%", img(src="PCA_plot.png", style="width: 100%;"))),
+                          column(width = 6, box(width="100%", img(src="heatmap.png", style="width: 100%;")))
                         )
                       )
                     ),
@@ -397,8 +398,7 @@ ui <- function(request){shinyUI(
             width=6,
             tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=700,
                    tabPanel(title = "PCA Plot",
-                            shinycssloaders::withSpinner(plotlyOutput("pca_plot", height=600), color = "#3c8dbc")
-                                           # downloadButton('download_pca_svg', "Save svg")
+                            shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc")
                             ),
                    tabPanel(title="Sample Correlation",
                             shinycssloaders::withSpinner(plotOutput("sample_corr", height = 600), color = "#3c8dbc"),
@@ -450,7 +450,7 @@ ui <- function(request){shinyUI(
                                                      selected = "UP")),
                               column(12, actionButton("go_analysis", "Run Enrichment")),
                               column(12,
-                                     box(width = 12, uiOutput("spinner_go"),height = 500)
+                                     box(width = 12, uiOutput("spinner_go"), height = 500)
                                      ),
                               column(12,
                                      downloadButton('downloadGO', 'Download Table')
@@ -473,7 +473,7 @@ ui <- function(request){shinyUI(
                               #                        choices = c("log odds"="log Odds", "Combined score"="Combined score"),
                               #                        selected = "log Odds")),
                               column(12,
-                                     box(width = 12, uiOutput("spinner_pa"),height = 500)
+                                     box(width = 12, uiOutput("spinner_pa"), height = 500)
                               ),
                               column(12,
                                      downloadButton('downloadPA', 'Download Table')

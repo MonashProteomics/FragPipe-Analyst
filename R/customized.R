@@ -73,8 +73,11 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   #   unite(ID, condition, replicate, remove = FALSE)
   # rownames(expdesign) <- expdesign$ID
   rownames(expdesign) <- expdesign$label
+  # print(expdesign)
+  # print(colnames(raw))
   matched <- match(make.names(delete_prefix(expdesign$label)),
                    make.names(delete_prefix(colnames(raw))))
+
   if(any(is.na(matched))) {
     stop("None of the labels in the experimental design match ",
          "with column names in 'proteins_unique'",
@@ -299,16 +302,17 @@ test_match_tmt_column_design <- function(unique_data, lfq_columns, exp_design){
   expdesign <- exp_design
   # print(expdesign)
   rownames(expdesign) <- expdesign$label
-  
-  matched <- match(make.names(delete_prefix(expdesign$label)),
-                   make.names(delete_prefix(colnames(raw))))
+  # print(make.names(expdesign$label))
+  # print(make.names(colnames(raw)))
+  matched <- match(make.names(expdesign$label),
+                   make.names(colnames(raw)))
   
   # TODO: give warning message to indicate which columns are not matched
   # if(any(is.na(matched))) {
   if(all(is.na(matched))) {
     stop(safeError("The labels/'run names' in the experimental design DID NOT match
-         with lfq column names in maxquants proteinGroups file
-         Run LFQ-Analyst with correct labels in the experimental design"))
+         with column names in TMT-I report.
+         Please run FragPipe-Analyst with correct labels in the experimental design"))
   }
 }
 
