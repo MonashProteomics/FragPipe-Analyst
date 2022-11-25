@@ -398,11 +398,19 @@ server <- function(input, output, session) {
        data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
        
        if (input$lfq_type == "Intensity") {
-         lfq_columns<-setdiff(grep("Intensity", colnames(data_unique)), grep("MaxLFQ", colnames(data_unique)))
+         lfq_columns <- setdiff(grep("Intensity", colnames(data_unique)),
+                              grep("MaxLFQ", colnames(data_unique)))
+         lfq_columns <- setdiff(lfq_columns, grep("Total Intensity", colnames(data_unique)))
+         lfq_columns <- setdiff(lfq_columns, grep("Unique Intensity", colnames(data_unique)))
        } else if (input$lfq_type == "MaxLFQ") {
          lfq_columns<-grep("MaxLFQ", colnames(data_unique))
+         if (length(lfq_columns) == 0) {
+           stop(safeError("No MaxLFQ column available. Please make sure your files have MaxLFQ intensity columns."))
+         }
        } else if (input$lfq_type == "Spectral Count") {
          lfq_columns<-grep("Spectral", colnames(data_unique))
+         lfq_columns <- setdiff(lfq_columns, grep("Total Spectral Count", colnames(data_unique)))
+         lfq_columns <- setdiff(lfq_columns, grep("Unique Spectral Count", colnames(data_unique)))
        }
        
        ## Check for matching columns in expression report and experiment manifest file
