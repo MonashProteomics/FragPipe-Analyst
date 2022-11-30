@@ -1757,7 +1757,8 @@ plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
   }
   
   cor_mat <- cor(data, use="complete.obs")
-  
+  lower <- min(cor_mat)
+  upper <- max(cor_mat)
   # Plot heatmap
   ht1 = Heatmap(cor_mat,
                 col = circlize::colorRamp2(
@@ -1892,14 +1893,14 @@ plot_missval_customized <- function(se, exp="LFQ") {
   }
   missval <- df[apply(df, 1, function(x) any(is.na(x))), ]
   missval <- ifelse(is.na(missval), 0, 1)
-  
+
   # Plot binary heatmap
   ht2 = Heatmap(missval,
                 col = c("white", "black"),
                 column_names_side = "top",
                 show_row_names = FALSE,
                 show_column_names = TRUE,
-                name = "Missing values pattern",
+                name = paste0("Missing values pattern (", dim(missval)[1], " proteins )"),
                 column_names_gp = gpar(fontsize = 16),
                 heatmap_legend_param = list(at = c(0, 1),
                                             labels = c("Missing value", "Valid value")))
