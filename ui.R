@@ -192,8 +192,8 @@ ui <- function(request){shinyUI(
                     h4("Sidebar tabs"),
                     tags$ul(
                       tags$li(tags$b("Analysis: "),"perform your own analysis"),
+                      tags$li(tags$b("Documentation: "), "Learn more about how to use FragPipe-Analyst")
                       # tags$li(tags$b("Demo: "),"familiarise yourself with FragPipe-Analyst by browsing through pre-analysed results"),
-                      tags$li(tags$b("User Guide: "), "download an in-depth manual") 
                     )
                   ) # box 1 closed
                  ) # fluidRow close
