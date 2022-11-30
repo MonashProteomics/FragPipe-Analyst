@@ -91,7 +91,7 @@ We use a *Bioconductor* package *limma* to carry out the DE analysis on each pro
 
 ![heatmap](heatmap.png)
 
-1. **Protein plot**: Selecting a gene from the 'Results Table', A box plot or a violin plot will be shown comparing expression of that gene between conditions. 
+3. **Protein plot**: Selecting a gene from the 'Results Table', A box plot or a violin plot will be shown comparing expression of that gene between conditions. 
 ![boxplot](boxplot.png)
 
 ## QC plots
@@ -108,7 +108,7 @@ We use a *Bioconductor* package *limma* to carry out the DE analysis on each pro
     heatmap to visualize the Pearson correlation coefficients between
     the different samples.
 ![sample_correlation](sample_correlation.png)
-3. **Sample CVs Plots**: *screenshot pending*  A plot representing distribution of protein level coefficient of variation for each condition. Each plot also contains a vertical line representing median CVs percentage within that condition. ![cv\_plot](CV.png)
+3. **Sample CVs Plots**: A plot representing distribution of protein level coefficient of variation for each condition. Each plot also contains a vertical line representing median CVs percentage within that condition. ![cv\_plot](CV.png)
 4. **Protein Numbers**: A bar-plot representing number of proteins
     identified and quantified in each TMT plex.
 ![proteins](protein_number.png)
