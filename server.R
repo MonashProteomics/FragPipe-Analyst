@@ -20,7 +20,10 @@ server <- function(input, output, session) {
     if (input$exp == "LFQ"){
       exp <- exp_design_input()
       # Hide LFQ page if only have one replicate in each sample
-      if (max(exp$replicate)==1){
+      if (all(is.na(exp$replicate))) {
+        showTab(inputId = "tab_panels", target = "quantification_panel")
+        updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+      } else if (max(exp$replicate)==1){
         hideTab(inputId = "tab_panels", target = "quantification_panel")
       } else {
         showTab(inputId = "tab_panels", target = "quantification_panel")
@@ -308,7 +311,7 @@ server <- function(input, output, session) {
         if (anyDuplicated(temp_df$label)) {
           # add _number for repeat labels, but need to remove _1
           temp_df$label <- paste(temp_df$label, temp_df$replicate, sep="_")
-          temp_df$label <- gsub("_1", "", temp_df$label)
+          temp_df$label <- gsub("_1$", "", temp_df$label)
           samples_with_replicate <- temp_df$label[grepl("_", temp_df$label)]
           samples_with_replicate <- unique(gsub("_\\d+", "", samples_with_replicate))
           temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
@@ -321,29 +324,32 @@ server <- function(input, output, session) {
         # exp_design_test(temp_df)
         # temp_df$label<-as.character(temp_df$label)
         # temp_df$condition<-trimws(temp_df$condition, which = "left")
-        
-        # make it compatible to original LFQ-Analyst design
-        # colnames(temp_df) <- c("Path", "Experiment", "Bioreplicate", "Data.type")
+
         colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
-        temp_df$condition <- gsub("_.*", "", temp_df$experiment)
-        temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
-        if (input$lfq_type == "Intensity") { 
-          temp_df$label <- paste(temp_df$label, "Intensity", sep=" ")
-        } else if (input$lfq_type == "MaxLFQ") {
-          temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=" ")
-        }  else if (input$lfq_type == "Spectral Count") {
-          temp_df$label <- paste(temp_df$label, "Spectral.Count", sep=" ")
+
+        # make sure replicate column is not empty
+        if (!all(is.na(temp_df$replicate))) {
+          temp_df$condition <- gsub("_.*", "", temp_df$experiment)
+          temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
+          if (input$lfq_type == "Intensity") {
+            temp_df$label <- paste(temp_df$label, "Intensity", sep=" ")
+          } else if (input$lfq_type == "MaxLFQ") {
+            temp_df$label <- paste(temp_df$label, "MaxLFQ.Intensity", sep=" ")
+          }  else if (input$lfq_type == "Spectral Count") {
+            temp_df$label <- paste(temp_df$label, "Spectral.Count", sep=" ")
+          }
         }
-          
-        # print(temp_df$label)
       } else if (input$exp == "DIA") {
-        temp_df <- read.table(inFile$datapath,
-                              header = F,
-                              sep="\t",
-                              stringsAsFactors = FALSE)
-        colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
-        temp_df$condition <- gsub("_.*", "", temp_df$experiment)
-        temp_df$label <- temp_df$path
+        # make sure replicate column is not empty
+        if (!all(is.na(temp_df$replicate))) {
+          temp_df <- read.table(inFile$datapath,
+                                header = F,
+                                sep="\t",
+                                stringsAsFactors = FALSE)
+          colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
+          temp_df$condition <- gsub("_.*", "", temp_df$experiment)
+          temp_df$label <- temp_df$path
+        }
       }
       return(temp_df)
     })
@@ -426,7 +432,7 @@ server <- function(input, output, session) {
        return(data_se)
      } else { # TMT
        temp_exp_design <- exp_design()
-       # sample without specified contion will be removed
+       # sample without specified condition will be removed
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
        temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
        # temp_exp_design[is.na(temp_exp_design), "replicate"] <- 1
