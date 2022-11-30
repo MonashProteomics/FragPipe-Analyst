@@ -543,40 +543,40 @@ ui <- function(request){shinyUI(
       tabItem(tabName = "info",
               fluidRow( 
                box(
-                   title = "User Guide",
-                   h3("FragPipe-Analyst Documentation"),
-                   div(p(HTML(paste0('Learn more about our FragPipe',
-                                     a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')))))),
-                   div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
-			                            a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
-			                              target='_blank', tags$b("here")))))),
+                   title = "Documentation",
+                   h3("Need help?"),
+                   h4("FragPipe-Analyst is open-source! You are more than welcome to contribute. At the same time, here are some resources you may be interested:"),
+                   tags$ul(
+                     tags$li(div(p("Read our documentation and tutorial ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs', target='_blank', tags$b('here')), "."))), 
+                     tags$li(div(p("Report issues and ask questions ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/issues', target='_blank', tags$b('here')), "."))), 
+                     tags$li(div(p(HTML(paste0('Learn more about our FragPipe',
+                                               a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')), "."))))),
+                     tags$li(div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
+                                       a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
+                                         target='_blank', tags$b("here")), ".")))))
+                   ),
+
                    h4("Contact Us"),
-			p("For any feedback or question regarding FragPipe-Analyst, please contact the 
-			  Proteomics & Integrative Bioinformatics Lab (P.I. Alexey Nesvizhskii; University of Michigan):"),
-      tags$ul(
-			tags$li("Professor Alexey Nesvizhskii: nesvi@med.umich.edu")
-      ),
-			
-			h4("How to Cite FragPipe-Analyst?"),
-			div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
-		LFQ-Analyst: An easy-to-use interactive web-platform to analyze and 
-		visualize proteomics data preprocessed with MaxQuant. DOI:",
-			                            a(href = 'https://pubs.acs.org/doi/10.1021/acs.jproteome.9b00496', 
-			                              target='_blank', tags$b("10.1021/acs.jproteome.9b00496")))))),
+                   p("For any feedback or question regarding FragPipe-Analyst, please contact the 
+                     Proteomics & Integrative Bioinformatics Lab (P.I. Alexey Nesvizhskii; University of Michigan):"),
+                   tags$ul(
+                     tags$li("Professor Alexey Nesvizhskii: nesvi@med.umich.edu")),
 
-
-      h4("News and Updates"),
-			
-      tags$ul(
-        tags$li("07-13-2022: FragPipe-Analyst first created")
-      ),   
-                width = 12,
-                solidHeader = TRUE,
-                status = "primary"
-                ) #includeMarkdown("www/Info.md")
+                   h4("How to Cite FragPipe-Analyst?"),
+                   div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
+                   LFQ-Analyst: An easy-to-use interactive web-platform to analyze and visualize proteomics data preprocessed with MaxQuant. DOI:",
+                                     a(href = 'https://pubs.acs.org/doi/10.1021/acs.jproteome.9b00496',
+                                       target='_blank', tags$b("10.1021/acs.jproteome.9b00496")))))),
+                   h4("News and Updates"),
+                   tags$ul(
+                     tags$li("07-13-2022: FragPipe-Analyst first created")
+                    ),
+                   width = 12,
+                   solidHeader = TRUE,
+                   status = "primary"
+                )
               )
           )# info tab close
-
      #     , tabItem(tabName = "demo",
      #        div(id="downloadbox_dm",
      #                      fluidRow(
