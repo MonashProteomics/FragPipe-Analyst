@@ -127,13 +127,13 @@ fragpipe_DIA_input_test<-function(fragpipe_input){
 tmt_input_test<-function(tmt_input){
   col_names<-colnames(tmt_input)
   if(!"Index" %in% col_names){
-    stop(safeError("The column 'Index' is not found in the TMT-I report"))
+    stop(safeError("The column 'Index' is not found in the TMT-I gene report."))
   }
   else if(!"ProteinID" %in% col_names){
-    stop(safeError("The column 'ProteinID' is not found in the TMT-I report"))
+    stop(safeError("The column 'ProteinID' is not found in the TMT-I gene report."))
   }
   else if(!"NumberPSM" %in% col_names){
-    stop(safeError("The column 'NumberPSM' is not found in the TMT-I report"))
+    stop(safeError("The column 'NumberPSM' is not found in the TMT-I gene report."))
   }
 }
 

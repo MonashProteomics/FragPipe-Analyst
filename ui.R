@@ -45,7 +45,7 @@ ui <- function(request){shinyUI(
                                  conditionalPanel(
                                    condition = "input.exp == 'TMT'",
                                    fileInput('tmt_expr',
-                                             'Upload TMT report *.tsv',
+                                             'Upload TMT-I gene report *.tsv',
                                              accept=c('text/tsv',
                                                       'text/tab-separated-values,text/plain',
                                                       '.tsv')),
@@ -469,9 +469,6 @@ ui <- function(request){shinyUI(
                                                      choices = c("Up"="UP", "Down"="DOWN"),
                                                      selected = "UP")),
                               column(12, actionButton("pathway_analysis", "Run Enrichment")),
-                              # column(12, radioButtons("pathway_sort", "Sort By",
-                              #                        choices = c("log odds"="log Odds", "Combined score"="Combined score"),
-                              #                        selected = "log Odds")),
                               column(12,
                                      box(width = 12, uiOutput("spinner_pa"), height = 500)
                               ),
