@@ -319,7 +319,7 @@ server <- function(input, output, session) {
           temp_df$label <- paste(temp_df$label, temp_df$replicate, sep="_")
           temp_df$label <- gsub("_1$", "", temp_df$label)
           samples_with_replicate <- temp_df$label[grepl("_", temp_df$label)]
-          samples_with_replicate <- unique(gsub("_\\d+", "", samples_with_replicate))
+          samples_with_replicate <- unique(gsub("_\\d+$", "", samples_with_replicate))
           temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
         }
       } else if (input$exp == "LFQ"){
@@ -337,7 +337,7 @@ server <- function(input, output, session) {
         if (!all(is.na(temp_df$replicate))) {
           # handle - (dash) in experiment column
           temp_df$experiment <- gsub("-", ".", temp_df$experiment)
-          temp_df$condition <- gsub("_.*", "", temp_df$experiment)
+          temp_df$condition <- gsub("_\\d+$", "", temp_df$experiment)
           temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
           if (input$lfq_type == "Intensity") {
             temp_df$label <- paste(temp_df$label, "Intensity", sep=" ")
@@ -357,7 +357,7 @@ server <- function(input, output, session) {
         if (!all(is.na(temp_df$replicate))) {
           # handle - (dash) in experiment column
           temp_df$experiment <- gsub("-", ".", temp_df$experiment)
-          temp_df$condition <- gsub("_.*", "", temp_df$experiment)
+          temp_df$condition <- gsub("_\\d+$", "", temp_df$experiment)
           temp_df$label <- temp_df$path
         }
       }
