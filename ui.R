@@ -157,7 +157,7 @@ ui <- function(request){shinyUI(
                                   a(href="https://fragpipe.nesvilab.org/", target="_blank", "FragPipe"), " computational platform.",
                       " It is compatible with the LFQ-MBR, TMT, and DIA quantification workflows in FragPipe.",
                       " FragPipe-Analyst is based on the original ",
-                      a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blanl", "LFQ-Analyst"),
+                      a(href="https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/", target="_blank", "LFQ-Analyst"),
                       " code."))),
                     br(),
                     fluidRow(
@@ -189,11 +189,23 @@ ui <- function(request){shinyUI(
                       )
                     ),
                     br(),
-                    h4("Sidebar tabs"),
-                    tags$ul(
-                      tags$li(tags$b("Analysis: "),"perform your own analysis"),
-                      tags$li(tags$b("Documentation: "), "Learn more about how to use FragPipe-Analyst")
-                      # tags$li(tags$b("Demo: "),"familiarise yourself with FragPipe-Analyst by browsing through pre-analysed results"),
+                    fluidRow(
+                      column(width = 4,
+                        h4("Sidebar tabs"),
+                        tags$ul(
+                          tags$li(tags$b("Analysis: "),"perform your own analysis"),
+                          tags$li(tags$b("Documentation: "), "Learn more about how to use FragPipe-Analyst")
+                          # tags$li(tags$b("Demo: "),"familiarise yourself with FragPipe-Analyst by browsing through pre-analysed results"),
+                        )
+                      ),
+                      column(width = 8,
+                        h4("Support"),
+                        tags$ul(
+                          tags$li(tags$b("Questions/Error/Bugs: "), "Ask us in ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst", target="_blank", "our GitHub repo"), "."),
+                          tags$li(tags$b("Documentation/Tutorial: "), "Learn more ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst", target="_blank", "here"), "."),
+                          tags$li(tags$b("Servers:"), "Our production (stable) server is at ", tags$a(href="http://fragpipe-analyst.org/", target="_blank", "http://fragpipe-analyst.org/"), "but we also provide our latest dev server ", tags$a(href="http://fragpipe-analyst.org/", target="_blank", "http://fragpipe-analyst.org/"), "for urgent update and bugfixes."),
+                        )
+                      )
                     )
                   ) # box 1 closed
                  ) # fluidRow close
@@ -545,22 +557,20 @@ ui <- function(request){shinyUI(
                box(
                    title = "Documentation",
                    h3("Need help?"),
-                   h4("FragPipe-Analyst is open-source! You are more than welcome to contribute. At the same time, here are some resources you may be interested:"),
                    tags$ul(
-                     tags$li(div(p("Read our documentation and tutorial ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs', target='_blank', tags$b('here')), "."))), 
-                     tags$li(div(p("Report issues and ask questions ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/issues', target='_blank', tags$b('here')), "."))), 
-                     tags$li(div(p(HTML(paste0('Learn more about our FragPipe',
-                                               a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')), "."))))),
-                     tags$li(div(p(HTML(paste0("The user manual of original LFQ-Analyst can be accessed",
-                                       a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', 
-                                         target='_blank', tags$b("here")), ".")))))
+                     tags$li("Read our documentation and tutorial ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs', target='_blank', tags$b('here')), "."), 
+                     tags$li("Report issues and ask questions ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/issues', target='_blank', tags$b('here')), "."), 
+                     tags$li("FragPipe-Analyst is open-source! You are more than welcome to ",a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst', target='_blank', tags$b('contribute')), "."),
+                     tags$li('Learn more about our FragPipe', a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')), "."),
+                     tags$li("The user manual of original LFQ-Analyst can be accessed",
+                             a(href = 'https://bioinformatics.erc.monash.edu/apps/LFQ-Analyst/LFQ-Analyst_manual.pdf', target='_blank', tags$b("here")), ".")
                    ),
 
                    h4("Contact Us"),
                    p("For any feedback or question regarding FragPipe-Analyst, please contact the 
                      Proteomics & Integrative Bioinformatics Lab (P.I. Alexey Nesvizhskii; University of Michigan):"),
                    tags$ul(
-                     tags$li("Professor Alexey Nesvizhskii: nesvi@med.umich.edu")),
+                     tags$li("Professor Alexey Nesvizhskii: ", a(href="mailto: nesvi@med.umich.edu", target='_blank', "nesvi@med.umich.edu"))),
 
                    h4("How to Cite FragPipe-Analyst?"),
                    div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
@@ -569,7 +579,8 @@ ui <- function(request){shinyUI(
                                        target='_blank', tags$b("10.1021/acs.jproteome.9b00496")))))),
                    h4("News and Updates"),
                    tags$ul(
-                     tags$li("07-13-2022: FragPipe-Analyst first created")
+                     tags$li("12-02-2022: FragPipe-Analyst is first released for beta testing."),
+                     tags$li("07-13-2022: FragPipe-Analyst is first created.")
                     ),
                    width = 12,
                    solidHeader = TRUE,
