@@ -248,6 +248,8 @@ server <- function(input, output, session) {
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "LFQ") {
+        # handle - (dash) in experiment column
+        colnames(temp_data) <- gsub("-", ".", colnames(temp_data))
         validate(fragpipe_input_test(temp_data))
         # remove contam
         temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
@@ -303,6 +305,10 @@ server <- function(input, output, session) {
         }
         # change it to lower case
         colnames(temp_df) <- tolower(colnames(temp_df))
+        # to support - (dash) in condition column
+        temp_df$condition <- gsub("-", ".", temp_df$condition)
+        # to support - (dash) in label column
+        # temp_df$label <-  gsub("-", ".", temp_df$label)
         validate(need(try(test_TMT_annotation(temp_df)),
                            paste0("The input annotation file should have following columns: ",
                                   "channel, label, plex, replicate, condition\n",
@@ -329,6 +335,8 @@ server <- function(input, output, session) {
 
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
+          # handle - (dash) in experiment column
+          temp_df$experiment <- gsub("-", ".", temp_df$experiment)
           temp_df$condition <- gsub("_.*", "", temp_df$experiment)
           temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
           if (input$lfq_type == "Intensity") {
@@ -340,13 +348,15 @@ server <- function(input, output, session) {
           }
         }
       } else if (input$exp == "DIA") {
+        temp_df <- read.table(inFile$datapath,
+                              header = F,
+                              sep="\t",
+                              stringsAsFactors = FALSE)
+        colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
-          temp_df <- read.table(inFile$datapath,
-                                header = F,
-                                sep="\t",
-                                stringsAsFactors = FALSE)
-          colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
+          # handle - (dash) in experiment column
+          temp_df$experiment <- gsub("-", ".", temp_df$experiment)
           temp_df$condition <- gsub("_.*", "", temp_df$experiment)
           temp_df$label <- temp_df$path
         }
