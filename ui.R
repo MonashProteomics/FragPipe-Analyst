@@ -559,7 +559,7 @@ ui <- function(request){shinyUI(
                    h3("Need help?"),
                    tags$ul(
                      tags$li("Read our documentation and tutorial ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs', target='_blank', tags$b('here')), "."), 
-                     tags$li("Report issues and ask questions ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/issues', target='_blank', tags$b('here')), "."), 
+                     tags$li("Report issues and ask questions ", a(href = 'https://github.com/Nesvilab/FragPipe-Analyst', target='_blank', tags$b('here')), "."), 
                      tags$li("FragPipe-Analyst is open-source! You are more than welcome to ",a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst', target='_blank', tags$b('contribute')), "."),
                      tags$li('Learn more about our FragPipe', a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')), "."),
                      tags$li("The user manual of original LFQ-Analyst can be accessed",
@@ -572,11 +572,6 @@ ui <- function(request){shinyUI(
                    tags$ul(
                      tags$li("Professor Alexey Nesvizhskii: ", a(href="mailto: nesvi@med.umich.edu", target='_blank', "nesvi@med.umich.edu"))),
 
-                   h4("How to Cite FragPipe-Analyst?"),
-                   div(p(HTML(paste0("Please cite the link and the original LFQ-Analyst: Shah AD, Goode RJA, Huang C, Powell DR, Schittenhelm RB. 
-                   LFQ-Analyst: An easy-to-use interactive web-platform to analyze and visualize proteomics data preprocessed with MaxQuant. DOI:",
-                                     a(href = 'https://pubs.acs.org/doi/10.1021/acs.jproteome.9b00496',
-                                       target='_blank', tags$b("10.1021/acs.jproteome.9b00496")))))),
                    h4("News and Updates"),
                    tags$ul(
                      tags$li("12-02-2022: FragPipe-Analyst is first released for beta testing."),
@@ -773,7 +768,7 @@ ui <- function(request){shinyUI(
         fluidRow(
           tags$div(
             tags$footer(
-              tags$p("Proteomics & Integrative Bioinformatics Lab (P.I. Alexey Nesvizhskii; University of Michigan) and the Monash Proteomics & Metabolomics Facility (Monash University)"),
+              tags$p("Proteomics & Integrative Bioinformatics Lab at the University of Michigan (P.I. Alexey Nesvizhskii) and the Monash Proteomics & Metabolomics Facility, Monash University (P.I. Ralf Schittenhelm)."),
               align = "left",
               style = "margin-left: 20px;")
               # style = "position:absolute;
