@@ -50,6 +50,7 @@ E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzM
 |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML|	Tumor_10|	1	|DIA|
 |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML|	NAT_10|	1	|DIA|
 
+Note that since FragPipe-Analyst focus on differential expression analysis. You should have more than one condition available in the `experiment` column like T/N or Tumor/NAT in the examples mentioned above. If you have more than one patients, you could use underscore (`_`) to label samples like `T_3`, `N_37` shown above. 
 
 # TMT
 See [TMT tutorial](TMT-Tutorial) for details.
