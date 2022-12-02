@@ -29,7 +29,7 @@ A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fra
 ## Public servers
 
 There are two server instances
-- Production server is hosted at [https://fragpipe-analyst.org/apps/fragpipe-analyst/](https://fragpipe-analyst.org/apps/fragpipe-analyst/).
+- Production server is hosted at [https://fragpipe-analyst.org/](https://fragpipe-analyst.org/).
 - Dev server is also hosted at [http://fragpipe-analyst.nesvilab.org/](http://fragpipe-analyst.nesvilab.org/).
 
 ## Install on your own machine
