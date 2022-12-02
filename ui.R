@@ -201,9 +201,9 @@ ui <- function(request){shinyUI(
                       column(width = 8,
                         h4("Support"),
                         tags$ul(
-                          tags$li(tags$b("Questions/Error/Bugs: "), "Ask us in ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst", target="_blank", "our GitHub repo"), "."),
-                          tags$li(tags$b("Documentation/Tutorial: "), "Learn more ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst", target="_blank", "here"), "."),
-                          tags$li(tags$b("Servers:"), "Our production (stable) server is at ", tags$a(href="http://fragpipe-analyst.org/", target="_blank", "http://fragpipe-analyst.org/"), "but we also provide our latest dev server ", tags$a(href="http://fragpipe-analyst.nesvilab.org/", target="_blank", "http://fragpipe-analyst.nesvilab.org/"), "for urgent update and bug fixes."),
+                          tags$li(tags$b("Questions/Suggestions/Bug reports: "), "Ask us in ", tags$a(href="https://github.com/Nesvilab/FragPipe-Analyst", target="_blank", "our GitHub forum"), "."),
+                          tags$li(tags$b("Documentation/Tutorials: "), "Learn more ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs", target="_blank", "here"), "."),
+                          tags$li(tags$b("Servers:"), "Our production (stable) server is at ", tags$a(href="http://fragpipe-analyst.org/", target="_blank", "http://fragpipe-analyst.org/"), "but we also provide our latest dev server ", tags$a(href="http://fragpipe-analyst.nesvilab.org/", target="_blank", "http://fragpipe-analyst.nesvilab.org/"), "with most recent updates and bug fixes."),
                         )
                       )
                     )
