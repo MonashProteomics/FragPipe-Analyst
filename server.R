@@ -800,7 +800,7 @@ server <- function(input, output, session) {
 
    
 #### Interactive UI
-   output$significantBox <- renderInfoBox({
+   output$significantBox <- renderUI({
      num_total <- assay(processed_data()) %>%
        nrow()
      num_signif <- dep() %>%
@@ -815,9 +815,7 @@ server <- function(input, output, session) {
                              paste0(signif(frac * 100, digits = 3),
                                     "% of proteins differentially expressed across all conditions"),
                              icon = icon("stats", lib = "glyphicon"),
-                             color = "olive",
-                            # fill = TRUE,
-                             width = 4)
+                             color = "olive", width=12)
      
      return(info_box)
    })
