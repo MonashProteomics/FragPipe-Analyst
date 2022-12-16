@@ -852,7 +852,7 @@ plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "re
   }
 }
 
-# Original plot_numbers is from plot_numbers 
+# Customized from DEP's plot_numbers
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_frequencies.R
 #' Plot protein numbers
 #'
@@ -890,9 +890,6 @@ plot_numbers_customized <- function(se, plot = TRUE, exp = "LFQ") {
     summarize(n = n(), sum = sum(bin)) %>%
     left_join(., data.frame(colData(se)), by = c("ID"="label"))
 
-  if (exp == "DIA") {
-    stat$ID <- paste(stat$experiment, stat$replicate, sep="_")
-  }
   p <- ggplot(stat, aes(x = ID, y = sum, fill = condition)) +
     geom_col() +
     geom_hline(yintercept = unique(stat$n)) +
@@ -1749,12 +1746,7 @@ plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
   }
   
   # Calculate correlation matrix
-  if (exp == "DIA"){
-    data <- assay(dep)
-    colnames(data) <- paste(colData(dep)$experiment, colData(dep)$replicate, sep="_")
-  } else {
-    data <- assay(dep)
-  }
+  data <- assay(dep)
   
   cor_mat <- cor(data, use="complete.obs")
   lower <- min(cor_mat)
@@ -1888,9 +1880,7 @@ plot_missval_customized <- function(se, exp="LFQ") {
   
   # Make assay data binary (1 = valid value, 0 = missing value)
   df <- se_assay %>% data.frame(.)
-  if (exp =="DIA" ){
-    colnames(df) <- paste(colData(se)$experiment, colData(se)$replicate, sep="_")
-  }
+
   missval <- df[apply(df, 1, function(x) any(is.na(x))), ]
   missval <- ifelse(is.na(missval), 0, 1)
 
