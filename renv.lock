@@ -116,34 +116,6 @@
       "Hash": "726b3bc83ff8e0c35c7efdb74a462b0d",
       "Requirements": []
     },
-    "BiocParallel": {
-      "Package": "BiocParallel",
-      "Version": "1.32.1",
-      "Source": "Bioconductor",
-      "git_url": "https://git.bioconductor.org/packages/BiocParallel",
-      "git_branch": "RELEASE_3_16",
-      "git_last_commit": "6c85dba",
-      "git_last_commit_date": "2022-11-07",
-      "Hash": "68f7a2a66175012ad0bb0d1fce5b2695",
-      "Requirements": [
-        "BH",
-        "codetools",
-        "cpp11",
-        "futile.logger",
-        "snow"
-      ]
-    },
-    "BiocVersion": {
-      "Package": "BiocVersion",
-      "Version": "3.16.0",
-      "Source": "Bioconductor",
-      "git_url": "https://git.bioconductor.org/packages/BiocVersion",
-      "git_branch": "master",
-      "git_last_commit": "c681e06",
-      "git_last_commit_date": "2022-04-26",
-      "Hash": "44c5824508b9a10e52dbb505c34fa880",
-      "Requirements": []
-    },
     "Biostrings": {
       "Package": "Biostrings",
       "Version": "2.66.0",
@@ -544,22 +516,6 @@
         "bitops"
       ]
     },
-    "RSQLite": {
-      "Package": "RSQLite",
-      "Version": "2.2.18",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "a4a3bcd8a9380e04c86876d73a085b8f",
-      "Requirements": [
-        "DBI",
-        "Rcpp",
-        "bit64",
-        "blob",
-        "memoise",
-        "pkgconfig",
-        "plogr"
-      ]
-    },
     "RVenn": {
       "Package": "RVenn",
       "Version": "1.1.0",
@@ -642,19 +598,6 @@
         "zlibbioc"
       ]
     },
-    "S4Vectors": {
-      "Package": "S4Vectors",
-      "Version": "0.36.0",
-      "Source": "Bioconductor",
-      "git_url": "https://git.bioconductor.org/packages/S4Vectors",
-      "git_branch": "RELEASE_3_16",
-      "git_last_commit": "af58701",
-      "git_last_commit_date": "2022-11-01",
-      "Hash": "6e7537086f095ad24e9d5940ce009992",
-      "Requirements": [
-        "BiocGenerics"
-      ]
-    },
     "SummarizedExperiment": {
       "Package": "SummarizedExperiment",
       "Version": "1.28.0",
@@ -675,14 +618,6 @@
         "MatrixGenerics",
         "S4Vectors"
       ]
-    },
-    "XML": {
-      "Package": "XML",
-      "Version": "3.99-0.12",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "b83df448ba12cfafbbb0726450745d08",
-      "Requirements": []
     },
     "XVector": {
       "Package": "XVector",
@@ -1121,14 +1056,6 @@
       "Requirements": [
         "crayon"
       ]
-    },
-    "digest": {
-      "Package": "digest",
-      "Version": "0.6.30",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "bf1cd206a5d170d132ef75c7537b9bdb",
-      "Requirements": []
     },
     "doParallel": {
       "Package": "doParallel",
@@ -1697,15 +1624,7 @@
       "Requirements": [
         "htmltools"
       ]
-    },
-    "jsonlite": {
-      "Package": "jsonlite",
-      "Version": "1.8.3",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "8b1bd0be62956f2a6b91ce84fac79a45",
-      "Requirements": []
-    },
+    }, 
     "knitr": {
       "Package": "knitr",
       "Version": "1.41",
@@ -1941,17 +1860,7 @@
       "Repository": "CRAN",
       "Hash": "7b5244ffdba7429e0e76961f0aa8f199",
       "Requirements": []
-    },
-    "openssl": {
-      "Package": "openssl",
-      "Version": "2.0.4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "e86c5ffeb8474a9e03d75f5d2919683e",
-      "Requirements": [
-        "askpass"
-      ]
-    },
+    }, 
     "packrat": {
       "Package": "packrat",
       "Version": "0.8.1",
@@ -2452,20 +2361,6 @@
         "zoo"
       ]
     },
-    "sass": {
-      "Package": "sass",
-      "Version": "0.4.3",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "6cd2448458fdb03e21e69aa2d5ba25b2",
-      "Requirements": [
-        "R6",
-        "fs",
-        "htmltools",
-        "rappdirs",
-        "rlang"
-      ]
-    },
     "scales": {
       "Package": "scales",
       "Version": "1.2.1",
@@ -2697,33 +2592,6 @@
       "Hash": "90b28393209827327de889f49935140a",
       "Requirements": [
         "cpp11"
-      ]
-    },
-    "testthat": {
-      "Package": "testthat",
-      "Version": "3.1.5",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "6e3c4843f1ed0d3d90f35498671a001c",
-      "Requirements": [
-        "R6",
-        "brio",
-        "callr",
-        "cli",
-        "desc",
-        "digest",
-        "ellipsis",
-        "evaluate",
-        "jsonlite",
-        "lifecycle",
-        "magrittr",
-        "pkgload",
-        "praise",
-        "processx",
-        "ps",
-        "rlang",
-        "waldo",
-        "withr"
       ]
     },
     "tibble": {
@@ -2994,14 +2862,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "c0e49a9760983e81e55cdd9be92e7182",
-      "Requirements": []
-    },
-    "wk": {
-      "Package": "wk",
-      "Version": "0.7.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "4801d436beeacde30e87f3485a042326",
       "Requirements": []
     },
     "xfun": {

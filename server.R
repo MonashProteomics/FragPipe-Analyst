@@ -41,7 +41,7 @@ server <- function(input, output, session) {
       showTab(inputId = "tab_panels", target = "quantification_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
     } else { # DIA
-      showTab(inputId="qc_tabBox", target="norm_tab")
+      hideTab(inputId="qc_tabBox", target="norm_tab")
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "occ_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
@@ -307,8 +307,6 @@ server <- function(input, output, session) {
         colnames(temp_df) <- tolower(colnames(temp_df))
         # to support - (dash) in condition column
         temp_df$condition <- gsub("-", ".", temp_df$condition)
-        # to support - (dash) in label column
-        # temp_df$label <-  gsub("-", ".", temp_df$label)
         validate(need(try(test_TMT_annotation(temp_df)),
                            paste0("The input annotation file should have following columns: ",
                                   "channel, label, plex, replicate, condition\n",
@@ -349,16 +347,18 @@ server <- function(input, output, session) {
         }
       } else if (input$exp == "DIA") {
         temp_df <- read.table(inFile$datapath,
-                              header = F,
+                              header = T,
                               sep="\t",
                               stringsAsFactors = FALSE)
-        colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
+        # change it to lower case
+        colnames(temp_df) <- tolower(colnames(temp_df))
+        # to support - (dash) in condition column
+        temp_df$condition <- gsub("-", ".", temp_df$condition)
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
-          # handle - (dash) in experiment column
-          temp_df$experiment <- gsub("-", ".", temp_df$experiment)
-          temp_df$condition <- gsub("_\\d+$", "", temp_df$experiment)
-          temp_df$label <- temp_df$path
+          # save label used later
+          temp_df$new_label <- temp_df$label
+          temp_df$label <- temp_df$file
         }
       }
       return(temp_df)
@@ -437,8 +437,11 @@ server <- function(input, output, session) {
        data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+       # TODO: use DIA function
        test_match_tmt_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
+       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$new_label)
+       colData(data_se)$label <- colData(data_se)$new_label
        return(data_se)
      } else { # TMT
        temp_exp_design <- exp_design()
@@ -507,7 +510,11 @@ server <- function(input, output, session) {
    })
    
    normalised_data<-reactive({
-     normalize_vsn(filtered_data())
+     if (input$exp == "LFQ") {
+       return(normalize_vsn(filtered_data()))
+     } else {
+       return(filtered_data())
+     }
    })
    
    imputed_data<-reactive({
@@ -1253,22 +1260,35 @@ output$download_imp_svg<-downloadHandler(
 
     # print(conditions)
     # print(colnames(df))
-    for (i in 1:length(conditions)) {
-      condition <- conditions[i]
-      temp <- as.data.frame(colData(processed_data()))
-      temp <- temp[temp$condition==condition,]
-      selected_cols <- rownames(temp)
-      df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,selected_cols, drop=F]))
-      df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
-      cols <- grep(paste0(condition, "$"),colnames(df))
-      if (!is.null(input[[paste0("",condition)]])){
-        df <- df %>%
-          dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
-      }
-    }
     if (input$exp == "LFQ"){
+      for (i in 1:length(conditions)) {
+        condition <- conditions[i]
+        temp <- as.data.frame(colData(processed_data()))
+        temp <- temp[temp$condition==condition,]
+        selected_cols <- rownames(temp)
+        df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,selected_cols, drop=F]))
+        df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
+        cols <- grep(paste0(condition, "$"),colnames(df))
+        if (!is.null(input[[paste0("",condition)]])){
+          df <- df %>%
+            dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
+        }
+      }
       df <- dplyr::relocate(df, "Gene", "Description", "Combined.Total.Peptides")
-    } else {
+    } else { # DIA
+      for (i in 1:length(conditions)) {
+        condition <- conditions[i]
+        temp <- as.data.frame(colData(processed_data()))
+        temp <- temp[temp$condition==condition,]
+        selected_cols <- temp$label
+        df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,selected_cols, drop=F]))
+        df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
+        if (!is.null(input[[paste0("",condition)]])){
+          df <- df %>%
+            dplyr::filter(df[[paste("#Occurences", condition, sep="_")]] >=input[[paste0("",condition)]][1] &
+                            df[[paste("#Occurences", condition, sep="_")]] <=input[[paste0("",condition)]][2])
+        }
+      }
       df <- dplyr::relocate(df, "Gene", "Description")
     }
     return(df)
@@ -1294,9 +1314,10 @@ output$download_imp_svg<-downloadHandler(
       #   filtered_data<-dplyr::filter(filtered_data,as.numeric(Razor...unique.peptides)>=2)
       # }
       # else{filtered_data <-filtered_data}
-  
-      if(('Proteins with more than two peptides' %in% input$filtered_condition_fragpipe)){
-        data <-dplyr::filter(data,Combined.Total.Peptides>=2)
+      if (input$exp == "LFQ") {
+        if(('Proteins with more than two peptides' %in% input$filtered_condition_fragpipe)){
+          data <-dplyr::filter(data,Combined.Total.Peptides>=2)
+        }
       }
     }
     return(data)
@@ -1320,12 +1341,23 @@ output$download_imp_svg<-downloadHandler(
     exp_design_input <- exp_design_input()
     conditions <- exp_design_input$condition %>% unique()
     
-    sliderInput(paste0("",conditions[n]),
-                label=paste0("",conditions[n]),
-                min = min(0), 
-                max = max(exp_design_input$replicate),
-                value = c(0, max(exp_design_input$replicate)),
-                step = 1)}
+    if (input$exp == "LFQ"){
+      sliderInput(paste0("",conditions[n]),
+                  label=paste0("",conditions[n]),
+                  min = min(0),
+                  max = max(exp_design_input$replicate),
+                  value = c(0, max(exp_design_input$replicate)),
+                  step = 1)
+    } else {
+      temp <- exp_design_input[exp_design_input$condition == conditions[n],]
+      sliderInput(paste0("",conditions[n]),
+                  label=paste0("",conditions[n]),
+                  min = min(0),
+                  max = max(nrow(temp)),
+                  value = c(0, max(nrow(temp))),
+                  step = 1)
+    }
+  }
   
   slider_bars <- reactive({
     exp_design <- exp_design_input()

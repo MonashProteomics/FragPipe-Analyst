@@ -221,10 +221,7 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
   legend <- ifelse(type == "contrast",
                    "log2 Fold change",
                    "log2 Centered intensity")
-  
-  if (exp == "DIA") {
-    colnames(df) <- paste(colData(dep)$experiment, colData(dep)$replicate, sep="_")
-  }
+
   # Heatmap
   ht1 = Heatmap(df,
                 col = circlize::colorRamp2(
