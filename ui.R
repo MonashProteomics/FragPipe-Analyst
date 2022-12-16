@@ -314,7 +314,7 @@ ui <- function(request){shinyUI(
                                                                value = FALSE),
                                                  checkboxInput("p_adj",
                                                                "Adjusted p values",
-                                                               value = FALSE),
+                                                               value = T),
                                                  width = 4),
                                              tags$p("Select protein from Results Table to highlight on the plot OR 
                                                     drag the mouse on plot to show expression of proteins in Table")
