@@ -501,7 +501,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
   
   if(length(indicate) == 1) {
     if (exp == "TMT") {
-    pca_df$plex <- as.factor(pca_df$plex)
+    pca_df$experiment <- as.factor(pca_df$experiment)
     p <- plot_ly() %>%
       add_trace(data=pca_df, type = 'scatter', marker = list(size = point_size),
                 mode = 'markers',
@@ -516,9 +516,9 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                 mode = 'markers',
                 x = ~PC1,
                 y = ~PC2,
-                color = as.formula(paste0('~', "plex")),
-                legendgroup="plex",
-                legendgrouptitle_text="plex",
+                color = as.formula(paste0('~', "experiment")),
+                legendgroup="experiment",
+                legendgrouptitle_text="experiment",
                 xaxis="x2",
                 yaxis="y2", visible = FALSE, inherit = FALSE) %>%
       plotly::layout(title = paste0('PCA plot (', n, " features used)"),
@@ -532,7 +532,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                          buttons = list(
                            list(method = "update",
                                 args = list(list(visible=unlist(Map(rep, x = c(T, F), each = c(length(unique(pca_df$condition)),
-                                                                                               length(unique(pca_df$plex)))))),
+                                                                                               length(unique(pca_df$experiment)))))),
                                             list(xaxis = list(title = paste0("PC", x, ": ", percent[x], "%"),
                                                               visible = TRUE),
                                                  xaxis2 = list(overlaying = "x", visible = FALSE),
@@ -542,7 +542,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                                 label = "by condition"),
                            list(method = "update",
                                 args = list(list(visible=unlist(Map(rep, x = c(F, T), each = c(length(unique(pca_df$condition)),
-                                                                                               length(unique(pca_df$plex)))))),
+                                                                                               length(unique(pca_df$experiment)))))),
                                             list(xaxis = list(visible = F),
                                                  xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"),
                                                                overlaying = "x", visible = T),
@@ -569,7 +569,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
     }
   } else if(length(indicate) == 2) {
     if (exp == "TMT"){
-      pca_df$plex <- as.factor(pca_df$plex)
+      pca_df$experiment <- as.factor(pca_df$experiment)
       p <- plot_ly() %>%
         #Overlay color for gears
         add_trace(data=pca_df, type = "scatter",
@@ -594,10 +594,10 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   y = ~PC2,
                   text=~rowname,
                   marker = list(size = point_size),
-                  color = as.formula(paste0('~', "plex")),
+                  color = as.formula(paste0('~', "experiment")),
                   mode = 'markers',
-                  legendgroup="plex",
-                  legendgrouptitle_text="plex",
+                  legendgroup="experiment",
+                  legendgrouptitle_text="experiment",
                   xaxis="x2", yaxis="y2", visible=F) %>%
         plotly::layout(title = paste0('PCA plot (', n, " features used)"),
                        xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
@@ -614,7 +614,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                              list(method = "update",
                                   args = list(list(visible=unlist(Map(rep, x = c(T, T, F), each = c(length(unique(pca_df$condition)),
                                                                                                     length(unique(pca_df$replicate)),
-                                                                                                    length(unique(pca_df$plex)))))),
+                                                                                                    length(unique(pca_df$experiment)))))),
                                               list(xaxis = list(title = paste0("PC", x, ": ", percent[x], "%"),
                                                                 visible = TRUE),
                                                    xaxis2 = list(overlaying = "x", visible = FALSE),
@@ -625,7 +625,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                              list(method = "update",
                                   args = list(list(visible=unlist(Map(rep, x = c(F, F, T), each = c(length(unique(pca_df$condition)),
                                                                                                     length(unique(pca_df$replicate)),
-                                                                                                    length(unique(pca_df$plex)))))),
+                                                                                                    length(unique(pca_df$experiment)))))),
                                               list(xaxis = list(visible = F),
                                                    xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"),
                                                                  overlaying = "x", visible = T),
@@ -907,17 +907,17 @@ plot_numbers_customized <- function(se, plot = TRUE, exp = "LFQ") {
 
 plot_numbers_by_plex_set <- function(se, ...) {
   assertthat::assert_that(inherits(se, "SummarizedExperiment"))
-  unique_plexes <- unique(colData(se)$plex)
+  unique_plexes <- unique(colData(se)$experiment)
   prot_v <- c()
   for(i in 1:length(unique_plexes)){
-    n_prot <- assay(se[, se$plex == unique_plexes[i]]) %>%
+    n_prot <- assay(se[, se$experiment == unique_plexes[i]]) %>%
       data.frame() %>%
       filter(if_all(everything(), ~!is.na(.))) %>%
       nrow()
     prot_v <- c(prot_v, n_prot)
   }
-  df_prot <- data.frame(plex=factor(unique_plexes), num_protein=prot_v)
-  return(ggplot(df_prot, aes(x = plex, y = num_protein)) +
+  df_prot <- data.frame(experiment=factor(unique_plexes), num_protein=prot_v)
+  return(ggplot(df_prot, aes(x = experiment, y = num_protein)) +
            geom_bar(stat="identity") +
            labs(title = "Number of proteins across plex sets", x = "Plex",
                 y = "Number of proteins") +
@@ -1630,7 +1630,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3,
 }
 
 test_TMT_annotation <- function(df) {
-  required_columns <- c("channel", "label", "plex", "replicate", "condition")
+  required_columns <- c("channel", "label", "experiment", "replicate", "condition")
   if (any(!required_columns %in% colnames(df))) {
     return(FALSE)
   }
