@@ -322,14 +322,15 @@ server <- function(input, output, session) {
         }
       } else if (input$exp == "LFQ"){
         temp_df <- read.table(inFile$datapath,
-                              header = F,
+                              header = T,
                               sep="\t",
                               stringsAsFactors = FALSE)
         # exp_design_test(temp_df)
         # temp_df$label<-as.character(temp_df$label)
         # temp_df$condition<-trimws(temp_df$condition, which = "left")
 
-        colnames(temp_df) <- c("path", "experiment", "replicate", "Data.type")
+        # reuse previous logic of experiment column (no label, but experiment column from manifest at that time)
+        temp_df$experiment <- temp_df$label
 
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
@@ -989,10 +990,10 @@ server <- function(input, output, session) {
     }
   )
   
-  output$lfq_manifest <- downloadHandler(
-    filename="lfq_manifest.tsv",  # desired file name on client 
+  output$lfq_annotation <- downloadHandler(
+    filename="combined_annotation.tsv",  # desired file name on client 
     content=function(con) {
-      file.copy("./data/LFQ_datasets/ubiquitin/fp-manifest.tsv", con)
+      file.copy("./data/LFQ_datasets/ubiquitin/combined_annotation.tsv", con)
     }
   )
   
