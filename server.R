@@ -292,7 +292,7 @@ server <- function(input, output, session) {
                               stringsAsFactors = FALSE)
         # To support txt file
         if (ncol(temp_df) == 1){
-          # submitting annotation.txt (not combined_annotation.txt) will crash here
+          # submitting annotation.txt (not experiment_annotation.tsv) will crash here
           tryCatch({
             temp_df <- read.table(inFile$datapath,
                                   header = T,
@@ -300,7 +300,7 @@ server <- function(input, output, session) {
                                   stringsAsFactors = FALSE)
           }, error=function(e){
             validate(need(F,
-                     "Error: coudn't read the combined_annotation.txt. Note that combined_annotation.txt is not annotation.txt used to denote channel assignment in each plex set."))
+                     "Error: coudn't read the experiment_annotation.tsv. Note that experiment_annotation.tsv is not annotation.txt used to denote channel assignment in each plex set."))
           })
         }
         # change it to lower case
@@ -991,9 +991,9 @@ server <- function(input, output, session) {
   )
   
   output$lfq_annotation <- downloadHandler(
-    filename="combined_annotation.tsv",  # desired file name on client 
+    filename="experiment_annotation.tsv",  # desired file name on client 
     content=function(con) {
-      file.copy("./data/LFQ_datasets/ubiquitin/combined_annotation.tsv", con)
+      file.copy("./data/LFQ_datasets/ubiquitin/experiment_annotation.tsv", con)
     }
   )
   
