@@ -335,10 +335,9 @@ server <- function(input, output, session) {
 
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
-          # handle - (dash) in experiment column
-          temp_df$experiment <- gsub("-", ".", temp_df$experiment)
-          temp_df$condition <- gsub("_\\d+$", "", temp_df$experiment)
-          temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
+          # handle - (dash) in sample (experiment) column
+          temp_df$sample <- gsub("-", ".", temp_df$sample)
+          temp_df$label <- temp_df$sample
           if (input$lfq_type == "Intensity") {
             temp_df$label <- paste(temp_df$label, "Intensity", sep=" ")
           } else if (input$lfq_type == "MaxLFQ") {
