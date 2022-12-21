@@ -358,8 +358,6 @@ server <- function(input, output, session) {
         temp_df$condition <- gsub("-", ".", temp_df$condition)
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
-          # save label used later
-          temp_df$new_label <- temp_df$label
           temp_df$label <- temp_df$file
         }
       }
@@ -442,8 +440,8 @@ server <- function(input, output, session) {
        # TODO: use DIA function
        test_match_tmt_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
-       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$new_label)
-       colData(data_se)$label <- colData(data_se)$new_label
+       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
+       colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
      } else { # TMT
        temp_exp_design <- exp_design()
