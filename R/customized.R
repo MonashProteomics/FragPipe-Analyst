@@ -1642,6 +1642,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3,
   }
 }
 
+
 # modified from DEP's plot_cor
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_explore.R
 plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
