@@ -309,8 +309,9 @@ server <- function(input, output, session) {
         temp_df$condition <- gsub("-", ".", temp_df$condition)
         validate(need(try(test_TMT_annotation(temp_df)),
                            paste0("The input annotation file should have following columns: ",
-                                  "channel, label, plex, replicate, condition\n",
+                                  "plex, channel, sample, condition, replicate, condition\n",
                                   "your current input annotation file is with following columns: ", paste(colnames(temp_df), collapse=", "))))
+        temp_df$label <- temp_df$sample
         # if duplicate label exists
         if (anyDuplicated(temp_df$label)) {
           # add _number for repeat labels, but need to remove _1

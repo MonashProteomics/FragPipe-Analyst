@@ -199,3 +199,11 @@ ids_test<-function(filtered_data){
   
 }
 
+test_TMT_annotation <- function(df) {
+  required_columns <- c("channel", "plex", "sample", "condition", "replicate", "sample_name")
+  if (any(!required_columns %in% colnames(df))) {
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
