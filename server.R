@@ -738,9 +738,9 @@ server <- function(input, output, session) {
    
    imputation_input <- reactive({
      if (input$exp == "TMT") {
-       plot_imputation_customized(normalised_data(), diff_all())
+       plot_imputation_customized(filtered_data(), imputed_data())
      } else {
-       plot_imputation_DIA_customized(normalised_data(), diff_all())
+       plot_imputation_DIA_customized(filtered_data(), imputed_data())
      }
    })
    
@@ -750,14 +750,14 @@ server <- function(input, output, session) {
    
    numbers_input <- reactive({
      if (input$exp == "TMT") {
-       plot_numbers_by_plex_set(normalised_data())
+       plot_numbers_by_plex_set(filtered_data())
      } else {
-       plot_numbers_customized(normalised_data(), exp=input$exp)
+       plot_numbers_customized(filtered_data(), exp=input$exp)
      }
    })
    
    coverage_input <- reactive({
-     plot_coverage(normalised_data())
+     plot_coverage(filtered_data())
    })
    
    correlation_input<-reactive({
