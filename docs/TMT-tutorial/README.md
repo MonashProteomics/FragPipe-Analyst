@@ -14,11 +14,11 @@ You will need two things for FragPipe-Analyst.
 
 The following table shows the first 3 rows in the sample experiment_annotation.tsv file. The goal of the analysis is to compare protein expression between Tumor and Normal. 
 
-experiment| channel|     label    | replicate | condition
-----------|--------|--------------|-----------| ----------
-16CPTAC_CCRCC_W_JHU_20171007 |126 | C3N-01179-T | 1 |Tumor
-16CPTAC_CCRCC_W_JHU_20171007 |127N| C3N-00606-T | 1 |Tumor
-16CPTAC_CCRCC_W_JHU_20171007 |127C| C3N-01179-N | 1 | Normal
+plex | channel | sample|condition    | replicate |
+-----|---------| ------------| ------| ----------|
+16   |126      | C3N-01179-T | Tumor | 1|
+16   |127N     | C3N-00606-T | Tumor | 1|
+16   |127C     | C3N-01179-N | Normal| 1|
 
 
 After you understand the input, you could upload those two files (`ccRCC_prot_abundance_MD_3plex.tsv` and `annot_3plex.tsv`) to FragPipe-Analyst. Don't forget to choose `TMT` in the dropdown menu. After you upload files, FragPipe-Analyst will process the result and present the result shortly. Following material covers the deatils about what you will see.

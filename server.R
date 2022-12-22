@@ -309,8 +309,9 @@ server <- function(input, output, session) {
         temp_df$condition <- gsub("-", ".", temp_df$condition)
         validate(need(try(test_TMT_annotation(temp_df)),
                            paste0("The input annotation file should have following columns: ",
-                                  "channel, label, plex, replicate, condition\n",
+                                  "plex, channel, sample, condition, replicate, condition\n",
                                   "your current input annotation file is with following columns: ", paste(colnames(temp_df), collapse=", "))))
+        temp_df$label <- temp_df$sample
         # if duplicate label exists
         if (anyDuplicated(temp_df$label)) {
           # add _number for repeat labels, but need to remove _1
@@ -334,10 +335,9 @@ server <- function(input, output, session) {
 
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
-          # handle - (dash) in experiment column
-          temp_df$experiment <- gsub("-", ".", temp_df$experiment)
-          temp_df$condition <- gsub("_\\d+$", "", temp_df$experiment)
-          temp_df$label <- paste(temp_df$experiment, temp_df$replicate, sep="_")
+          # handle - (dash) in sample (experiment) column
+          temp_df$sample <- gsub("-", ".", temp_df$sample)
+          temp_df$label <- temp_df$sample
           if (input$lfq_type == "Intensity") {
             temp_df$label <- paste(temp_df$label, "Intensity", sep=" ")
           } else if (input$lfq_type == "MaxLFQ") {
@@ -357,8 +357,6 @@ server <- function(input, output, session) {
         temp_df$condition <- gsub("-", ".", temp_df$condition)
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
-          # save label used later
-          temp_df$new_label <- temp_df$label
           temp_df$label <- temp_df$file
         }
       }
@@ -441,8 +439,8 @@ server <- function(input, output, session) {
        # TODO: use DIA function
        test_match_tmt_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
-       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$new_label)
-       colData(data_se)$label <- colData(data_se)$new_label
+       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
+       colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
      } else { # TMT
        temp_exp_design <- exp_design()
@@ -740,9 +738,9 @@ server <- function(input, output, session) {
    
    imputation_input <- reactive({
      if (input$exp == "TMT") {
-       plot_imputation_customized(normalised_data(), diff_all())
+       plot_imputation_customized(filtered_data(), imputed_data())
      } else {
-       plot_imputation_DIA_customized(normalised_data(), diff_all())
+       plot_imputation_DIA_customized(filtered_data(), imputed_data())
      }
    })
    
@@ -752,14 +750,14 @@ server <- function(input, output, session) {
    
    numbers_input <- reactive({
      if (input$exp == "TMT") {
-       plot_numbers_by_plex_set(normalised_data())
+       plot_numbers_by_plex_set(filtered_data())
      } else {
-       plot_numbers_customized(normalised_data(), exp=input$exp)
+       plot_numbers_customized(filtered_data(), exp=input$exp)
      }
    })
    
    coverage_input <- reactive({
-     plot_coverage(normalised_data())
+     plot_coverage(filtered_data())
    })
    
    correlation_input<-reactive({
@@ -1101,7 +1099,7 @@ output$download_hm_svg<-downloadHandler(
   filename = function() { "heatmap.svg" }, 
   ## use = instead of <-
   content = function(file) {
-    heatmap_plot<-DEP::plot_heatmap(dep(),"centered", k=k_number, indicate = "condition")
+    heatmap_plot <- heatmap_input()
     svg(file)
     print(heatmap_plot)
     dev.off()
