@@ -1099,7 +1099,7 @@ output$download_hm_svg<-downloadHandler(
   filename = function() { "heatmap.svg" }, 
   ## use = instead of <-
   content = function(file) {
-    heatmap_plot<-DEP::plot_heatmap(dep(),"centered", k=k_number, indicate = "condition")
+    heatmap_plot <- heatmap_input()
     svg(file)
     print(heatmap_plot)
     dev.off()
