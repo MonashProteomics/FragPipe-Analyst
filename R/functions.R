@@ -222,6 +222,12 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
                    "log2 Fold change",
                    "log2 Centered intensity")
 
+  temp <- colData(filtered)
+  rownames(temp) <- temp$label
+
+  # use sample name for the heatmap
+  colnames(df) <- temp[colnames(df), "sample_name"]
+
   # Heatmap
   ht1 = Heatmap(df,
                 col = circlize::colorRamp2(

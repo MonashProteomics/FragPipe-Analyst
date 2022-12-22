@@ -578,6 +578,8 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   y = ~PC2,
                   symbol = as.formula(paste0('~', indicate[2])),
                   marker = list(color = "grey", size = point_size + 3),
+                  text = pca_df$sample_name,
+                  hoverinfo = 'text',
                   mode = 'markers',
                   legendgroup=indicate[2],
                   legendgrouptitle_text=indicate[2]) %>%
@@ -588,6 +590,8 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   marker = list(size = point_size),
                   color = as.formula(paste0('~', indicate[1])),
                   mode = 'markers',
+                  text = pca_df$sample_name,
+                  hoverinfo = 'text',
                   legendgroup=indicate[1],
                   legendgrouptitle_text=indicate[1]) %>%
         add_trace(data=pca_df, type = "scatter",
@@ -596,6 +600,8 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   text=~rowname,
                   marker = list(size = point_size),
                   color = as.formula(paste0('~', "plex")),
+                  text = pca_df$sample_name,
+                  hoverinfo = 'text',
                   mode = 'markers',
                   legendgroup="plex",
                   legendgrouptitle_text="plex",
@@ -648,6 +654,8 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   symbol = as.formula(paste0('~', indicate[2])),
                   marker = list(color = "grey", size = point_size + 3),
                   mode = 'markers',
+                  text = pca_df$sample_name,
+                  hoverinfo = 'text',
                   legendgroup=indicate[2],
                   legendgrouptitle_text=indicate[2]) %>%
         add_trace(type = "scatter",
@@ -655,6 +663,8 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   y = ~PC2,
                   color = as.formula(paste0('~', indicate[1])),
                   mode = 'markers',
+                  text = pca_df$sample_name,
+                  hoverinfo = 'text',
                   legendgroup=indicate[1],
                   legendgrouptitle_text=indicate[1]) %>%
         plotly::layout(title = paste0('PCA plot (', n, " features used)"),
