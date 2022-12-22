@@ -1750,10 +1750,16 @@ plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
   
   # Calculate correlation matrix
   data <- assay(dep)
-  
+
+  # use sample name for the heatmap
+  temp <- colData(dep)
+  rownames(temp) <- temp$label
+  colnames(data) <- temp[colnames(data), "sample_name"]
+
   cor_mat <- cor(data, use="complete.obs")
   lower <- min(cor_mat)
   upper <- max(cor_mat)
+
   # Plot heatmap
   ht1 = Heatmap(cor_mat,
                 col = circlize::colorRamp2(
@@ -1882,10 +1888,15 @@ plot_missval_customized <- function(se, exp="LFQ") {
   }
   
   # Make assay data binary (1 = valid value, 0 = missing value)
-  df <- se_assay %>% data.frame(.)
+  df <- se_assay %>% data.frame(.,check.names = F)
 
   missval <- df[apply(df, 1, function(x) any(is.na(x))), ]
   missval <- ifelse(is.na(missval), 0, 1)
+
+  # use sample name for the heatmap
+  temp <- colData(se)
+  rownames(temp) <- temp$label
+  colnames(missval) <- temp[colnames(missval), "sample_name"]
 
   # Plot binary heatmap
   ht2 = Heatmap(missval,
