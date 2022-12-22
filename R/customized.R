@@ -894,6 +894,8 @@ plot_numbers_customized <- function(se, plot = TRUE, exp = "LFQ") {
     gather(ID, bin, -rowname) %>%
     mutate(bin = ifelse(is.na(bin), 0, 1))
   # print(df)
+
+
   # Summarize the number of proteins identified
   # per sample and generate a barplot
   stat <- df %>%
@@ -901,7 +903,7 @@ plot_numbers_customized <- function(se, plot = TRUE, exp = "LFQ") {
     summarize(n = n(), sum = sum(bin)) %>%
     left_join(., data.frame(colData(se)), by = c("ID"="label"))
 
-  p <- ggplot(stat, aes(x = ID, y = sum, fill = condition)) +
+  p <- ggplot(stat, aes(x = sample_name, y = sum, fill = condition)) +
     geom_col() +
     geom_hline(yintercept = unique(stat$n)) +
     labs(title = "Proteins per sample", x = "", y = "Number of proteins") +
