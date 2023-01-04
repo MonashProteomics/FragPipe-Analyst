@@ -14,34 +14,34 @@ Here is an LFQ experiment of tumor (T) and normal (N) samples. It has three repl
 In FragPipe
 | file | experiment | replicate |
 |---------------------------------------------------------------------------------|---------|---|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1	|	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2  |	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3  |	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4  |	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5  |	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6  |	|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1	|	  |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2  |	  |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3  |	  |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4  |	  |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5  |	  |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6  |	  |
 |/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_25_27N_1_140730001730.mzML|Sample7  |   |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8  | 1	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9  | 1	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	          |Sample10	| 1	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	          |Sample11	| 2	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	          |Sample12 | 3	|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8  |   |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9  |   |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	            |Sample10	|   |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	            |Sample11	|   |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	            |Sample12 |	  |
 
 In FragPipe-Analyst, if user didn't change anything
-| file | sample | condition | replicate | sample_name
-|---------------------------------------------------------------------------------|-------|---|---|------|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1	| N | 1	| N37_1|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2	| N | 2	| N37_2|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3  | N | 3	| N37_3|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4  | T | 1	| T12_1|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5	| T | 2	| T12_2|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6	| T | 3	| T12_3|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_25_27N_1_140730001730.mzML|Sample7	| N | 1 | N27_1|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8	| N | 1 | N27_2|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9	| N | 1 | N27_3|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	          |Sample10	| T | 1	| T3_1 |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	          |Sample11	| T | 2	| T3_2 |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	          |Sample12 | T | 3	| T3_1 |
+| file | sample | sample_name | condition | replicate
+|---------------------------------------------------------------------------------|-------|-------|---|---|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1| N37_1	| N | 1	|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2| N37_2	| N | 2	|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3| N37_3 | N | 3	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4| T12_1 | T | 1	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5| T12_2 | T | 2	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6| T12_3 | T | 3	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_25_27N_1_140730001730.mzML|Sample7| N27_1 | N | 1 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8| N27_2 | N | 1 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9| N27_3 | N | 1 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	          |Sample10	| T3_1  | T | 1	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	          |Sample11	| T3_2  | T | 2	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	          |Sample12 | T3_1  | T | 3	| 
 
 - `sample` is from the `experiment` in FragPipe and used for matching samples. User should not change it.
 - `condition` is intially parsed from `experiment` in FragPipe, but users could change later.
@@ -53,45 +53,45 @@ Note that since FragPipe-Analyst focus on differential expression analysis. You 
 For TMT, `experimental_annotation.txt` should contain following columns: `plex`, `channel`, `sample`,  `replicate`, `condition`, `sample name`. It will be automatically generated by *FragPipe* released recently, but **don't** upload the file blindly generated, you will need to annotate `replicate` and `condition` columns. Here is an example with four different experimental conditions and each condition is with three replicates:
 
 ### Example 1:
-plex | channel |     sample    | condition | replicate|sample_name|
------------|---------|---------------|-----------|----------|-----------|
-Yeast_KO11 |	126	 | MET6_1_xcdeda | MET6      | 1        |MET6_1     |
-Yeast_KO11 |	127N | MET6_2_dsdsdo | MET6      | 2        |MET6_2     |
-Yeast_KO11 |	127C | MET6_3_dsdead | MET6      | 3        |MET6_3     |
-Yeast_KO11 |	128N | HIS4_1_sdabdo | HIS4      | 1        |HIS4_1     |
-Yeast_KO11 |	128C | HIS4_2_fbmokj | HIS4      | 2        |HIS4_2     |
-Yeast_KO11 |	129N | HIS4_3_jhuuwe | HIS4      | 3        |HIS4_3     |
-Yeast_KO11 |	129C | URA2_1_sdarbt | URA2      | 1        |URA2_1     |
-Yeast_KO11 |	130N | URA2_2_relbde | URA2      | 2        |URA2_2     |
-Yeast_KO11 |	130C | URA2_3_dsadtb | URA2      | 3        |URA2_3     |
-Yeast_KO11 |	131N | WT_1_lojgdeug | WT        | 1        |WT_1       |
-Yeast_KO11 |	131C | WT_2_poildsyj | WT        | 2        |WT_2       |
+plex       | channel | sample |sample_name| condition | replicate|
+-----------|---------|--------|-----------|-----------|----------|
+Yeast_KO11 |	126	   | MET6_1 |   MET6_1  | MET6      | 1        |
+Yeast_KO11 |	127N   | MET6_2 |   MET6_2  | MET6      | 2        |
+Yeast_KO11 |	127C   | MET6_3 |   MET6_3  | MET6      | 3        |
+Yeast_KO11 |	128N   | HIS4_1 |   HIS4_1  | HIS4      | 1        |
+Yeast_KO11 |	128C   | HIS4_2 |   HIS4_2  | HIS4      | 2        |
+Yeast_KO11 |	129N   | HIS4_3 |   HIS4_3  | HIS4      | 3        |
+Yeast_KO11 |	129C   | URA2_1 |   URA2_1  | URA2      | 1        |
+Yeast_KO11 |	130N   | URA2_2 |   URA2_2  | URA2      | 2        |
+Yeast_KO11 |	130C   | URA2_3 |   URA2_3  | URA2      | 3        |
+Yeast_KO11 |	131N   | WT_1   |   WT_1    | WT        | 1        |
+Yeast_KO11 |	131C   | WT_2   |   WT_2    | WT        | 2        |
 
 Another example shown below is a common experimental desgin with tumor and normal tissue adjacent to the tumor (NAT) samples:
 
 ### Example 2:
-plex | channel| sample | condition | replicate|sample_name  |
------------|--------|--------|-----------| ---------|-------------|
-TMT_01s |126  |CPT0079430001   | NAT     | 1        |C3L-00011_N    
-TMT_01s |127N |CPT0023360001   | NAT	 | 1        |C3O-00217_N  
-TMT_01s |127C |CPT0023350003   | Tumor	 | 1        |C3L-00217_T   
-TMT_01s |128N |CPT0079410003   | Tumor	 | 1        |C3L-00271_T   
-TMT_01s |128C |CPT0087040003   | Tumor	 | 1        |C3L-00121_T   
-TMT_01s |129N |CPT0077310003   | Tumor	 | 1        |C3L-00211_T   
-TMT_01s |129C |CPT0077320001   | NAT	 | 1        |C3N-00911_N   
-TMT_01s |130N |CPT0087050003   | NAT	 | 1        |C3L-00011_N   
-TMT_01s |130C |CPT0023710001   | Tumor	 | 1        |C3L-00011_T_1
-TMT_01s |131N |pool01          | pool	 | 1        |pool01          
-TMT_02s |126  |NCI7-1          | QC	     | 1        |NCI7_rep1          
-TMT_02s |127N |CPT0078840001   | NAT	 | 1        |C3L-01011_N
-TMT_02s |127C |CPT0075570001   | Tumor	 | 1        |C3P-05117_T   
-TMT_02s |128N |CPT0075560003   | NAT	 | 1        |C3N-05040_N   
-TMT_02s |128C |CPT0078830003   | Tumor	 | 1        |C3L-00011_T
-TMT_02s |129N |CPT0077490003   | NAT	 | 1        |C3N-05168_N   
-TMT_02s |129C |CPT0077500001   | NAT	 | 1        |C3N-55688_N
-TMT_02s |130N |CPT0023690003   | Tumor	 | 1        |C3P-05111_T
-TMT_02s |130C |TPC0023710001   | Tumor	 | 2        |C3L-00011_T_2 
-TMT_02s |131N |pool02          | pool	 | 1        |pool02
+   plex |channel|    sample    |  sample_name  | condition | replicate  |
+--------|-------|--------------|---------------|-----------|------------|
+TMT_01s |126    |CPT0079430001 | C3L-00011_N   | NAT       | 1           
+TMT_01s |127N   |CPT0023360001 | C3O-00217_N   | NAT	     | 1         
+TMT_01s |127C   |CPT0023350003 | C3L-00217_T   | Tumor	   | 1         
+TMT_01s |128N   |CPT0079410003 | C3L-00271_T   | Tumor	   | 1         
+TMT_01s |128C   |CPT0087040003 | C3L-00121_T   | Tumor	   | 1       
+TMT_01s |129N   |CPT0077310003 | C3L-00211_T   | Tumor	   | 1       
+TMT_01s |129C   |CPT0077320001 | C3N-00911_N   | NAT	     | 1        
+TMT_01s |130N   |CPT0087050003 | C3L-00011_N   | NAT	     | 1        
+TMT_01s |130C   |CPT0023710001 | C3L-00011_T_1 | Tumor	   | 1       
+TMT_01s |131N   |pool01        | pool01        | pool	     | 1               
+TMT_02s |126    |NCI7-1        | NCI7_rep1     | QC	       | 1                 
+TMT_02s |127N   |CPT0078840001 | C3L-01011_N   | NAT	     | 1       
+TMT_02s |127C   |CPT0075570001 | C3P-05117_T   | Tumor	   | 1        
+TMT_02s |128N   |CPT0075560003 | C3N-05040_N   | NAT	     | 1        
+TMT_02s |128C   |CPT0078830003  |C3L-00011_T   | Tumor	   | 1       
+TMT_02s |129N   |CPT0077490003  |C3N-05168_N   | NAT	     | 1        
+TMT_02s |129C   |CPT0077500001  |C3N-55688_N   | NAT	     | 1       
+TMT_02s |130N   |CPT0023690003  |C3P-05111_T   | Tumor	   | 1        
+TMT_02s |130C   |TPC0023710001  |C3L-00011_T_2 | Tumor	   | 2       
+TMT_02s |131N   |pool02         |pool02        | pool	     | 1       
 
 See [TMT tutorial](TMT-Tutorial) for more detailed analysis you could achieve through FragPipe-Analyst.
 
@@ -127,23 +127,23 @@ In FragPipe, users will annotate files as followed:
 Before using FragPipe-Analyst, users need to annotate `condition` and `replicate` columns in `experiment_annotation.tsv`:
 |file|sample|sample_name|condition|replicate|
 |--|-------------------------------------------------------------------------------|---------------|-------|---|
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_T.mzML   | C3L-00010_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_NAT.mzML | C3L-00183_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_NAT.mzML | C3L-00103_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzML | C3L-00088_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_T.mzML   | C3L-00004_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_T.mzML   | C3L-00183_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_NAT.mzML | C3L-00004_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_T.mzML   | C3L-00096_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_T.mzML   | C3L-00097_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_NAT.mzML | C3L-00026_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_T.mzML   | C3L-00026_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_NAT.mzML | C3L-00096_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_T.mzML   | C3L-00103_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_NAT.mzML | C3L-00010_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_NAT.mzML | C3L-00079_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_T.mzML   | C3L-00079_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_T.mzML   | C3L-00088_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_NAT.mzML | C3L-00011_NAT | NAT   | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML   |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML   | C3L-00011_T   | Tumor | 1 |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML |E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML | C3L-00097_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_T.mzML   | C3L-00010_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_NAT.mzML | C3L-00183_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_NAT.mzML | C3L-00103_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzML | C3L-00088_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_T.mzML   | C3L-00004_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_T.mzML   | C3L-00183_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_NAT.mzML | C3L-00004_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_T.mzML   | C3L-00096_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_T.mzML   | C3L-00097_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_NAT.mzML | C3L-00026_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_T.mzML   | C3L-00026_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_NAT.mzML | C3L-00096_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_T.mzML   | C3L-00103_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_NAT.mzML | C3L-00010_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_NAT.mzML | C3L-00079_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_T.mzML   | C3L-00079_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_T.mzML   | C3L-00088_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_NAT.mzML | C3L-00011_NAT | NAT   | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML   |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML   | C3L-00011_T   | Tumor | 1 |
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML |CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML | C3L-00097_NAT | NAT   | 1 |
