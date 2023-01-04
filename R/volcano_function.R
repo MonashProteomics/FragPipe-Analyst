@@ -383,6 +383,7 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
                  colnames(row_data))
   df <- data.frame(x = row_data[, diff],
                    y = -log10(row_data[, p_values]),
+                   p.val = row_data[, p_values],
                    significant = row_data[, signif],
                    name = row_data$name) %>%
     filter(!is.na(significant)) %>%
