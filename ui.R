@@ -361,7 +361,7 @@ ui <- function(request){shinyUI(
                                                     protein intesities across conditions and replicates")
                                              ),
                                            fluidRow(
-                                             shinycssloaders::withSpinner(plotOutput("protein_plot"), color = "#3c8dbc"),
+                                             shinycssloaders::withSpinner(plotlyOutput("protein_plot"), color = "#3c8dbc"),
                                              downloadButton('downloadProtein', 'Download Plot')
                                              )
                                             )

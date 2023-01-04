@@ -912,9 +912,9 @@ server <- function(input, output, session) {
     }# else close
   })
   
-  output$protein_plot<-renderPlot({
+  output$protein_plot<-renderPlotly({
     if(!is.null(input$contents_rows_selected)){
-    protein_input()
+      protein_input()
     }
   })
  

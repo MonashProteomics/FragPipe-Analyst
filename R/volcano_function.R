@@ -213,106 +213,61 @@ plot_protein<-function(dep, protein, type, id="ID"){
            CI.R = mean + error) %>%
     as.data.frame()
   df_CI$rowname <- parse_factor(as.character(df_CI$rowname), levels = protein)
-  
+
+  df_reps$replicate <- as.character(df_reps$replicate)
   if(type=="violin"){
     if (max(df_reps$replicate) == 1){
-      p<-ggplot(df_reps, aes(condition, val)) +
-        geom_violin(fill="grey90", scale = "width",
-                      draw_quantiles = 0.5,
-                      trim =TRUE) +
-          geom_jitter(size = 3, position = position_dodge(width=0.3)) +
-          labs(
-            y = expression(log[2]~"Intensity")) +
-          facet_wrap(~rowname) +
-          theme_DEP1()+
-          theme(axis.title.x = element_blank())
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "violin") %>%
+        plotly::layout(violinmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'))
     } else {
-        p<-ggplot(df_reps, aes(condition, val))+
-          geom_violin(fill="grey90", scale = "width",
-                      draw_quantiles = 0.5,
-                      trim =TRUE) +
-          geom_jitter(aes(color = factor(replicate)),
-                      size = 3, position = position_dodge(width=0.3)) +
-          labs(
-            y = expression(log[2]~"Intensity"),
-            col = "Replicates") +
-          facet_wrap(~rowname) +
-          scale_color_brewer(palette = "Dark2")+
-          theme_DEP1()+
-          theme(axis.title.x = element_blank())
-        }
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "violin") %>%
+        plotly::layout(violinmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'))
+    }
+    return(p)
   } else if(type=="boxplot"){
     if (max(df_reps$replicate) == 1){
-      p<-ggplot(df_reps, aes(condition, val))+
-          geom_boxplot()+
-          geom_jitter(size = 3, position = position_dodge(width=0.3)) +
-          labs(y = expression(log[2]~"Intensity")) +
-          facet_wrap(~rowname) +
-          theme_DEP1() +
-          theme(axis.title.x = element_blank())
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "box",
+                   boxpoints = "all", jitter = 0.3, pointpos = 0) %>%
+        plotly::layout(boxmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'))
     } else {
-        p<-ggplot(df_reps, aes(condition, val))+
-          geom_boxplot()+
-          geom_jitter(aes(color = factor(replicate)),
-                      size = 3, position = position_dodge(width=0.3)) +
-          labs(
-            y = expression(log[2]~"Intensity"),
-            col = "Replicates") +
-          facet_wrap(~rowname) +
-          scale_color_brewer(palette = "Dark2")+
-          theme_DEP1() +
-          theme(axis.title.x = element_blank())
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "box",
+                   boxpoints = "all", jitter = 0.3, pointpos = 0) %>%
+        plotly::layout(boxmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'))
     }
-  } else if(type=="interaction"){
-    if (max(df_reps$replicate) == 1){
-      p<-ggplot(df_reps, aes(condition, val))+
-        geom_point(size = 3) +
-        geom_line(aes(group= factor(replicate), color= factor(replicate)))+
-        labs(y = expression(log[2]~"Intensity")) +
-        facet_wrap(~rowname) +
-        scale_color_brewer(palette = "Dark2")+
-        theme_DEP1()+
-        theme(axis.title.x = element_blank())
-    } else {
-      p<-ggplot(df_reps, aes(condition, val))+
-        geom_point(aes(color = factor(replicate)),
-                   size = 3) +
-        geom_line(aes(group= factor(replicate), color= factor(replicate)))+
-        labs(
-          y = expression(log[2]~"Intensity"),
-          col = "Replicates") +
-        facet_wrap(~rowname) +
-        scale_color_brewer(palette = "Dark2")+
-        theme_DEP1()+
-        theme(axis.title.x = element_blank())
-    }
-  } else if(type=="dot"){
-    if (max(df_reps$replicate) == 1){
-      p<-ggplot(df_CI, aes(condition, mean))+
-        geom_point(data=df_reps, aes(x=condition, y=val),
-                   size = 3, position= position_dodge(width = 0.2)) +
-        geom_errorbar(aes(ymin = CI.L, ymax = CI.R), width = 0.2)+
-        labs(y = expression(log[2]~"Intensity"~"(\u00B195% CI)")) +
-        facet_wrap(~rowname) +
-        scale_color_brewer(palette = "Dark2")+
-        theme_DEP1() +
-        theme(axis.title.x = element_blank()) 
-    } else {
-      p<-ggplot(df_CI, aes(condition, mean))+
-        geom_point(data=df_reps, aes(x=condition, y=val, color = factor(replicate)),
-                   size = 3, position= position_dodge(width = 0.2)) +
-        geom_errorbar(aes(ymin = CI.L, ymax = CI.R), width = 0.2)+
-        labs(
-          y = expression(log[2]~"Intensity"~"(\u00B195% CI)"),
-          col = "Replicates") +
-        facet_wrap(~rowname) +
-        scale_color_brewer(palette = "Dark2")+
-        theme_DEP1() +
-        theme(axis.title.x = element_blank()) 
-    }
+    return(p)
   }
-  
-  return(p)
 }
 
 plot_volcano_mod <- function(dep, contrast, label_size = 3,
