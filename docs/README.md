@@ -9,45 +9,68 @@ To use FragPipe-Analyst, user need to prepare two files. One is a quantification
 
 # LFQ
 
-Here is an LFQ experiment of tumor (T) and normal (N) samples. It has three replicates for each tumor:
+### Example 1:
+Here is an LFQ experiment of tumor (T) and normal (N) samples. It has three replicates for each T/N. It doesn't require users to do much annotation when running the FragPipe:
+| file | experiment | replicate | type |
+|---------------------------------------------------------------------------------|---------|---|---|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1  |	|DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2  |	|DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3  |	|DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4  |	|DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5  |	|DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6  |	|DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_25_27N_1_140730001730.mzML|Sample7  |   |DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8  |   |DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9  |   |DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	            |Sample10  |   |DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	            |Sample11  |   |DDA|
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	            |Sample12  |	|DDA|
 
-In FragPipe
-| file | experiment | replicate |
-|---------------------------------------------------------------------------------|---------|---|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1	|	  |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2  |	  |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3  |	  |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4  |	  |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5  |	  |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6  |	  |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_25_27N_1_140730001730.mzML|Sample7  |   |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8  |   |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9  |   |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	            |Sample10	|   |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	            |Sample11	|   |
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	            |Sample12 |	  |
-
-In FragPipe-Analyst, if user didn't change anything
+To make it able to be analyzed by FragPipe-Analyst, user should annotate dataset like this in `experiment_annotation.tsv`
 | file | sample | sample_name | condition | replicate
 |---------------------------------------------------------------------------------|-------|-------|---|---|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1| N37_1	| N | 1	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2| N37_2	| N | 2	|
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3| N37_3 | N | 3	| 
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4| T12_1 | T | 1	| 
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5| T12_2 | T | 2	| 
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6| T12_3 | T | 3	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_16_37N_1_140729074952.mzML|Sample1| N37_1 | N | 1 |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_17_37N_2_140729101310.mzML|Sample2| N37_2 | N | 2 |
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_18_37N_3_140729122909.mzML|Sample3| N37_3 | N | 3 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_21_12T_1_140729160716.mzML|Sample4| T12_1 | T | 1 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_22_12T_2_140729182320.mzML|Sample5| T12_2 | T | 2 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_23_12T_3_140729203924.mzML|Sample6| T12_3 | T | 3 | 
 |/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_25_27N_1_140730001730.mzML|Sample7| N27_1 | N | 1 | 
 |/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_26_27N_2_140730023333.mzML|Sample8| N27_2 | N | 1 | 
 |/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_27_27N_3_140730044935.mzML|Sample9| N27_3 | N | 1 | 
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	          |Sample10	| T3_1  | T | 1	| 
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	          |Sample11	| T3_2  | T | 2	| 
-|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	          |Sample12 | T3_1  | T | 3	| 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_39_3T_1.mzML	          |Sample10	| T3_1  | T | 1 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_40_3T_2.mzML	          |Sample11	| T3_2  | T | 2 | 
+|/storage/yihsiao/data/PXD002612/convert/QEPlus07252014_41_3T_3.mzML	          |Sample12  | T3_1  | T | 3 | 
 
 - `sample` is from the `experiment` in FragPipe and used for matching samples. User should not change it.
 - `condition` is intially parsed from `experiment` in FragPipe, but users could change later.
 - `sample_name` is the same as `sample` (`experiment`) when FragPipe first generated it, but user could edit this as a way to update the visualization.
 - `replicate` will be automatically propagated based on what users specified in FragPipe.
 Note that since FragPipe-Analyst focus on differential expression analysis. You should have more than one condition available in the `condition` column like T/N or Tumor/NAT in the examples mentioned above.
+
+### Example 2:
+Alternatively, if Users could annotate datasets compelely (`experiment` and `replicate` columns) when running FragPipe, FragPipe will generate a `experiment_annotation.tsv` automatically. For example, if you annotate your dataset like this:
+| file | experiment | replicate | type |
+|------|------------|-----------|------|
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx000121.mzML | CONTROL	| 1 | DDA
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001223.mzML | CONTROL	| 2 | DDA
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001225.mzML | CCND1	| 1 | DDA
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001226.mzML | CCND1	| 2 | DDA
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001227.mzML | CCND1	| 3 | DDA
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001283.mzML | CONTROL	| 3 | DDA
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001487.mzML | CONTROL	| 4 | DDA
+
+FragPipe will generate the `experiment_annotation.tsv` ready to be uploaded to FragPipe-Analyst like this:
+| file | sample | sample_name | condition | replicate|
+|------|--------|-------------|-----------|----------|
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001225.mzML | CCND1_1	 | CCND1_1   | CCND1	   | 1
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001226.mzML | CCND1_2	 | CCND1_2   | CCND1	   | 2
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001227.mzML | CCND1_3	 | CCND1_3   | CCND1	   | 3
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx000121.mzML |CONTROL_1 | CONTROL_1 |	CONTROL	| 1
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001223.mzML |CONTROL_2 | CONTROL_2 | CONTROL	| 2
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001283.mzML |CONTROL_3 | CONTROL_3 | CONTROL	| 3
+|D:\Data\HNSCC_APMS_Science\CCND1_mzML\qx001487.mzML |CONTROL_4 |CONTROL_4	 | CONTROL	| 4
+
 
 # TMT
 For TMT, `experimental_annotation.txt` should contain following columns: `plex`, `channel`, `sample`,  `replicate`, `condition`, `sample name`. It will be automatically generated by *FragPipe* released recently, but **don't** upload the file blindly generated, you will need to annotate `replicate` and `condition` columns. Here is an example with four different experimental conditions and each condition is with three replicates:
@@ -100,28 +123,28 @@ See [TMT tutorial](TMT-Tutorial) for more detailed analysis you could achieve th
 Here is an example of DIA experiment with 20 samples from CPTAC ccRCC discovery dataset:
 
 In FragPipe, users will annotate files as followed:
-|file | experiment | replicate |
-|----------------------------------------------------------------------------------|--|---|
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_NAT.mzML |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML   |  |   |
-|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML |  |   |
+|file | experiment | replicate | type |
+|----------------------------------------------------------------------------------|--|---|---|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00183_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00004_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00026_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00096_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00103_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00010_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00079_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00088_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_NAT.mzML |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00011_T.mzML   |  |   |DIA|
+|E:\ccRCC_DIA\DIA_20files_mzML\CPTAC_CCRCC_W_JHU_20190112_LUMOS_C3L-00097_NAT.mzML |  |   |DIA|
 
 
 Before using FragPipe-Analyst, users need to annotate `condition` and `replicate` columns in `experiment_annotation.tsv`:
