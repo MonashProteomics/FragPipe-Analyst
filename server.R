@@ -785,13 +785,13 @@ server <- function(input, output, session) {
                   })
      
     if(!is.null(input$contrast)){
-    go_results <- test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
-                               direction = input$go_direction, log2_threshold = input$lfc, alpha = input$p)
-    null_enrichment_test(go_results)
-    plot_go <- plot_enrichment(go_results, number = 10, alpha = 0.05, contrasts = input$contrast,
-                               databases = as.character(input$go_database), nrow = 2, term_size = 8)
-    go_list<-list("go_result"=go_results, "plot_go"=plot_go)
-    return(go_list)
+      go_results <- test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
+                                 direction = input$go_direction, log2_threshold = input$lfc, alpha = input$p)
+      null_enrichment_test(go_results)
+      plot_go <- plot_enrichment(go_results, number = 10, alpha = 0.05, contrasts = input$contrast,
+                                 databases = as.character(input$go_database), nrow = 2, term_size = 8)
+      go_list<-list("go_result"=go_results, "plot_go"=plot_go, "go_database"=as.character(input$go_database))
+      return(go_list)
     }
    })
 
@@ -800,7 +800,11 @@ server <- function(input, output, session) {
      pathway_results <- test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
                                      direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p)
      null_enrichment_test(pathway_results)
-     pathway_list<-list("pa_result"=pathway_results)
+     plot_pathway <-plot_enrichment(pathway_results, number = 10, alpha = 0.05, contrasts =input$contrast_1,
+                                    databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
+     pathway_list<-list("pa_result"=pathway_results,
+                        "pathway_database"=as.character(input$pathway_database),
+                        "plot_pathway"=plot_pathway)
      return(pathway_list)
    })
 
@@ -974,9 +978,7 @@ server <- function(input, output, session) {
   
   output$pathway_enrichment<-renderPlot({
     Sys.sleep(2)
-    plot_pathway <-plot_enrichment(pathway_input()$pa_result, number = 10, alpha = 0.05, contrasts =input$contrast_1,
-                                  databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
-    return(plot_pathway)
+    return(pathway_input()$plot_pathway)
   })
   
   ##### Download Functions
