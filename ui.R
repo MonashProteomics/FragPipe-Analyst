@@ -102,18 +102,7 @@ ui <- function(request){shinyUI(
                tags$script(HTML("
                  $(document).ready(function() {
                     $('#analyze').on('click', function(){$(this).blur()});
-                  })
-                
-                 $(document).on('shiny:inputchanged', function(event) {
-                    if (event.name === 'exp') {
-                      if (event.value === 'TMT'){
-                        $('#lfc').val('0.7');
-                        $('input:radio[name=imputation][value=none]').prop('checked', true);
-                      } else {
-                        $('#lfc').val('1.0');
-                        $('input:radio[name=imputation][value=man]').prop('checked', true);
-                      }
-                    }});
+                  });
                 "))
         )),
         # convertMenuItem(menuItem('Demo', icon=icon("eye"), tabName = "demo"), tabName = "demo"),

@@ -2,6 +2,20 @@
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   
+  observeEvent(input$exp, {
+    if(input$exp == "TMT"){
+      updateRadioButtons(session, "imputation",
+                         choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
+                         selected = "none")
+      updateNumericInput(session, "lfc", value=0.7)
+    } else {
+      updateRadioButtons(session, "imputation",
+                         choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
+                         selected = "man")
+      updateNumericInput(session, "lfc", value=1)
+    }
+  })
+
   #  Show elements on clicking Start analysis button
   observeEvent(start_analysis(),{
     if(input$analyze==0 | !start_analysis()){
