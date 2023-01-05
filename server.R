@@ -467,7 +467,7 @@ server <- function(input, output, session) {
      }
    })
    
-   filtered_data <- reactive({
+   filtered_data <- eventReactive(input$analyze,{
      # if (input$exp == "LFQ"){ # Check number of replicates
      #   if (input$replicate_filter){
      #     if(!is.null (exp_design_input() )){
@@ -516,7 +516,7 @@ server <- function(input, output, session) {
      }
    })
    
-   imputed_data<-reactive({
+   imputed_data<-eventReactive(input$analyze,{
      if (input$imputation == "none"){
        imputed <- filtered_data()
        rowData(imputed)$imputed <- apply(is.na(assay(filtered_data())), 1, any)
@@ -542,7 +542,7 @@ server <- function(input, output, session) {
      test_diff_customized(imputed_data(), type = "all")
    })
 
-   dep<-reactive({
+   dep<-eventReactive(input$analyze,{
      # TODO: test_limma for paired
      # diff_all <- test_diff_customized(imputed_data(), type = "manual",
      #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
@@ -622,7 +622,7 @@ server <- function(input, output, session) {
      return(pca_plot)
    })
    
-   ### Heatmap Differentially expressed proteins
+   ### Heatmap for differentially expressed proteins
    heatmap_cluster<-eventReactive(input$analyze, { 
      if(input$analyze==0 | !start_analysis()){
        return()
