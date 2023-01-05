@@ -44,7 +44,7 @@ ui <- function(request){shinyUI(
                                  conditionalPanel(
                                    condition = "input.exp == 'TMT'",
                                    fileInput('tmt_expr',
-                                             'Upload TMT-I gene report *.tsv',
+                                             'Upload gene-level TMT-I report *.tsv',
                                              accept=c('text/tsv',
                                                       'text/tab-separated-values,text/plain',
                                                       '.tsv')),
@@ -86,14 +86,12 @@ ui <- function(request){shinyUI(
                           radioButtons("imputation",
                                        "Imputation type",
                                        choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
-                                       selected = "none"),
+                                       selected = "man"),
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
                                        choices =  c("Benjamini Hochberg"="BH",
                                                     "Local and tail area-based"="fdrtool"
                                        ), selected= "BH")
-                          # checkboxInput("replicate_filter",
-                          #               "Replicate filtering", T)
                           # numericInput("k_number",
                           #              "Number of clusters in heatmap",
                           #              min = 1, max = 10, value = 3)
@@ -110,8 +108,10 @@ ui <- function(request){shinyUI(
                     if (event.name === 'exp') {
                       if (event.value === 'TMT'){
                         $('#lfc').val('0.7');
+                        $('input:radio[name=imputation][value=none]').prop('checked', true);
                       } else {
                         $('#lfc').val('1.0');
+                        $('input:radio[name=imputation][value=man]').prop('checked', true);
                       }
                     }});
                 "))
@@ -250,7 +250,8 @@ ui <- function(request){shinyUI(
                           ),
                           tags$li(tags$b("Optional: "),
                                   "Adjust the p-value cut-off, the log2 fold change cut-off, missing value imputation, FDR correction method ",
-                                  "in the", tags$b("Advanced Options"), "."),
+                                  "in the", tags$b("Advanced Options"),
+                                  '. Note that the missing value imputation method is set by default to “Perseus-like” for DDA LFQ and DIA, and to “No imputation” for TMT.'),
                           tags$li("Press ", tags$b("'Start Analysis' ")),
                           tags$li(tags$b("Hint: "), " Check the ", tags$b("Documentation ")," tab for a detailed explanation of inputs, 
                                 advanced options and outputs"),
