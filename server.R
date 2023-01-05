@@ -706,10 +706,10 @@ server <- function(input, output, session) {
     protein_input<-reactive({
       protein_selected  <- data_result()[input$contents_rows_selected,1]
       protein_selected <-as.character(protein_selected)
-      if(length(levels(as.factor(colData(dep())$replicate))) <= 8){
-        plot_protein(dep(), protein_selected, as.character(input$type), id="label")
+      if(length(levels(as.factor(colData(processed_data())$replicate))) <= 8){
+        plot_protein(processed_data(), protein_selected, as.character(input$type), id="label")
       } else {
-        protein_plot<-plot_protein(dep(), protein_selected, as.character(input$type), id="label")
+        protein_plot<-plot_protein(processed_data(), protein_selected, as.character(input$type), id="label")
         protein_plot + scale_color_brewer(palette = "Paired")
       }
     })
