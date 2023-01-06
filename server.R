@@ -540,12 +540,12 @@ server <- function(input, output, session) {
    imputed_data<-eventReactive(input$analyze,{
      if (input$imputation == "none"){
        imputed <- filtered_data()
-       rowData(imputed)$imputed <- apply(is.na(assay(filtered_data())), 1, any)
-       rowData(imputed)$num_NAs <- rowSums(is.na(assay(filtered_data())))
+       rowData(imputed)$imputed <- apply(is.na(assay(normalised_data())), 1, any)
+       rowData(imputed)$num_NAs <- rowSums(is.na(assay(normalised_data())))
      } else {
        # need a customized function here since DIA data has several slashs in the column
        # TMT report might has same issue for earlier version of FragPipe (<= 18.0)
-      imputed <- impute_customized(filtered_data(),input$imputation)
+      imputed <- impute_customized(normalised_data(),input$imputation)
      } 
      return(imputed)
    })
