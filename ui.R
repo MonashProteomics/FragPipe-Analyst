@@ -313,7 +313,7 @@ ui <- function(request){shinyUI(
                                                  width = 3),
                                              box(checkboxInput("check_names",
                                                                "Display names",
-                                                               value = FALSE),
+                                                               value = T),
                                                  checkboxInput("p_adj",
                                                                "Adjusted p values",
                                                                value = T),
