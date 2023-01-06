@@ -41,7 +41,7 @@ server <- function(input, output, session) {
         hideTab(inputId = "tab_panels", target = "quantification_panel")
       } else {
         showTab(inputId = "tab_panels", target = "quantification_panel")
-        showTab(inputId="qc_tabBox", target="norm_tab")
+        hideTab(inputId="qc_tabBox", target="norm_tab")
         showTab(inputId="qc_tabBox", target="sample_coverage_tab")
         # make sure occ_panel visible after users updating their analysis
         showTab(inputId = "tab_panels", target = "occ_panel")
@@ -444,7 +444,11 @@ server <- function(input, output, session) {
        
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
-       data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T)
+       if (input$lfq_type == "Spectral Count") {
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=F)
+       } else {
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T)
+       }
        return(data_se)
      } else if (input$exp == "DIA") {
        data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
@@ -515,19 +519,22 @@ server <- function(input, output, session) {
    
    unimputed_table<-reactive({
      temp<-assay(filtered_data())
-     temp1<-2^(temp)
-     colnames(temp1)<-paste(colnames(temp1),"original_intensity",sep="_")
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       colnames(temp1)<-paste(colnames(temp1),"original_spectral_count",sep="_")
+     } else {
+       colnames(temp1)<-paste(colnames(temp1),"original_intensity",sep="_")
+     }
+    
      temp1<-cbind(ProteinID=rownames(temp1),temp1) 
      #temp1$ProteinID<-rownames(temp1)
      return(as.data.frame(temp1))
    })
    
    normalised_data<-reactive({
-     if (input$exp == "LFQ") {
-       return(normalize_vsn(filtered_data()))
-     } else {
-       return(filtered_data())
-     }
+     # if (input$exp == "LFQ") {
+     #   return(normalize_vsn(filtered_data()))
+     # }
+     return(filtered_data())
    })
    
    imputed_data<-eventReactive(input$analyze,{
@@ -557,7 +564,7 @@ server <- function(input, output, session) {
    })
 
    dep<-eventReactive(input$analyze,{
-     # TODO: test_limma for paired
+     # TODO: test_limma for paired samples
      # diff_all <- test_diff_customized(imputed_data(), type = "manual",
      #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
      if(input$fdr_correction=="BH"){
@@ -753,6 +760,8 @@ server <- function(input, output, session) {
    imputation_input <- reactive({
      if (input$exp == "TMT") {
        plot_imputation_customized(filtered_data(), imputed_data())
+     } else if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       plot_imputation_spectral_count(filtered_data(), imputed_data())
      } else {
        plot_imputation_DIA_customized(filtered_data(), imputed_data())
      }

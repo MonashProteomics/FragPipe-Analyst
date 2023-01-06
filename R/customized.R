@@ -1139,6 +1139,48 @@ plot_imputation_customized <- function(se, ...) {
     theme_DEP1()
 }
 
+plot_imputation_spectral_count <- function(se, ...) {
+  # Get arguments from call
+  call <- match.call()
+  arglist <- lapply(call[-1], function(x) x)
+  var.names <- vapply(arglist, deparse, character(1))
+  arglist <- lapply(arglist, eval.parent, n = 2)
+  names(arglist) <- var.names
+  
+  # Show error if inputs are not the required classes
+  lapply(arglist, function(x) {
+    assertthat::assert_that(inherits(x,
+                                     "SummarizedExperiment"),
+                            msg = "input objects need to be of class 'SummarizedExperiment'")
+    if (any(!c("label", "condition", "replicate") %in% colnames(colData(x)))) {
+      stop("'label', 'condition' and/or 'replicate' ",
+           "columns are not present in (one of) the input object(s)",
+           "\nRun make_se() or make_se_parse() to obtain the required columns",
+           call. = FALSE)
+    }
+  })
+  
+  # Function to get a long data.frame of the assay data
+  # annotated with sample info
+  gather_join <- function(se) {
+    assay(se) %>%
+      data.frame(check.names = F) %>%
+      gather(ID, val) %>%
+      left_join(., data.frame(colData(se)), by = c("ID"="label"))
+  }
+  
+  df <- map_df(arglist, gather_join, .id = "var") %>%
+    mutate(var = factor(var, levels = names(arglist)))
+  
+  # Density plots for different conditions with facet_wrap
+  # for original and imputed samles
+  ggplot(df, aes(val, col = condition)) +
+    geom_density(na.rm = TRUE) +
+    facet_wrap(~var, ncol = 1) +
+    labs(x = "Spectral count", y = "Density") +
+    theme_DEP1()
+}
+
 plot_imputation_DIA_customized <- function(se, ...) {
   # Get arguments from call
   call <- match.call()
