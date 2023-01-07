@@ -725,12 +725,17 @@ server <- function(input, output, session) {
     })
     
     protein_input<-reactive({
-      protein_selected  <- data_result()[input$contents_rows_selected,1]
-      protein_selected <-as.character(protein_selected)
-      if(length(levels(as.factor(colData(processed_data())$replicate))) <= 8){
-        plot_protein(processed_data(), protein_selected, as.character(input$type), id="label")
+      protein_selected <- data_result()[input$contents_rows_selected,1]
+      protein_selected <- as.character(protein_selected)
+      if (input$check_impute) {
+        data <- imputed_data()
       } else {
-        protein_plot<-plot_protein(processed_data(), protein_selected, as.character(input$type), id="label")
+        data <- processed_data()
+      }
+      if(length(levels(as.factor(colData(processed_data())$replicate))) <= 8){
+        plot_protein(data, protein_selected, as.character(input$type), id="label")
+      } else {
+        protein_plot<-plot_protein(data, protein_selected, as.character(input$type), id="label")
         protein_plot + scale_color_brewer(palette = "Paired")
       }
     })

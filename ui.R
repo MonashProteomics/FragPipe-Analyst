@@ -318,13 +318,17 @@ ui <- function(request){shinyUI(
                                                                "Adjusted p values",
                                                                value = T),
                                                  width = 4),
-                                             tags$p("Select protein from Results Table to highlight on the plot OR 
-                                                    drag the mouse on plot to show expression of proteins in Table")
-                                             #Add text line
-                                             # tags$p("OR"),
-                                             #  tags$p("Drag the mouse on plot to show expression of proteins in Table") 
-                                             ),
-                                           
+                                           ),
+                                           fluidRow(
+                                             box(
+                                               tags$p("Select protein from Results Table to highlight on the plot OR 
+                                                      drag the mouse on plot to show expression of proteins in Table"),
+                                               #Add text line
+                                               # tags$p("OR"),
+                                               #  tags$p("Drag the mouse on plot to show expression of proteins in Table")
+                                               width = 12
+                                             )
+                                           ),
                                            fluidRow(
                                              shinycssloaders::withSpinner(
                                                plotOutput("volcano",
@@ -359,16 +363,26 @@ ui <- function(request){shinyUI(
                                                                           "Violin Plot"="violin"),
                                                               selected = "boxplot", 
                                                               inline = TRUE),
+                                                 width = 6
+                                             ),
+                                             box(checkboxInput("check_impute",
+                                                               "Show imputed values",
+                                                               value = F),
+                                                 width = 6
+                                             )
+                                           ),
+                                           fluidRow(
+                                             box(
+                                                 tags$p("Select one or more rows from Results Table to plot individual 
+                                                    protein intesities across conditions and replicates"),
                                                  width = 12
-                                             ),
-                                             tags$p("Select one or more rows from Results Table to plot individual 
-                                                    protein intesities across conditions and replicates")
-                                             ),
+                                             )
+                                           ),
                                            fluidRow(
                                              shinycssloaders::withSpinner(plotlyOutput("protein_plot"), color = "#3c8dbc"),
                                              downloadButton('downloadProtein', 'Download Plot')
                                              )
-                                            )
+                                           )
 # Abundance plot is under consideration
 #                                   navbarMenu("Abundance Plot", 
 #     								                 tabPanel(title = "Abundance rank",
@@ -410,7 +424,7 @@ ui <- function(request){shinyUI(
         fluidRow(
           id="qc_tab",
           box( width = 6,
-              tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=700,
+              tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=800,
                      tabPanel(title = "PCA Plot",
                               shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc")
                               ),
@@ -450,7 +464,7 @@ ui <- function(request){shinyUI(
           ),
           box(
             width=6,
-              tabBox(title = "Enrichment", width = 12, height=600,
+              tabBox(title = "Enrichment", width = 12, height=800,
                      tabPanel(title="Gene Ontology",
                               fluidRow(
                                 column(4,uiOutput("contrast")),
