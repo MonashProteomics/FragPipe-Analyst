@@ -433,9 +433,19 @@ ui <- function(request){shinyUI(
                               downloadButton('download_corr_svg', "Save svg")
                               ),
                      tabPanel(title= "Sample CVs",
-                              shinycssloaders::withSpinner(plotOutput("sample_cvs", height = 600), color = "#3c8dbc"),
-                              downloadButton('download_cvs_svg', "Save svg")
+                              fluidRow(
+                                box(checkboxInput("cvs_full_range",
+                                                  "Show full range",
+                                                  value = F),
+                                    width = 6
+                                )
                               ),
+                              fluidRow(
+                                shinycssloaders::withSpinner(plotOutput("sample_cvs", height = 600), color = "#3c8dbc")
+                              ),
+                              fluidRow(
+                                downloadButton('download_cvs_svg', "Save svg")
+                              )),
                      tabPanel(title = "Protein Numbers",
                               shinycssloaders::withSpinner(plotOutput("numbers", height = 600), color = "#3c8dbc"),
                               downloadButton('download_num_svg', "Save svg")),

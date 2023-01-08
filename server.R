@@ -786,7 +786,7 @@ server <- function(input, output, session) {
    })
    
    cvs_input<-reactive({
-     plot_cvs(dep(), id="label", check.names=F)
+     plot_cvs(dep(), id="label", scale=!input$cvs_full_range, check.names=F)
    })
    
    num_total<-reactive({
