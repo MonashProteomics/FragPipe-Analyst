@@ -423,7 +423,7 @@ ui <- function(request){shinyUI(
         ## QC Box
         fluidRow(
           id="qc_tab",
-          box( width = 6,
+          box(width = 6,
               tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=800,
                      tabPanel(title = "PCA Plot",
                               shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc")
@@ -442,25 +442,19 @@ ui <- function(request){shinyUI(
                      tabPanel(title = "Sample coverage", value="sample_coverage_tab",
                               shinycssloaders::withSpinner(plotOutput("coverage", height = 600), color = "#3c8dbc"),
                               downloadButton('download_cov_svg', "Save svg")),
-                     tabPanel(title = "Normalization", value="norm_tab",
-                              shinycssloaders::withSpinner(plotOutput("norm", height = 600), color = "#3c8dbc"),
-                              downloadButton('download_norm_svg', "Save svg")
-                              ),
-                     # tabPanel(title = "Missing values - Quant",
-                     #          plotOutput("detect", height = 600)
-                     # ),
                      tabPanel(title = "Missing values - Heatmap",
                               shinycssloaders::withSpinner(plotOutput("missval", height = 600), color = "#3c8dbc"),
                               downloadButton('download_missval_svg', "Save svg")
                               ),
-                     tabPanel(title = "Imputation", value="imputation_tab",
-                              shinycssloaders::withSpinner(plotOutput("imputation", height = 600), color = "#3c8dbc"),
-                              downloadButton('download_imp_svg', "Save svg")
-                              )#,
+                     tabPanel(title = "Density plot", value="density_tab",
+                              shinycssloaders::withSpinner(plotOutput("density", height = 600), color = "#3c8dbc"),
+                              downloadButton('download_density_svg', "Save svg")
+                              )
+                     # ,
                      # tabPanel(title = "p-value Histogram",
                      #          plotOutput("p_hist", height = 600)
                      # )
-                     ) # Tab box close
+              ) # Tab box close
           ),
           box(
             width=6,

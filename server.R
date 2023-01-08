@@ -740,20 +740,7 @@ server <- function(input, output, session) {
       }
     })
      
-   ## QC Inputs
-   norm_input <- reactive({
-     if (input$exp == "TMT") {
-       plot_normalization_customized(filtered_data(),
-                                     normalised_data())
-     } else if (input$exp == "DIA") {
-       plot_normalization_DIA_customized(filtered_data(),
-                                     normalised_data())
-     } else if (input$exp == "LFQ") {
-       plot_normalization_DIA_customized(filtered_data(),
-                                     normalised_data())
-     }
-   })
-   
+   ## QC plots inputs
    missval_input <- reactive({
      plot_missval_customized(filtered_data(), input$exp)
    })
@@ -762,13 +749,19 @@ server <- function(input, output, session) {
      plot_detect(filtered_data())
    })
    
-   imputation_input <- reactive({
-     if (input$exp == "TMT") {
-       plot_imputation_customized(filtered_data(), imputed_data())
-     } else if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
-       plot_imputation_spectral_count(filtered_data(), imputed_data())
+   density_input <- reactive({
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       if (input$imputation == "none") {
+         plot_density_spectral_count(processed_data(), filtered_data())
+       } else {
+         plot_density_spectral_count(processed_data(), filtered_data(), imputed_data())
+       }
      } else {
-       plot_imputation_DIA_customized(filtered_data(), imputed_data())
+       if (input$imputation == "none") {
+         plot_density(processed_data(), filtered_data())
+       } else {
+         plot_density(processed_data(), filtered_data(), imputed_data())
+       }
      }
    })
    
@@ -960,10 +953,6 @@ server <- function(input, output, session) {
     cvs_input()
   })
   
-  output$norm <- renderPlot({
-    norm_input()
-  })
-  
   output$missval <- renderPlot({
     missval_input()
   })
@@ -972,8 +961,8 @@ server <- function(input, output, session) {
     detect_input()
   })
   
-  output$imputation <- renderPlot({
-    imputation_input()
+  output$density <- renderPlot({
+    density_input()
   })
   
   output$p_hist <- renderPlot({
@@ -1164,7 +1153,7 @@ output$download_hm_svg<-downloadHandler(
                      tested_contrasts= tested_contrasts,
                      numbers_input= numbers_input,
                      detect_input = detect_input,
-                     imputation_input = imputation_input,
+                     density_input = density_input,
                      missval_input = missval_input,
                      # p_hist_input = p_hist_input,
                      pca_input = pca_static_input,
@@ -1231,15 +1220,6 @@ output$download_cov_svg<-downloadHandler(
   }
 )
 
-output$download_norm_svg<-downloadHandler(
-  filename = function() { "Normalization_plot.svg" }, 
-  content = function(file) {
-    svg(file)
-    print(norm_input())
-    dev.off()
-  }
-)
-
 output$download_missval_svg<-downloadHandler(
   filename = function() { "Missing_value_heatmap.svg" }, 
   content = function(file) {
@@ -1249,11 +1229,11 @@ output$download_missval_svg<-downloadHandler(
   }
 )
 
-output$download_imp_svg<-downloadHandler(
-  filename = function() { "Imputation_plot.svg" }, 
+output$download_density_svg<-downloadHandler(
+  filename = function() { "Density_plot.svg" }, 
   content = function(file) {
     svg(file)
-    print(imputation_input())
+    print(density_input())
     dev.off()
   }
 )
@@ -1725,11 +1705,7 @@ output$download_imp_svg<-downloadHandler(
  #   }
  # })
 	
- ## QC Inputs for demo
- # norm_input_dm <- reactive({
- #   plot_normalization(processed_data_dm(),
- #                      normalised_data_dm())
- # })
+ ## QC plots inputs for demo
  # 
  # missval_input_dm <- reactive({
  #   plot_missval(processed_data_dm())
@@ -1738,11 +1714,7 @@ output$download_imp_svg<-downloadHandler(
  # detect_input_dm <- reactive({
  #   plot_detect(processed_data_dm())
  # })
- # 
- # imputation_input_dm <- reactive({
- #   plot_imputation(normalised_data_dm(),
- #                   diff_all_dm())
- # })
+ #
  # 
  # p_hist_input_dm <- reactive({
  #   plot_p_hist(dep_dm())
@@ -2002,21 +1974,13 @@ output$download_imp_svg<-downloadHandler(
  # output$sample_cvs_dm <- renderPlot({
  #   cvs_input_dm()
  # })
- # 
- # output$norm_dm <- renderPlot({
- #   norm_input_dm()
- # })
- # 
+ #
  # output$missval_dm <- renderPlot({
  #   missval_input_dm()
  # })
  # 
  # output$detect_dm <- renderPlot({
  #   detect_input_dm()
- # })
- # 
- # output$imputation_dm <- renderPlot({
- #   imputation_input_dm()
  # })
  # 
  # output$p_hist <- renderPlot({
