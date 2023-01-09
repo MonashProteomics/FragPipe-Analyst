@@ -97,7 +97,7 @@ ui <- function(request){shinyUI(
                           #              min = 1, max = 10, value = 3)
                  ),
                tags$hr(),
-               actionButton("analyze", "Start Analysis"),
+               actionButton("analyze", "Run"),
                #actionButton("load_data", "Load example data")
                tags$script(HTML("
                  $(document).ready(function() {
@@ -480,7 +480,8 @@ ui <- function(request){shinyUI(
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
                                                        selected = "UP")),
-                                column(12, actionButton("go_analysis", "Run Enrichment")),
+                                column(3, actionButton("go_analysis", "Run Enrichment")),
+                                column(9, tags$p("Note: Currently, only human data is supported")),
                                 column(12,
                                        box(width = 12, uiOutput("spinner_go"), height = 500)
                                        ),
@@ -500,7 +501,8 @@ ui <- function(request){shinyUI(
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
                                                        selected = "UP")),
-                                column(12, actionButton("pathway_analysis", "Run Enrichment")),
+                                column(3, actionButton("pathway_analysis", "Run Enrichment")),
+                                column(9, tags$p("Note: Currently, only human data is supported")),
                                 column(12,
                                        box(width = 12, uiOutput("spinner_pa"), height = 500)
                                 ),
