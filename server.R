@@ -289,7 +289,7 @@ server <- function(input, output, session) {
     #   })    
     # })
 
-    exp_design_input<-eventReactive(input$analyze,{
+    exp_design_input <- eventReactive(input$analyze,{
       if (input$exp == "LFQ"){
         inFile <- input$lfq_manifest
       } else if (input$exp == "TMT") {
@@ -319,8 +319,8 @@ server <- function(input, output, session) {
         }
         # change it to lower case
         colnames(temp_df) <- tolower(colnames(temp_df))
-        # to support - (dash) in condition column
-        temp_df$condition <- gsub("-", ".", temp_df$condition)
+        # to support - (dash) or name starts with number in condition column
+        temp_df$condition <- make.names(temp_df$condition)
         validate(need(try(test_TMT_annotation(temp_df)),
                            paste0("The input annotation file should have following columns: ",
                                   "plex, channel, sample, condition, replicate, condition\n",
@@ -344,8 +344,8 @@ server <- function(input, output, session) {
         # temp_df$label<-as.character(temp_df$label)
         # temp_df$condition<-trimws(temp_df$condition, which = "left")
 
-        # reuse previous logic of experiment column (no label, but experiment column from manifest at that time)
-        temp_df$experiment <- temp_df$label
+        # to support - (dash) or name starts with number in condition column
+        temp_df$condition <- make.names(temp_df$condition)
 
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
@@ -367,8 +367,8 @@ server <- function(input, output, session) {
                               stringsAsFactors = FALSE)
         # change it to lower case
         colnames(temp_df) <- tolower(colnames(temp_df))
-        # to support - (dash) in condition column
-        temp_df$condition <- gsub("-", ".", temp_df$condition)
+        # to support - (dash) or name starts with number in condition column
+        temp_df$condition <- make.names(temp_df$condition)
         # make sure replicate column is not empty
         if (!all(is.na(temp_df$replicate))) {
           temp_df$label <- temp_df$file
@@ -412,7 +412,7 @@ server <- function(input, output, session) {
    
    
 ### Reactive components
-   processed_data<- eventReactive(start_analysis(),{
+   processed_data <- eventReactive(start_analysis(),{
      ## check which dataset
      if(!is.null (fragpipe_data_input() )){
        fragpipe_data <- reactive({fragpipe_data_input()})
