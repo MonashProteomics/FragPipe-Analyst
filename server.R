@@ -752,15 +752,15 @@ server <- function(input, output, session) {
    density_input <- reactive({
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
        if (input$imputation == "none") {
-         plot_density_spectral_count(processed_data(), filtered_data())
+         plot_density_spectral_count(list("original data"=processed_data(), "filtered data"=filtered_data()))
        } else {
-         plot_density_spectral_count(processed_data(), filtered_data(), imputed_data())
+         plot_density_spectral_count(list("original data"=processed_data(), "filtered data"=filtered_data(), "imputed data"=imputed_data()))
        }
      } else {
        if (input$imputation == "none") {
-         plot_density(processed_data(), filtered_data())
+         plot_density(list("original data"=processed_data(), "filtered data"=filtered_data()))
        } else {
-         plot_density(processed_data(), filtered_data(), imputed_data())
+         plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(),  "imputed data"=imputed_data()))
        }
      }
    })
