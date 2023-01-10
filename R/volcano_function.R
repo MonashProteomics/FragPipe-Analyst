@@ -16,7 +16,7 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
                           length(plot) == 1)
   
   row_data <- rowData(dep, use.names = FALSE)
-  
+
   # Show error if inputs do not contain required columns
   if(any(!c("name", "ID") %in% colnames(row_data))) {
     stop(paste0("'name' and/or 'ID' columns are not present in '",
@@ -69,13 +69,14 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
                    p_values = -log10(row_data[, p_values]),
                    signif = row_data[, signif],
                    name = row_data$name)
-   df<- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
+  df <- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
     arrange(signif)
-  
+
   name1 <- gsub("_vs_.*", "", contrast)
   name2 <- gsub(".*_vs_", "", contrast)
   #return(df)
   # Plot volcano with or without labels
+
   p <- ggplot(df, aes(diff, p_values)) +
     geom_vline(xintercept = 0) +
     geom_point(aes(col = signif)) +
@@ -110,8 +111,7 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
     return(p)
   } else {
     df <- df %>%
-      select(name, diff, p_value, signif) %>%
-      arrange(desc(x))
+      select(name, diff, p_values, signif)
     colnames(df)[c(1,2,3)] <- c("protein", "log2_fold_change", "p_value_-log10")
     if(adjusted) {
       colnames(df)[3] <- "adjusted_p_value_-log10"
@@ -129,7 +129,7 @@ get_volcano_df <- function(dep, contrast, adjusted = FALSE) {
                           length(contrast) == 1)
   
   row_data <- rowData(dep, use.names = FALSE)
-  
+
   # Show error if inputs do not contain required columns
   if(any(!c("name", "ID") %in% colnames(row_data))) {
     stop(paste0("'name' and/or 'ID' columns are not present in '",
@@ -287,7 +287,7 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
                           length(plot) == 1)
   
   row_data <- rowData(dep, use.names = FALSE)
-  
+
   # Show error if inputs do not contain required columns
   if(any(!c("name", "ID") %in% colnames(row_data))) {
     stop(paste0("'name' and/or 'ID' columns are not present in '",
@@ -346,7 +346,7 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
   
   name1 <- gsub("_vs_.*", "", contrast)
   name2 <- gsub(".*_vs_", "", contrast)
-  
+
   # Plot volcano with or without labels
   p <- ggplot(df, aes(x, y)) +
     geom_vline(xintercept = 0) +

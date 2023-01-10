@@ -75,8 +75,8 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   rownames(expdesign) <- expdesign$label
   # print(expdesign)
   # print(colnames(raw))
-  matched <- match(make.names(delete_prefix(expdesign$label)),
-                   make.names(delete_prefix(colnames(raw))))
+  matched <- match(make.names(expdesign$label),
+                   make.names(colnames(raw)))
 
   if(any(is.na(matched))) {
     stop("None of the labels in the experimental design match ",
@@ -266,10 +266,101 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
     mutate(variable = recode(variable, logFC = "diff", P.Value = "p.val", qval = "p.adj")) %>%
     unite(temp, comparison, variable) %>%
     spread(temp, value)
-  rowData(se) <- merge(rowData(se, use.names = FALSE), table,
-                       by.x = "name", by.y = "rowname", all.x = TRUE, sort=FALSE)
+  rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
+                                         by=c("name"="rowname")))
   return(se)
 }
+
+# customized from DEP's add_rejections: https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R#L1032
+#' Mark significant proteins
+#'
+#' \code{add_rejections_customized} marks significant proteins based on defined cutoffs.
+#'
+#' @param diff SummarizedExperiment,
+#' Proteomics dataset on which differential enrichment analysis
+#' has been performed (output from \code{\link{test_diff}()}).
+#' @param alpha Numeric(1),
+#' Sets the threshold for the adjusted P value.
+#' @param lfc Numeric(1),
+#' Sets the threshold for the log2 fold change.
+#' @return A SummarizedExperiment object
+#' annotated with logical columns indicating significant proteins.
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter, normalize and impute missing values
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#' imputed <- impute(norm, fun = "MinProb", q = 0.01)
+#'
+#' # Test for differentially expressed proteins
+#' diff <- test_diff(imputed, "control", "Ctrl")
+#' dep <- add_rejections(diff, alpha = 0.05, lfc = 1)
+#' @export
+add_rejections_customized <- function(diff, alpha = 0.05, lfc = 1) {
+  # Show error if inputs are not the required classes
+  if(is.integer(alpha)) alpha <- as.numeric(alpha)
+  if(is.integer(lfc)) lfc <- as.numeric(lfc)
+  assertthat::assert_that(inherits(diff, "SummarizedExperiment"),
+                          is.numeric(alpha),
+                          length(alpha) == 1,
+                          is.numeric(lfc),
+                          length(lfc) == 1)
+
+  row_data <- rowData(diff, use.names = FALSE) %>%
+    as.data.frame()
+  # Show error if inputs do not contain required columns
+  if(any(!c("name", "ID") %in% colnames(row_data))) {
+    stop("'name' and/or 'ID' columns are not present in '",
+         deparse(substitute(diff)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  if(length(grep("_p.adj|_diff", colnames(row_data))) < 1) {
+    stop("'[contrast]_diff' and/or '[contrast]_p.adj' columns are not present in '",
+         deparse(substitute(diff)),
+         "'\nRun test_diff() to obtain the required columns",
+         call. = FALSE)
+  }
+
+  # get all columns with adjusted p-values and log2 fold changes
+  cols_p <- grep("_p.adj", colnames(row_data))
+  cols_diff <- grep("_diff", colnames(row_data))
+
+  # Mark differential expressed proteins by
+  # applying alpha and log2FC parameters per protein
+  if(length(cols_p) == 1) {
+    rowData(diff)$significant <-
+      row_data[, cols_p] <= alpha & abs(row_data[, cols_diff]) >= lfc
+    rowData(diff)$contrast_significant <-
+      rowData(diff, use.names = FALSE)$significant
+    colnames(rowData(diff))[ncol(rowData(diff, use.names = FALSE))] <-
+      gsub("p.adj", "significant", colnames(row_data)[cols_p])
+  }
+  if(length(cols_p) > 1) {
+    p_reject <- row_data[, cols_p] <= alpha
+    p_reject[is.na(p_reject)] <- FALSE
+    diff_reject <- abs(row_data[, cols_diff]) >= lfc
+    diff_reject[is.na(diff_reject)] <- FALSE
+    sign_df <- p_reject & diff_reject
+    sign_df <- cbind(sign_df,
+                     significant = apply(sign_df, 1, function(x) any(x)))
+    colnames(sign_df) <- gsub("_p.adj", "_significant", colnames(sign_df))
+    sign_df <- cbind(name = row_data$name, as.data.frame(sign_df))
+    rowData(diff) <- as.data.frame(left_join(as.data.frame(rowData(diff)), sign_df,
+                                           by=c("name"="name")))
+  }
+  return(diff)
+}
+
 
 # similar to test_match_lfq_column_design
 test_match_tmt_column_design <- function(unique_data, lfq_columns, exp_design){
@@ -285,6 +376,51 @@ test_match_tmt_column_design <- function(unique_data, lfq_columns, exp_design){
     ))
   }
   
+  if(any(!c("label", "condition", "replicate") %in% colnames(exp_design))) {
+    stop(safeError("'label', 'condition' and/or 'replicate' columns
+         are not present in the experimental design"))
+  }
+  
+  if(any(!apply(unique_data[, lfq_columns], 2, is.numeric))) {
+    stop(safeError("specified 'columns' should be numeric
+         Run make_se_parse() with the appropriate columns as argument"))
+  }
+  
+  raw <- unique_data[, lfq_columns]
+  # expdesign <- mutate(exp_design, condition = make.names(condition)) %>%
+  #   unite(ID, label, remove = FALSE)
+  # rownames(expdesign) <- expdesign$ID
+  expdesign <- exp_design
+  # print(expdesign)
+  rownames(expdesign) <- expdesign$label
+  # print(make.names(expdesign$label))
+  # print(make.names(colnames(raw)))
+  matched <- match(make.names(expdesign$label),
+                   make.names(colnames(raw)))
+  
+  # TODO: give warning message to indicate which columns are not matched
+  # if(any(is.na(matched))) {
+  if(all(is.na(matched))) {
+    stop(safeError("The labels/'run names' in the experimental design DID NOT match
+         with column names in TMT-I report.
+         Please run FragPipe-Analyst with correct labels in the experimental design"))
+  }
+}
+
+# similar to test_match_lfq_column_design
+test_match_DIA_column_design <- function(unique_data, lfq_columns, exp_design){
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(is.data.frame(unique_data),
+                          is.integer(lfq_columns),
+                          is.data.frame(exp_design))
+
+  # Show error if inputs do not contain required columns
+  if(any(!c("name", "ID") %in% colnames(unique_data))) {
+    stop(safeError("'Gene name' and/or 'Protein ID' columns are not present in
+          protein groups input file"
+    ))
+  }
+
   if(any(!c("label", "condition", "replicate") %in% colnames(exp_design))) {
     stop(safeError("'label', 'condition' and/or 'replicate' columns
          are not present in the experimental design"))
@@ -1575,9 +1711,11 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3,
     df <- df %>%
       select(name, diff, p_value, signif) %>%
       arrange(desc(x))
-    colnames(df)[c(1,2,3)] <- c("protein", "log2_fold_change", "p_value_-log10")
+    colnames(df)[c(1,2)] <- c("protein", "log2_fold_change")
     if(adjusted) {
       colnames(df)[3] <- "adjusted_p_value_-log10"
+    } else {
+      colnames(df)[3] <- "p_value_-log10"
     }
     return(df)
   }

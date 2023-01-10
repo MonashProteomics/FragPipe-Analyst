@@ -455,7 +455,7 @@ server <- function(input, output, session) {
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
        # TODO: use DIA function
-       test_match_tmt_column_design(data_unique, selected_cols, exp_design())
+       test_match_DIA_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
@@ -572,7 +572,7 @@ server <- function(input, output, session) {
      } else { # t-statistics-based
        diff_all <- test_diff_customized(imputed_data(), type = "all")
      }
-     add_rejections(diff_all,alpha = input$p, lfc= input$lfc)
+     add_rejections_customized(diff_all, alpha = input$p, lfc= input$lfc)
    })
    
    comparisons<-reactive ({
@@ -690,7 +690,7 @@ server <- function(input, output, session) {
         } else if(!is.null(input$protein_brush)){
           proteins_selected <- data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ] 
         }
-        
+
        ## convert contrast to x and padj to y
        diff_proteins <- grep(paste("^",input$volcano_cntrst, "_log2", sep = ""),
                     colnames(proteins_selected))
@@ -852,7 +852,7 @@ server <- function(input, output, session) {
    })
 
   ##### Get results dataframe from Summarizedexperiment object
-   data_result<-eventReactive(start_analysis(),{
+   data_result<- eventReactive(input$analyze, {
       get_results_proteins(dep(), input$exp)
       #get_results(dep())
     })
@@ -885,9 +885,29 @@ server <- function(input, output, session) {
   })
 
   protein_name_brush<- reactive({
-    protein_tmp<-brushedPoints(volcano_df(), input$protein_brush,
-                               xvar = "diff", yvar = "p_values")
-    return(protein_tmp$name)
+    if (input$p_adj) {
+      yvar <- "adjusted_p_value_-log10"
+    } else {
+      yvar <- "p_value_-log10"
+    }
+    if(is.null(input$contents_rows_selected)){
+      protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+                                                  input$volcano_cntrst,
+                                                  input$fontsize,
+                                                  input$check_names,
+                                                  input$p_adj, plot=F), input$protein_brush,
+                                 xvar = "log2_fold_change", yvar = yvar)
+      return(protein_tmp$protein)
+    } else {
+      protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+                                                  input$volcano_cntrst,
+                                                  input$fontsize,
+                                                  input$check_names,
+                                                  input$p_adj, plot=F), input$protein_brush,
+                                 xvar = "log2_fold_change", yvar = yvar)
+      proteins_selected <- data_result()[c(input$contents_rows_selected), "Gene Name"] ## get all rows selected
+      return(c(proteins_selected, protein_tmp$protein))
+    }
   })
   
   ## Select rows dynamically
