@@ -1,5 +1,5 @@
 # Define UI for data upload app ----
-VERSION <- "v0.19"
+VERSION <- "v0.20"
 
 
 ui <- function(request){shinyUI(
@@ -119,7 +119,7 @@ ui <- function(request){shinyUI(
     
     dashboardBody(
       useShinyjs(), #imp to use shinyjs functions
-      # tags$head(includeScript("google_analytics.js")),
+      tags$head(includeHTML(("google_analytics.html"))),
      
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "./css/custom.css")

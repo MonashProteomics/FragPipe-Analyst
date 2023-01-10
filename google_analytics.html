@@ -1,0 +1,22 @@
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-85HT8HSFFK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-85HT8HSFFK');
+  
+  $(document).on('change', 'select', function(e) {
+    ga('send', 'event', 'widget', 'select data', $(e.currentTarget).val());
+  });
+
+  $(document).on('click', 'button', function() {
+    ga('send', 'event', 'button', 'analyze');
+  });
+  
+  // User Tracking Code
+  $(document).one('shiny:idle', function() {
+    ga('set','userId', Shiny.user);
+  });
+</script>
