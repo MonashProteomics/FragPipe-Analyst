@@ -119,7 +119,7 @@ ui <- function(request){shinyUI(
     
     dashboardBody(
       useShinyjs(), #imp to use shinyjs functions
-      # tags$head(includeScript("google_analytics.js")),
+      tags$head(includeHTML(("google_analytics.html"))),
      
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "./css/custom.css")
