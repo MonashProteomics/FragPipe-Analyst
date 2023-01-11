@@ -214,6 +214,8 @@ plot_protein<-function(dep, protein, type, id="ID"){
     as.data.frame()
   df_CI$rowname <- parse_factor(as.character(df_CI$rowname), levels = protein)
 
+  df_reps$condition <- as.factor(df_reps$condition)
+  df_reps <- df_reps[!is.na(df_reps$val),]
   df_reps$replicate <- as.character(df_reps$replicate)
   if(type=="violin"){
     if (max(df_reps$replicate) == 1){
@@ -226,7 +228,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
                    type = "violin") %>%
         plotly::layout(violinmode = "group",
                        xaxis = list(title = ''),
-                       yaxis = list(title = 'Abundance'))
+                       yaxis = list(title = 'Abundance'), showlegend=T)
     } else {
       p <- plot_ly(df_reps,
                    x = ~rowname,
@@ -237,7 +239,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
                    type = "violin") %>%
         plotly::layout(violinmode = "group",
                        xaxis = list(title = ''),
-                       yaxis = list(title = 'Abundance'))
+                       yaxis = list(title = 'Abundance'), showlegend=T)
     }
     return(p)
   } else if(type=="boxplot"){
@@ -252,7 +254,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
                    boxpoints = "all", jitter = 0.3, pointpos = 0) %>%
         plotly::layout(boxmode = "group",
                        xaxis = list(title = ''),
-                       yaxis = list(title = 'Abundance'))
+                       yaxis = list(title = 'Abundance'), showlegend=T)
     } else {
       p <- plot_ly(df_reps,
                    x = ~rowname,
@@ -264,7 +266,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
                    boxpoints = "all", jitter = 0.3, pointpos = 0) %>%
         plotly::layout(boxmode = "group",
                        xaxis = list(title = ''),
-                       yaxis = list(title = 'Abundance'))
+                       yaxis = list(title = 'Abundance'), showlegend=T)
     }
     return(p)
   }
