@@ -762,37 +762,18 @@ server <- function(input, output, session) {
    }) 
    
    ## Enrichment inputs
-   go_input<-eventReactive(input$go_analysis,{
-     withProgress(message = 'Gene ontology enrichment is in progress',
-                  detail = 'Please wait for a while', value = 0, {
-                    for (i in 1:15) {
-                      incProgress(1/15)
-                      Sys.sleep(0.25)
-                    }
-                  })
-     
+   go_results <-eventReactive(input$go_analysis,{
+     progress_indicator('Gene ontology enrichment is running....')
     if(!is.null(input$contrast)){
-      go_results <- test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
-                                 direction = input$go_direction, log2_threshold = input$lfc, alpha = input$p)
-      null_enrichment_test(go_results)
-      plot_go <- plot_enrichment(go_results, number = 10, alpha = 0.05, contrasts = input$contrast,
-                                 databases = as.character(input$go_database), nrow = 2, term_size = 8)
-      go_list<-list("go_result"=go_results, "plot_go"=plot_go, "go_database"=as.character(input$go_database))
-      return(go_list)
+      return(test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
+                                 direction = input$go_direction, log2_threshold = input$lfc, alpha = input$p))
     }
    })
 
-   pathway_input <-eventReactive(input$pathway_analysis,{
+   pathway_results <-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
-     pathway_results <- test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
-                                     direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p)
-     null_enrichment_test(pathway_results)
-     plot_pathway <-plot_enrichment(pathway_results, number = 10, alpha = 0.05, contrasts =input$contrast_1,
-                                    databases=as.character(input$pathway_database), nrow = 2, term_size = 8)
-     pathway_list<-list("pa_result"=pathway_results,
-                        "pathway_database"=as.character(input$pathway_database),
-                        "plot_pathway"=plot_pathway)
-     return(pathway_list)
+     return(test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
+                                     direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p))
    })
 
    #### Interactive UI
@@ -971,7 +952,11 @@ server <- function(input, output, session) {
   observeEvent(input$go_analysis, {
     output$go_enrichment<-renderPlot({
       Sys.sleep(2)
-      go_input()$plot_go
+      null_enrichment_test(go_results())
+      plot_go <- plot_enrichment(go_results(), number = 10, alpha = 0.05, contrasts = input$contrast,
+                                 databases = as.character(input$go_database),
+                                 bg_correction = input$go_bg_correction, nrow = 2, term_size = 8)
+      return(plot_go)
     })
   })
   
@@ -984,7 +969,11 @@ server <- function(input, output, session) {
   observeEvent(input$pathway_analysis, {
     output$pathway_enrichment<-renderPlot({
       Sys.sleep(2)
-      return(pathway_input()$plot_pathway)
+      null_enrichment_test(pathway_results())
+      plot_pathway <-plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
+                                     databases = as.character(input$pathway_database),
+                                     bg_correction = input$pathway_bg_correction, nrow = 2, term_size = 8)
+      return(plot_pathway)
     })
   })
   
@@ -1085,7 +1074,7 @@ server <- function(input, output, session) {
   output$downloadGO <- downloadHandler(
     filename = function() { paste("GO_enrichment_",input$go_database, ".csv", sep = "") }, ## use = instead of <-
     content = function(file) {
-      write.table(go_input()$go_result,
+      write.table(go_results(),
                   file,
                   col.names = TRUE,
                   row.names = FALSE,
@@ -1097,7 +1086,7 @@ server <- function(input, output, session) {
     filename = function() { paste("Pathway_enrichment_",input$pathway_database, ".csv", sep = "") }, 
     ## use = instead of <-
     content = function(file) {
-      write.table(pathway_input()$pa_result,
+      write.table(pathway_results(),
                   file,
                   col.names = TRUE,
                   row.names = FALSE,
