@@ -26,11 +26,6 @@ server <- function(input, output, session) {
   })
    
   observeEvent(start_analysis() ,{
-    if (input$imputation == "none") {
-      hideTab(inputId="qc_tabBox", target="imputation_tab")
-    } else {
-      showTab(inputId="qc_tabBox", target="imputation_tab")
-    }
     if (input$exp == "LFQ"){
       exp <- exp_design_input()
       # Hide LFQ page if only have one replicate in each sample
@@ -41,7 +36,6 @@ server <- function(input, output, session) {
         hideTab(inputId = "tab_panels", target = "quantification_panel")
       } else {
         showTab(inputId = "tab_panels", target = "quantification_panel")
-        hideTab(inputId="qc_tabBox", target="norm_tab")
         showTab(inputId="qc_tabBox", target="sample_coverage_tab")
         # make sure occ_panel visible after users updating their analysis
         showTab(inputId = "tab_panels", target = "occ_panel")
@@ -50,43 +44,16 @@ server <- function(input, output, session) {
       shinyjs::show("venn_filter")
     } else if (input$exp == "TMT") {
       hideTab(inputId = "tab_panels", target = "occ_panel")
-      hideTab(inputId="qc_tabBox", target="norm_tab")
       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "quantification_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
     } else { # DIA
-      hideTab(inputId="qc_tabBox", target="norm_tab")
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "occ_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     }
   })
-
-   # observeEvent(start_analysis(),{ 
-   #     if(input$analyze==0 | !start_analysis()){
-   #       return()
-   #     }
-   #   shinyjs::show("results_tab")
-   # })
-   # 
-   # observeEvent(start_analysis() ,{ 
-   #   if(input$analyze==0 | !start_analysis()){
-   #     return()
-   #   }
-   #   shinyjs::show("qc_tab")
-   # })
-   # 
-   # observeEvent(start_analysis, {
-   #   if(input$analyze==0 | !start_analysis()){
-   #     return()
-   #   }
-   #   shinyjs::show("enrichment_tab")
-   # })
-
-   # observeEvent(input$analyze,{
-   #   shinyjs::hide("howto")
-   # })
    
   # observe({
   #   if(input$body=="info"){
@@ -795,7 +762,6 @@ server <- function(input, output, session) {
    }) 
    
    ## Enrichment inputs
-    
    go_input<-eventReactive(input$go_analysis,{
      withProgress(message = 'Gene ontology enrichment is in progress',
                   detail = 'Please wait for a while', value = 0, {
@@ -816,7 +782,7 @@ server <- function(input, output, session) {
     }
    })
 
-   pathway_input<-eventReactive(input$pathway_analysis,{
+   pathway_input <-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
      pathway_results <- test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
                                      direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p)
@@ -829,8 +795,7 @@ server <- function(input, output, session) {
      return(pathway_list)
    })
 
-   
-#### Interactive UI
+   #### Interactive UI
    output$significantBox <- renderUI({
      num_total <- assay(processed_data()) %>%
        nrow()
@@ -1003,19 +968,24 @@ server <- function(input, output, session) {
     shinycssloaders::withSpinner(plotOutput("go_enrichment"), color = "#3c8dbc")
   })
   
-  output$go_enrichment<-renderPlot({
-    Sys.sleep(2)
-    go_input()$plot_go
+  observeEvent(input$go_analysis, {
+    output$go_enrichment<-renderPlot({
+      Sys.sleep(2)
+      go_input()$plot_go
+    })
   })
   
+
   output$spinner_pa <- renderUI({
     req(input$pathway_analysis)
     shinycssloaders::withSpinner(plotOutput("pathway_enrichment"), color = "#3c8dbc")
   })
   
-  output$pathway_enrichment<-renderPlot({
-    Sys.sleep(2)
-    return(pathway_input()$plot_pathway)
+  observeEvent(input$pathway_analysis, {
+    output$pathway_enrichment<-renderPlot({
+      Sys.sleep(2)
+      return(pathway_input()$plot_pathway)
+    })
   })
   
   ##### Download Functions
@@ -1422,7 +1392,14 @@ output$download_density_svg<-downloadHandler(
     } 
     if (length(condition_list()) == 2){
       shinyjs::hide(id = "con_3")
-    } 
+    }
+
+    # reset enrichment plots when user starts over again
+    output$go_enrichment<-renderPlot({
+    })
+
+    output$pathway_enrichment<-renderPlot({
+    })
   })
   
   output$condition_1 <- renderUI({
