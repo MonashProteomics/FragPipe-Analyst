@@ -77,7 +77,7 @@ ui <- function(request){shinyUI(
                                        min = 0, max = 100, value = 0),
                           numericInput("p", 
                                        "Adjusted p-value cutoff",
-                                       min = 0.0001, max = 0.1, value = 0.05),
+                                       min = 0.0001, max = 0.1, value = 0.01),
                           numericInput("lfc",
                                        "Log2 fold change cutoff",
                                        min = 0, max = 10, value = 1),
