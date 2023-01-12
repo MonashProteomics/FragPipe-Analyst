@@ -7,12 +7,10 @@ server <- function(input, output, session) {
       updateRadioButtons(session, "imputation",
                          choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
                          selected = "none")
-      updateNumericInput(session, "lfc", value=0.7)
     } else {
       updateRadioButtons(session, "imputation",
                          choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
                          selected = "man")
-      updateNumericInput(session, "lfc", value=1)
     }
   })
 
