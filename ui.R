@@ -85,7 +85,8 @@ ui <- function(request){shinyUI(
                           #               "Paired test", FALSE),
                           radioButtons("imputation",
                                        "Imputation type",
-                                       choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
+                                       choices = c("No imputation"="none", "Perseus-type"="man",
+                                                   "MLE"="MLE", "knn"="knn"),
                                        selected = "man"),
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
@@ -471,7 +472,7 @@ ui <- function(request){shinyUI(
               tabBox(title = "Enrichment", width = 12, height=800,
                      tabPanel(title="Gene Ontology",
                               fluidRow(
-                                column(4,uiOutput("contrast")),
+                                column(4, uiOutput("contrast")),
                                 column(4, selectInput("go_database", "GO database:",
                                                       c("Molecular Function"="GO_Molecular_Function_2021",
                                                         "Cellular Component"="GO_Cellular_Component_2021",
@@ -480,19 +481,19 @@ ui <- function(request){shinyUI(
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
                                                        inline=T,
-                                                       selected = "UP"),
-                                       checkboxInput("go_bg_correction",
-                                                     "Background correction",
-                                                     value = T)),
-                                column(8, actionButton("go_analysis", "Run Enrichment")),
-                                column(4, tags$p("Note: Currently, only human data is supported")),
-                                column(12,
-                                       box(width = 12, uiOutput("spinner_go"), height = 500)
-                                       ),
-                                column(12,
-                                       downloadButton('downloadGO', 'Download Table')
-                                       )
-                                )
+                                                       selected = "UP"))
+                                ),
+                              fluidRow(
+                                column(4, actionButton("go_analysis", "Run Enrichment")),
+                                column(8, tags$p("Note: Currently, only human data is supported"))
+                                ),
+                              fluidRow(
+                                column(12, checkboxInput("go_whole_proteome",
+                                              "Whole proteome as background",
+                                              value = F))
+                                ),
+                              fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
+                              fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
                               ),
                      tabPanel(title= "Pathway enrichment",
                               fluidRow(
@@ -505,19 +506,18 @@ ui <- function(request){shinyUI(
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
                                                        inline = T,
-                                                       selected = "UP"),
-                                       checkboxInput("pathway_bg_correction",
-                                                        "Background correction",
-                                                        value = T)),
-                                column(8, actionButton("pathway_analysis", "Run Enrichment")),
-                                column(4, tags$p("Note: Currently, only human data is supported")),
-                                column(12,
-                                       box(width = 12, uiOutput("spinner_pa"), height = 500)
+                                                       selected = "UP"))
                                 ),
-                                column(12,
-                                       downloadButton('downloadPA', 'Download Table')
-                                )
-                                )
+                              fluidRow(
+                                column(4, actionButton("pathway_analysis", "Run Enrichment")),
+                                column(8, tags$p("Note: Currently, only human data is supported"))
+                                ),
+                              fluidRow(
+                                column(12, checkboxInput("pathway_whole_proteome",
+                                                     "Whole proteome as background",
+                                                     value = F))),
+                              fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),
+                              fluidRow(column(12, downloadButton('downloadPA', 'Download Table')))
                               )
                      ) # Tab box close
             ) # box end

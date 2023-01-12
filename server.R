@@ -953,7 +953,7 @@ server <- function(input, output, session) {
       null_enrichment_test(go_results())
       plot_go <- plot_enrichment(go_results(), number = 10, alpha = 0.05, contrasts = input$contrast,
                                  databases = as.character(input$go_database),
-                                 bg_correction = input$go_bg_correction, nrow = 2, term_size = 8)
+                                 use_whole_proteome = input$go_whole_proteome, nrow = 2, term_size = 8)
       return(plot_go)
     })
   })
@@ -970,7 +970,7 @@ server <- function(input, output, session) {
       null_enrichment_test(pathway_results())
       plot_pathway <-plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
                                      databases = as.character(input$pathway_database),
-                                     bg_correction = input$pathway_bg_correction, nrow = 2, term_size = 8)
+                                     use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
       return(plot_pathway)
     })
   })

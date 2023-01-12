@@ -201,7 +201,7 @@ test_ora_mod <- function(dep,
 #######################################################
 
 plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
-                            contrasts = NULL, databases = NULL,  bg_correction=T,
+                            contrasts = NULL, databases = NULL,  use_whole_proteome=F,
                             nrow = 1, term_size = 8) {
   assertthat::assert_that(is.data.frame(gsea_results),
                           is.numeric(number),
@@ -273,7 +273,7 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   }
   
   # Get top enriched gene sets
-  if (bg_correction) {
+  if (!use_whole_proteome) {
     terms <- gsea_results %>%
       dplyr::group_by(contrast, var) %>%
       dplyr::filter(p.adjust_hyper <= alpha) %>%
@@ -314,7 +314,7 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
     #   theme_bw() +
     #   theme(legend.position = "top", legend.text = element_text(size = 9))
     # )
-    if (bg_correction) {
+    if (!use_whole_proteome) {
       return(ggplot(subset, aes(y = reorder(Term, log_odds), x=log_odds, size=IN, color=p.adjust_hyper)) +
                geom_point() +
                facet_wrap(~contrast, nrow = nrow) +
