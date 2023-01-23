@@ -117,7 +117,7 @@ As you can see, FragPipe-Analyst functionality relies on differential expression
 ### Significant protein filtering criteria
 
 -   Adjusted p-value cutoff: default is **0.05**
--   Log2 fold change cutoff: default is **0.7**
+-   Log2 fold change cutoff: default is **1.0**
 
 ### Missing value imputation options
 
