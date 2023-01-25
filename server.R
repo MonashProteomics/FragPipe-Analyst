@@ -152,7 +152,8 @@ server <- function(input, output, session) {
                     "Choose a dataset to save" ,
                     c("Results","Original_matrix",
                       "Imputed_matrix",
-                      "Full_dataset"))
+                      "Full_dataset",
+                      "RDS_results"))
      }
     })
    
@@ -999,17 +1000,30 @@ server <- function(input, output, session) {
            #   filter(significant) %>%
            #   select(-significant),
            "Imputed_matrix" = imputed_table(),
-           "Full_dataset" = get_df_wide(dep()))
+           "Full_dataset" = get_df_wide(dep()),
+           "RDS_results")
   })
   
   output$downloadData <- downloadHandler(
-    filename = function() { paste(input$dataset, ".csv", sep = "") }, ## use = instead of <-
+    filename = function() { 
+      if (input$dataset != "RDS_results"){
+        paste(input$dataset, ".csv", sep = "") 
+      } else {
+        "RDS_results.rds"
+      }
+      },
+    
     content = function(file) {
-      write.table(datasetInput(),
-                  file,
-                  col.names = TRUE,
-                  row.names = FALSE,
-                  sep =",") }
+      if (input$dataset != "RDS_results"){
+        write.table(datasetInput(),
+                    file,
+                    col.names = TRUE,
+                    row.names = FALSE,
+                    sep =",")
+      } else {
+        saveRDS(dep(), file = file)
+      }
+      }
   )
   
   ### === Cluster Download ==== ####
