@@ -24,8 +24,8 @@ RUN Rscript -e 'BiocManager::install(pkgs=c("ensembldb", "EnsDb.Hsapiens.v86", "
 ### RUN Rscript -e 'install.packages("renv")'
 COPY ./ /srv/shiny-server/fragpipe-analyst
 COPY shiny-server.conf.prod /etc/shiny-server/shiny-server.conf
-### WORKDIR /srv/shiny-server/fragpipe-analyst
-### RUN Rscript -e 'renv::init()' # This is already run and pushed to github.
-### RUN Rscript -e 'renv::restore()'
-### RUN Rscript -e 'renv::isolate()'
+
+### replace google_analytics.html with a new empty file
+WORKDIR /srv/shiny-server/fragpipe-analyst
+RUN rm "google_analytics.html" && touch "google_analytics.html"
 RUN chmod -R +r /srv/shiny-server/fragpipe-analyst
