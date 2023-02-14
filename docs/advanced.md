@@ -1,6 +1,8 @@
 # Advanced Usage
 
 ## How to run GSEA (gene set enrichment analysis) based on result of FragPipe-Analyst?
+(contributed by Quinn J Mattison, quinn-mattison@uiowa.edu)
+
 Here we will continue our TMT tutorial
 
 - Download the DE result (a sample file is available [here](TMT-tutorial/Results.csv))
