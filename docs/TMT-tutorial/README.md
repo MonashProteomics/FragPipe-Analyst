@@ -91,7 +91,9 @@ FragPipe-Analyst provides enrichment analysis for both Gene Ontology(GO) and pat
 
 ![GO](GO_term.png)
 
-1. **Pathway enrichment**: Same algorithm is used as the Gene Ontology part. Pathway database choices are Hallmark, KEGG and Reactome. ![Hallmakr](hallmark.png)
+1. **Pathway enrichment**: Same algorithm is used as the Gene Ontology part. Pathway database choices are Hallmark, KEGG and Reactome.
+
+![Hallmakr](hallmark.png)
 
 ## Result table
 
