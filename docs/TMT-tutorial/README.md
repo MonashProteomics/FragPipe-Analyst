@@ -46,7 +46,8 @@ After you understand the input, you could upload those two files (`ccRCC_prot_ab
 
 ![heatmap](heatmap.png)
 
-3. **Protein plot**: Selecting a gene from the 'Results Table', A box plot or a violin plot will be shown comparing expression of that gene between conditions. 
+3. **Protein plot**: Selecting a gene from the 'Results Table', A box plot or a violin plot will be shown comparing expression of that gene between conditions.
+
 ![boxplot](boxplot.png)
 
 ## QC Plots (Bottom Left Panel)
@@ -59,19 +60,27 @@ After you understand the input, you could upload those two files (`ccRCC_prot_ab
     After PCA analysis with our sample data, samples are presented in the scatter plot below. Tumor and Normal samples are well separated by PC1 values. 
     
 ![PCA\_plot](PCA_condition.png)
+
 2. **Sample Correlation Plot**: A correlation matrix is plotted as a
     heatmap to visualize the Pearson correlation coefficients between
     the different samples.
+
 ![sample_correlation](sample_correlation.png)
-3. **Sample CVs Plots**: A plot representing distribution of protein level coefficient of variation for each condition. Each plot also contains a vertical line representing median CVs percentage within that condition. ![cv\_plot](CV.png)
+
+3. **Sample CVs Plots**: A plot representing distribution of protein level coefficient of variation for each condition. Each plot also contains a vertical line representing median CVs percentage within that condition.
+
+![cv\_plot](CV.png)
+
 4. **Protein Numbers**: A bar-plot representing number of proteins
     identified and quantified in each TMT plex.
+
 ![proteins](protein_number.png)
 
 5. **Missing values- Heatmap**: To explore the pattern of missing
     values in the data, a heatmap is plotted indicating whether values
     are missing (0) or not (1). Only proteins with at least one missing
-    value are visualized. 
+    value are visualized.
+
 ![missing\_heatmap](missing_value.png)
 
 ## Enrichment Analysis (Bottom Right Panel)
@@ -79,6 +88,7 @@ After you understand the input, you could upload those two files (`ccRCC_prot_ab
 FragPipe-Analyst provides enrichment analysis for both Gene Ontology(GO) and pathways.
 
 1. **GO**: Selecting the comparison of interest, the GO database (Molecular Function/Cellular Component/Biological Process), and direction (up regulated or down regulated). It checks the differentially expressed (DE) list of genes against known sets of genes. The background gene list is composed with IDs appeared in the input data. A hypergeometric test is performed. Log odds ratio (log_odds) is calculated as `log2((IN/OUT)/(bg_IN/bg_OUT))`, where IN and OUT are the number of DE genes in and outside of a gene set of interest, and bg_IN and bg_OUT are the nubmer of other genes in and outside of a gene set of interest. Gene sets used are fetched from the [Enrichr](https://maayanlab.cloud/Enrichr/) API
+
 ![GO](GO_term.png)
 
 1. **Pathway enrichment**: Same algorithm is used as the Gene Ontology part. Pathway database choices are Hallmark, KEGG and Reactome. ![Hallmakr](hallmark.png)
