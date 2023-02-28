@@ -493,43 +493,6 @@ ui <- function(request){shinyUI(
           box(
             width=6,
               tabBox(title = "Enrichment", width = 12, height=800,
-                     tabPanel(title="Gene Ontology",
-                              fluidRow(
-                                column(4, uiOutput("contrast")),
-                                column(4, selectInput("go_database", "GO database:",
-                                                      c("Molecular Function"="GO_Molecular_Function_2021",
-                                                        "Cellular Component"="GO_Cellular_Component_2021",
-                                                        "Biological Process"="GO_Biological_Process_2021"))),
-                                column(3, radioButtons("go_direction",
-                                                       "Direction",
-                                                       choices = c("Up"="UP", "Down"="DOWN"),
-                                                       inline=T,
-                                                       selected = "UP")),
-                                column(1, shinyWidgets::dropdownButton(
-                                  circle = TRUE, status = "default", right = T,
-                                  icon = icon("gear"), width = "300px",
-                                  numericInput("p_go",
-                                               "DE adjusted p-value cutoff",
-                                               min = 0, max = 1, value = 0.01),
-                                  numericInput("lfc_go",
-                                               "DE log2 fold change cutoff",
-                                               min = 0, max = 10, value = 1),
-                                  checkboxInput("go_adjust",
-                                                "Use adjusted p-value",
-                                                value = F),
-                                  checkboxInput("go_whole_proteome",
-                                                "Whole proteome as background",
-                                                value = T),
-                                  tooltip = tooltipOptions(title = "customized settings")
-                                ))
-                                ),
-                              fluidRow(
-                                column(4, actionButton("go_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human data is supported"))
-                              ),
-                              fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
-                              fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
-                              ),
                      tabPanel(title= "Pathway enrichment",
                               fluidRow(
                                 column(4,uiOutput("contrast_1")),
@@ -557,15 +520,52 @@ ui <- function(request){shinyUI(
                                   checkboxInput("pathway_whole_proteome",
                                                 "Whole proteome as background",
                                                 value = T),
-                                  tooltip = tooltipOptions(title = "customized settings")
-                                ),
+                                  tooltip = tooltipOptions(title = "customize settings"))
+                                )
+                              ),
                               fluidRow(
                                 column(4, actionButton("pathway_analysis", "Run Enrichment")),
                                 column(6, tags$p("Note: Currently, only human data is supported"))
-                                ))
-                                ),
+                              ),
                               fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadPA', 'Download Table')))
+                     ),
+                     tabPanel(title="Gene Ontology",
+                              fluidRow(
+                                column(4, uiOutput("contrast")),
+                                column(4, selectInput("go_database", "GO database:",
+                                                      c("Molecular Function"="GO_Molecular_Function_2021",
+                                                        "Cellular Component"="GO_Cellular_Component_2021",
+                                                        "Biological Process"="GO_Biological_Process_2021"))),
+                                column(3, radioButtons("go_direction",
+                                                       "Direction",
+                                                       choices = c("Up"="UP", "Down"="DOWN"),
+                                                       inline=T,
+                                                       selected = "UP")),
+                                column(1, shinyWidgets::dropdownButton(
+                                  circle = TRUE, status = "default", right = T,
+                                  icon = icon("gear"), width = "300px",
+                                  numericInput("p_go",
+                                               "DE adjusted p-value cutoff",
+                                               min = 0, max = 1, value = 0.01),
+                                  numericInput("lfc_go",
+                                               "DE log2 fold change cutoff",
+                                               min = 0, max = 10, value = 1),
+                                  checkboxInput("go_adjust",
+                                                "Use adjusted p-value",
+                                                value = F),
+                                  checkboxInput("go_whole_proteome",
+                                                "Whole proteome as background",
+                                                value = T),
+                                  tooltip = tooltipOptions(title = "customize settings")
+                                ))
+                                ),
+                              fluidRow(
+                                column(4, actionButton("go_analysis", "Run Enrichment")),
+                                column(6, tags$p("Note: Currently, only human data is supported"))
+                              ),
+                              fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
+                              fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
                               )
                      ) # Tab box close
             ) # box end
