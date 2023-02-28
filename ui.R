@@ -500,29 +500,32 @@ ui <- function(request){shinyUI(
                                                       c("Molecular Function"="GO_Molecular_Function_2021",
                                                         "Cellular Component"="GO_Cellular_Component_2021",
                                                         "Biological Process"="GO_Biological_Process_2021"))),
-                                column(4, radioButtons("go_direction",
+                                column(3, radioButtons("go_direction",
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
                                                        inline=T,
-                                                       selected = "UP"))
-                                ),
-                              fluidRow(
-                                column(4, actionButton("go_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human data is supported")),
-                                column(2, shinyWidgets::dropdownButton(
-                                  circle = TRUE, status = "danger", right = T,
+                                                       selected = "UP")),
+                                column(1, shinyWidgets::dropdownButton(
+                                  circle = TRUE, status = "default", right = T,
                                   icon = icon("gear"), width = "300px",
                                   numericInput("p_go",
-                                               "adjusted p-value cutoff",
-                                               min = 0.0001, max = 0.1, value = 0.01),
+                                               "DE adjusted p-value cutoff",
+                                               min = 0, max = 1, value = 0.01),
                                   numericInput("lfc_go",
-                                               "log2 fold change cutoff",
+                                               "DE log2 fold change cutoff",
                                                min = 0, max = 10, value = 1),
+                                  checkboxInput("go_adjust",
+                                                "Use adjusted p-value",
+                                                value = F),
                                   checkboxInput("go_whole_proteome",
                                                 "Whole proteome as background",
                                                 value = T),
                                   tooltip = tooltipOptions(title = "customized settings")
                                 ))
+                                ),
+                              fluidRow(
+                                column(4, actionButton("go_analysis", "Run Enrichment")),
+                                column(6, tags$p("Note: Currently, only human data is supported"))
                               ),
                               fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
@@ -534,28 +537,31 @@ ui <- function(request){shinyUI(
                                                       c("Hallmark"="MSigDB_Hallmark_2020",
                                                         "KEGG"="KEGG_2021_Human",
                                                         "Reactome"="Reactome_2022"))),
-                                column(4, radioButtons("pathway_direction",
+                                column(3, radioButtons("pathway_direction",
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
                                                        inline = T,
-                                                       selected = "UP"))
-                                ),
-                              fluidRow(
-                                column(4, actionButton("pathway_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human data is supported")),
-                                column(2, shinyWidgets::dropdownButton(
-                                  circle = TRUE, status = "danger", right = T,
+                                                       selected = "UP")),
+                                column(1, shinyWidgets::dropdownButton(
+                                  circle = TRUE, status = "default", right = T,
                                   icon = icon("gear"), width = "300px",
                                   numericInput("p_path",
-                                               "adjusted p-value cutoff",
-                                               min = 0.0001, max = 0.1, value = 0.01),
+                                               "DE adjusted p-value cutoff",
+                                               min = 0, max = 1, value = 0.01),
                                   numericInput("lfc_path",
-                                               "customized log2 fold change cutoff",
+                                               "DE log2 fold change cutoff",
                                                min = 0, max = 10, value = 1),
+                                  checkboxInput("path_adjust",
+                                                "Use adjusted p-value",
+                                                value = F),
                                   checkboxInput("pathway_whole_proteome",
                                                 "Whole proteome as background",
                                                 value = T),
                                   tooltip = tooltipOptions(title = "customized settings")
+                                ),
+                              fluidRow(
+                                column(4, actionButton("pathway_analysis", "Run Enrichment")),
+                                column(6, tags$p("Note: Currently, only human data is supported"))
                                 ))
                                 ),
                               fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),

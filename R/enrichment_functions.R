@@ -118,7 +118,7 @@ test_ora_mod <- function(dep,
       message(gsub("_significant", "", contrast))
       # contrast column might have NA
       df[is.na(df[[contrast]]),contrast] <- F
-      significant <- df[df[[contrast]],]
+      significant <- df
       if (direction == "UP"){
         significant <- significant[(significant[gsub("_significant", "_diff", contrast)] > log2_threshold),]
       } else if (direction == "DOWN") {
@@ -126,6 +126,7 @@ test_ora_mod <- function(dep,
       }
       significant <- significant[significant[gsub("_significant", "_p.adj", contrast)] < alpha,]
       genes <- significant$name
+      message(paste0(length(genes), " genes are submitted"))
       if (length(genes) != 0){
         enriched <- enrichr_mod(genes, databases)
         # print(colnames(enriched[["KEGG_2021_Human"]]))
@@ -201,7 +202,7 @@ test_ora_mod <- function(dep,
 #######################################################
 
 plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
-                            contrasts = NULL, databases = NULL,  use_whole_proteome=F,
+                            contrasts = NULL, databases = NULL,  adjust=F, use_whole_proteome=F,
                             nrow = 1, term_size = 8) {
   assertthat::assert_that(is.data.frame(gsea_results),
                           is.numeric(number),
@@ -274,25 +275,49 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   
   # Get top enriched gene sets
   if (!use_whole_proteome) {
-    terms <- gsea_results %>%
-      dplyr::group_by(contrast, var) %>%
-      dplyr::filter(p.adjust_hyper <= alpha) %>%
-      dplyr::arrange(p.adjust_hyper) %>%
-      dplyr::slice(seq_len(number)) %>%
-      .$Term
-    subset <- gsea_results %>%
-      dplyr::filter(Term %in% terms) %>%
-      dplyr::arrange(var, p.adjust_hyper)
+    if (adjust) {
+      terms <- gsea_results %>%
+        dplyr::group_by(contrast, var) %>%
+        dplyr::filter(p.adjust_hyper <= alpha) %>%
+        dplyr::arrange(p.adjust_hyper) %>%
+        dplyr::slice(seq_len(number)) %>%
+        .$Term
+      subset <- gsea_results %>%
+        dplyr::filter(Term %in% terms) %>%
+        dplyr::arrange(var, p.adjust_hyper)
+    } else {
+      terms <- gsea_results %>%
+        dplyr::group_by(contrast, var) %>%
+        dplyr::filter(p_hyper <= alpha) %>%
+        dplyr::arrange(p_hyper) %>%
+        dplyr::slice(seq_len(number)) %>%
+        .$Term
+      subset <- gsea_results %>%
+        dplyr::filter(Term %in% terms) %>%
+        dplyr::arrange(var, p_hyper)
+    }
   } else {
-    terms <- gsea_results %>%
-      dplyr::group_by(contrast, var) %>%
-      dplyr::filter(Adjusted.P.value <= alpha) %>%
-      dplyr::arrange(Adjusted.P.value) %>%
-      dplyr::slice(seq_len(number)) %>%
-      .$Term
-    subset <- gsea_results %>%
-      dplyr::filter(Term %in% terms) %>%
-      dplyr::arrange(var, Adjusted.P.value)
+    if (adjust) {
+      terms <- gsea_results %>%
+        dplyr::group_by(contrast, var) %>%
+        dplyr::filter(Adjusted.P.value <= alpha) %>%
+        dplyr::arrange(Adjusted.P.value) %>%
+        dplyr::slice(seq_len(number)) %>%
+        .$Term
+      subset <- gsea_results %>%
+        dplyr::filter(Term %in% terms) %>%
+        dplyr::arrange(var, Adjusted.P.value)
+    } else {
+      terms <- gsea_results %>%
+        dplyr::group_by(contrast, var) %>%
+        dplyr::filter(P.value <= alpha) %>%
+        dplyr::arrange(P.value) %>%
+        dplyr::slice(seq_len(number)) %>%
+        .$Term
+      subset <- gsea_results %>%
+        dplyr::filter(Term %in% terms) %>%
+        dplyr::arrange(var, P.value)
+    }
   }
   subset$Term <- readr::parse_factor(subset$Term, levels = unique(subset$Term))
   subset$var <- readr::parse_factor(subset$var, levels = unique(subset$var))
@@ -315,27 +340,53 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
     #   theme(legend.position = "top", legend.text = element_text(size = 9))
     # )
     if (!use_whole_proteome) {
-      return(ggplot(subset, aes(y = reorder(Term, log_odds), x=log_odds, size=IN, color=p.adjust_hyper)) +
-               geom_point() +
-               facet_wrap(~contrast, nrow = nrow) +
-               scale_color_continuous(low="red", high="blue", name = "p.adjust",
-                                      guide=guide_colorbar(reverse=T,
-                                                           label.theme = element_text(angle = 90),
-                                                           label.vjust = 0.5)) +
-               labs(y = "Term", x = "log2 Odds ratio", size = "size") +
-               theme_bw() +
-               theme(legend.position = "top", legend.text = element_text(size = 9)))
+      if (adjust){
+        return(ggplot(subset, aes(y = reorder(Term, log_odds), x=log_odds, size=IN, color=p.adjust_hyper)) +
+                 geom_point() +
+                 facet_wrap(~contrast, nrow = nrow) +
+                 scale_color_continuous(low="red", high="blue", name = "p.adjust",
+                                        guide=guide_colorbar(reverse=T,
+                                                             label.theme = element_text(angle = 90),
+                                                             label.vjust = 0.5)) +
+                 labs(y = "Term", x = "log2 Odds ratio", size = "size") +
+                 theme_bw() +
+                 theme(legend.position = "top", legend.text = element_text(size = 9)))
+      } else {
+        return(ggplot(subset, aes(y = reorder(Term, log_odds), x=log_odds, size=IN, color=p_hyper)) +
+                 geom_point() +
+                 facet_wrap(~contrast, nrow = nrow) +
+                 scale_color_continuous(low="red", high="blue", name = "p",
+                                        guide=guide_colorbar(reverse=T,
+                                                             label.theme = element_text(angle = 90),
+                                                             label.vjust = 0.5)) +
+                 labs(y = "Term", x = "log2 Odds ratio", size = "size") +
+                 theme_bw() +
+                 theme(legend.position = "top", legend.text = element_text(size = 9)))
+      }
     } else {
-      return(ggplot(subset, aes(y = reorder(Term, Odds.Ratio), x=log2(Odds.Ratio), size=IN, color=Adjusted.P.value)) +
-               geom_point() +
-               facet_wrap(~contrast, nrow = nrow) +
-               scale_color_continuous(low="red", high="blue", name = "Adjusted.P.value",
-                                      guide=guide_colorbar(reverse=T,
-                                                           label.theme = element_text(angle = 90),
-                                                           label.vjust = 0.5)) +
-               labs(y = "Term", x = "log2 Odds ratio", size = "size") +
-               theme_bw() +
-               theme(legend.position = "top", legend.text = element_text(size = 9)))
+      if (adjust){
+        return(ggplot(subset, aes(y = reorder(Term, Odds.Ratio), x=log2(Odds.Ratio), size=IN, color=Adjusted.P.value)) +
+                 geom_point() +
+                 facet_wrap(~contrast, nrow = nrow) +
+                 scale_color_continuous(low="red", high="blue", name = "Adjusted.P.value",
+                                        guide=guide_colorbar(reverse=T,
+                                                             label.theme = element_text(angle = 90),
+                                                             label.vjust = 0.5)) +
+                 labs(y = "Term", x = "log2 Odds ratio", size = "size") +
+                 theme_bw() +
+                 theme(legend.position = "top", legend.text = element_text(size = 9)))
+      } else {
+        return(ggplot(subset, aes(y = reorder(Term, Odds.Ratio), x=log2(Odds.Ratio), size=IN, color=P.value)) +
+                 geom_point() +
+                 facet_wrap(~contrast, nrow = nrow) +
+                 scale_color_continuous(low="red", high="blue", name = "P.value",
+                                        guide=guide_colorbar(reverse=T,
+                                                             label.theme = element_text(angle = 90),
+                                                             label.vjust = 0.5)) +
+                 labs(y = "Term", x = "log2 Odds ratio", size = "size") +
+                 theme_bw() +
+                 theme(legend.position = "top", legend.text = element_text(size = 9)))
+      }
     }
   }
 }
