@@ -520,7 +520,8 @@ ui <- function(request){shinyUI(
                                   checkboxInput("pathway_whole_proteome",
                                                 "Whole proteome as background",
                                                 value = T),
-                                  tooltip = tooltipOptions(title = "customize settings"))
+                                  tooltip = tooltipOptions(placement="left",
+                                                           title = "customize settings"))
                                 )
                               ),
                               fluidRow(
@@ -557,7 +558,8 @@ ui <- function(request){shinyUI(
                                   checkboxInput("go_whole_proteome",
                                                 "Whole proteome as background",
                                                 value = T),
-                                  tooltip = tooltipOptions(title = "customize settings")
+                                  tooltip = tooltipOptions(placement="left",
+                                                           title = "customize settings")
                                 ))
                                 ),
                               fluidRow(
