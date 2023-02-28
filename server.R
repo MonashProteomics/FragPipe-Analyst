@@ -14,6 +14,16 @@ server <- function(input, output, session) {
     }
   })
 
+  observeEvent(input$lfc, {
+    updateNumericInput(session, "lfc_go", value=input$lfc)
+    updateNumericInput(session, "lfc_path", value=input$lfc)
+  })
+
+  observeEvent(input$p, {
+    updateNumericInput(session, "p_go", value=input$p)
+    updateNumericInput(session, "p_path", value=input$p)
+  })
+
   #  Show elements on clicking Start analysis button
   observeEvent(start_analysis(),{
     if(input$analyze==0 | !start_analysis()){
