@@ -505,7 +505,11 @@ server <- function(input, output, session) {
    normalised_data<-reactive({
      if (input$exp == "LFQ" | input$exp == "DIA") {
        if (input$normalization == "vsn") {
-         return(normalize_vsn(filtered_data()))
+         if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+           return(filtered_data())
+         } else {
+           return(normalize_vsn(filtered_data()))
+         }
        }
      }
      return(filtered_data())
@@ -534,6 +538,10 @@ server <- function(input, output, session) {
    })
    
    diff_all<-reactive({
+     data <- imputed_data()
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       assay(data) <- log2(assay(data))
+     }
      test_diff_customized(imputed_data(), type = "all")
    })
 
@@ -541,10 +549,14 @@ server <- function(input, output, session) {
      # TODO: test_limma for paired samples
      # diff_all <- test_diff_customized(imputed_data(), type = "manual",
      #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
+     data <- imputed_data()
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       assay(data) <- log2(assay(data))
+     }
      if(input$fdr_correction=="BH"){
-       diff_all <- test_limma_customized(imputed_data(), type='all', paired = F)
+       diff_all <- test_limma_customized(data, type='all', paired = F)
      } else { # t-statistics-based
-       diff_all <- test_diff_customized(imputed_data(), type = "all")
+       diff_all <- test_diff_customized(data, type = "all")
      }
      add_rejections_customized(diff_all, alpha = input$p, lfc= input$lfc)
    })
