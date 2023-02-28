@@ -574,23 +574,33 @@ server <- function(input, output, session) {
 
    ## Results plot inputs
    ## PCA Plot
-   pca_input<-eventReactive(input$analyze ,{ 
+   pca_input<-eventReactive({
+     input$analyze
+     input$pca_imputed
+     },{
      if(input$analyze==0 | !start_analysis()){
        return()
      }
      ID_col <- "label"
-     if (num_total()<=500){
-       if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
-         pca_plot<- plot_pca_plotly(dep(), n=num_total(), ID_col=ID_col, exp=input$exp)
+     if (input$pca_imputed) {
+       data <- imputed_data()
+       num_total <- num_total()
+     } else {
+       data <- normalised_data()
+       num_total <- num_total_origin()
+     }
+     if (num_total<=500){
+       if(length(levels(as.factor(colData(data)$replicate))) <= 6){
+         pca_plot<- plot_pca_plotly(data, n=num_total, ID_col=ID_col, exp=input$exp)
        } else{
-           pca_plot<- plot_pca_plotly(dep(), n=num_total(), indicate = "condition", ID_col=ID_col, exp=input$exp)
+           pca_plot<- plot_pca_plotly(data, n=num_total, indicate = "condition", ID_col=ID_col, exp=input$exp)
        }
      } else {
-         if(length(levels(as.factor(colData(dep())$replicate))) <= 6){
-           pca_plot<- plot_pca_plotly(dep(), ID_col=ID_col, exp=input$exp)
+         if(length(levels(as.factor(colData(data)$replicate))) <= 6){
+           pca_plot<- plot_pca_plotly(data, ID_col=ID_col, exp=input$exp)
          }
          else{
-           pca_plot<-plot_pca_plotly(dep(), indicate = "condition", ID_col=ID_col, exp=input$exp)
+           pca_plot<-plot_pca_plotly(data, indicate = "condition", ID_col=ID_col, exp=input$exp)
          }
      }
      return(pca_plot)
@@ -756,18 +766,30 @@ server <- function(input, output, session) {
      plot_coverage(filtered_data())
    })
    
-   correlation_input<-reactive({
-     plot_cor_customized(dep(), significant=FALSE, indicate="condition", exp=input$exp)
+   correlation_input<- eventReactive({
+     input$analyze
+     input$cor_imputed
+   },{
+     if (input$cor_imputed) {
+       data <- dep()
+     } else {
+       data <- normalised_data()
+     }
+     return(plot_cor_customized(data, significant=FALSE, indicate="condition", exp=input$exp))
    })
    
    cvs_input<-reactive({
      plot_cvs(dep(), id="label", scale=!input$cvs_full_range, check.names=F)
    })
    
-   num_total<-reactive({
+   num_total <- reactive({
      dep() %>%
        nrow()
-   }) 
+   })
+
+   num_total_origin <- reactive({
+     normalised_data() %>% nrow()
+   })
    
    ## Enrichment inputs
    go_results <-eventReactive(input$go_analysis,{

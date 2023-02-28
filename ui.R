@@ -429,11 +429,21 @@ ui <- function(request){shinyUI(
           box(width = 6,
               tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=800,
                      tabPanel(title = "PCA Plot",
-                              shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc")
+                              fluidRow(box(checkboxInput("pca_imputed",
+                                                "Show imputed version",
+                                                value = F),
+                                  width = 6
+                              )),
+                              fluidRow(shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc"))
                               ),
                      tabPanel(title="Sample Correlation",
-                              shinycssloaders::withSpinner(plotOutput("sample_corr", height = 600), color = "#3c8dbc"),
-                              downloadButton('download_corr_svg', "Save svg")
+                              fluidRow(box(checkboxInput("cor_imputed",
+                                                         "Show imputed version",
+                                                         value = F),
+                                           width = 6
+                              )),
+                              fluidRow(shinycssloaders::withSpinner(plotOutput("sample_corr", height = 600), color = "#3c8dbc")),
+                              fluidRow(downloadButton('download_corr_svg', "Save svg"))
                               ),
                      tabPanel(title= "Sample CVs",
                               fluidRow(
