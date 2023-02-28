@@ -931,7 +931,7 @@ server <- function(input, output, session) {
   })
  
   output$volcano <- renderPlot({
-    withProgress(message = 'Volcano Plot calculations are in progress',
+    withProgress(message = 'Volcano plot calculations are in progress',
                  detail = 'Please wait for a while', value = 0, {
                    for (i in 1:15) {
                      incProgress(1/15)
