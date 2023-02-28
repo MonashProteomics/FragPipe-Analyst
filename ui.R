@@ -83,6 +83,12 @@ ui <- function(request){shinyUI(
                                        min = 0, max = 10, value = 1),
                           # checkboxInput("paired",
                           #               "Paired test", FALSE),
+                          radioButtons("normalization",
+                                       "Normalization type",
+                                       choices = c("No normalization"="none",
+                                                   "Variance stabilizing normalization (LFQ and DIA only)"="vsn"
+                                                   #, "Median centered"="MD"
+                                                   ), selected = "none"),
                           radioButtons("imputation",
                                        "Imputation type",
                                        choices = c("No imputation"="none", "Perseus-type"="man",
@@ -93,6 +99,8 @@ ui <- function(request){shinyUI(
                                        choices =  c("Benjamini Hochberg"="BH",
                                                     "Local and tail area-based"="fdrtool"
                                        ), selected= "BH")
+                          # checkboxInput("s",
+                          #               "Paired test", FALSE),
                           # numericInput("k_number",
                           #              "Number of clusters in heatmap",
                           #              min = 1, max = 10, value = 3)
@@ -429,11 +437,14 @@ ui <- function(request){shinyUI(
           box(width = 6,
               tabBox(title = "QC Plots", width = 12, id="qc_tabBox", height=800,
                      tabPanel(title = "PCA Plot",
-                              fluidRow(box(checkboxInput("pca_imputed",
+                              fluidRow(
+                                column(6, checkboxInput("pca_imputed",
                                                 "Show imputed version",
-                                                value = F),
-                                  width = 6
-                              )),
+                                                value = F)),
+                                column(6, checkboxInput("pca_scale",
+                                                        "Show scaled version",
+                                                        value = T))
+                              ),
                               fluidRow(shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc"))
                               ),
                      tabPanel(title="Sample Correlation",
@@ -502,19 +513,17 @@ ui <- function(request){shinyUI(
                                   circle = TRUE, status = "danger", right = T,
                                   icon = icon("gear"), width = "300px",
                                   numericInput("p_go",
-                                               "customized adjusted p-value cutoff",
+                                               "adjusted p-value cutoff",
                                                min = 0.0001, max = 0.1, value = 0.01),
                                   numericInput("lfc_go",
-                                               "customized log2 fold change cutoff",
+                                               "log2 fold change cutoff",
                                                min = 0, max = 10, value = 1),
-                                  tooltip = tooltipOptions(title = "customized the cutoffs")
+                                  checkboxInput("go_whole_proteome",
+                                                "Whole proteome as background",
+                                                value = T),
+                                  tooltip = tooltipOptions(title = "customized settings")
                                 ))
                               ),
-                              fluidRow(
-                                column(12, checkboxInput("go_whole_proteome",
-                                              "Whole proteome as background",
-                                              value = F))
-                                ),
                               fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
                               ),
@@ -538,18 +547,17 @@ ui <- function(request){shinyUI(
                                   circle = TRUE, status = "danger", right = T,
                                   icon = icon("gear"), width = "300px",
                                   numericInput("p_path",
-                                               "customized adjusted p-value cutoff",
+                                               "adjusted p-value cutoff",
                                                min = 0.0001, max = 0.1, value = 0.01),
                                   numericInput("lfc_path",
                                                "customized log2 fold change cutoff",
                                                min = 0, max = 10, value = 1),
-                                  tooltip = tooltipOptions(title = "customized the cutoffs")
+                                  checkboxInput("pathway_whole_proteome",
+                                                "Whole proteome as background",
+                                                value = T),
+                                  tooltip = tooltipOptions(title = "customized settings")
                                 ))
                                 ),
-                              fluidRow(
-                                column(12, checkboxInput("pathway_whole_proteome",
-                                                     "Whole proteome as background",
-                                                     value = F))),
                               fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadPA', 'Download Table')))
                               )

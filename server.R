@@ -36,12 +36,9 @@ server <- function(input, output, session) {
   observeEvent(start_analysis() ,{
     if (input$exp == "LFQ"){
       exp <- exp_design_input()
-      # Hide LFQ page if only have one replicate in each sample
       if (all(is.na(exp$replicate))) {
         showTab(inputId = "tab_panels", target = "quantification_panel")
         updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-      } else if (max(exp$replicate)==1){
-        hideTab(inputId = "tab_panels", target = "quantification_panel")
       } else {
         showTab(inputId = "tab_panels", target = "quantification_panel")
         showTab(inputId="qc_tabBox", target="sample_coverage_tab")
@@ -506,9 +503,11 @@ server <- function(input, output, session) {
    })
    
    normalised_data<-reactive({
-     # if (input$exp == "LFQ") {
-     #   return(normalize_vsn(filtered_data()))
-     # }
+     if (input$exp == "LFQ" | input$exp == "DIA") {
+       if (input$normalization == "vsn") {
+         return(normalize_vsn(filtered_data()))
+       }
+     }
      return(filtered_data())
    })
    
@@ -577,6 +576,7 @@ server <- function(input, output, session) {
    pca_input<-eventReactive({
      input$analyze
      input$pca_imputed
+     input$pca_scale
      },{
      if(input$analyze==0 | !start_analysis()){
        return()
@@ -591,16 +591,16 @@ server <- function(input, output, session) {
      }
      if (num_total<=500){
        if(length(levels(as.factor(colData(data)$replicate))) <= 6){
-         pca_plot<- plot_pca_plotly(data, n=num_total, ID_col=ID_col, exp=input$exp)
+         pca_plot<- plot_pca_plotly(data, n=num_total, ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
        } else{
-           pca_plot<- plot_pca_plotly(data, n=num_total, indicate = "condition", ID_col=ID_col, exp=input$exp)
+           pca_plot<- plot_pca_plotly(data, n=num_total, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
        }
      } else {
          if(length(levels(as.factor(colData(data)$replicate))) <= 6){
-           pca_plot<- plot_pca_plotly(data, ID_col=ID_col, exp=input$exp)
+           pca_plot<- plot_pca_plotly(data, ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
          }
          else{
-           pca_plot<-plot_pca_plotly(data, indicate = "condition", ID_col=ID_col, exp=input$exp)
+           pca_plot<-plot_pca_plotly(data, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
          }
      }
      return(pca_plot)

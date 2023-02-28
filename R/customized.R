@@ -555,7 +555,7 @@ get_results_customized <- function(dep) {
 }
 
 plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replicate"),
-                    label = FALSE, n = 500, point_size = 8, label_size = 3, plot = TRUE, ID_col="ID", exp="LFQ") {
+                    label = FALSE, n = 500, point_size = 8, label_size = 3, plot = TRUE, ID_col="ID", exp="LFQ", scale=F) {
   if(is.integer(x)) x <- as.numeric(x)
   if(is.integer(y)) y <- as.numeric(y)
   if(is.integer(n)) n <- as.numeric(n)
@@ -621,7 +621,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
   }
   
   # Calculate PCA
-  pca <- prcomp(t(df), scale = FALSE)
+  pca <- prcomp(t(df), scale = scale)
   pca_df <- pca$x %>%
     data.frame() %>%
     rownames_to_column() %>%
@@ -877,7 +877,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
 #' plot_pca(dep, indicate = "condition")
 #' @export
 plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "replicate"),
-                     label = FALSE, n = 500, point_size = 4, label_size = 3, plot = TRUE, ID_col="ID") {
+                     label = FALSE, n = 500, point_size = 4, label_size = 3, plot = TRUE, ID_col="ID", scale=F) {
   if(is.integer(x)) x <- as.numeric(x)
   if(is.integer(y)) y <- as.numeric(y)
   if(is.integer(n)) n <- as.numeric(n)
@@ -942,7 +942,7 @@ plot_pca_customized <- function(dep, x = 1, y = 2, indicate = c("condition", "re
   }
   
   # Calculate PCA
-  pca <- prcomp(t(df), scale = FALSE)
+  pca <- prcomp(t(df), scale = scale)
   pca_df <- pca$x %>%
     data.frame() %>%
     rownames_to_column() %>%
