@@ -120,6 +120,8 @@ ui <- function(request){shinyUI(
     
     dashboardBody(
       useShinyjs(), #imp to use shinyjs functions
+
+      # comment out when testing on local
       tags$head(includeHTML(("google_analytics.html"))),
      
       tags$head(
@@ -485,8 +487,19 @@ ui <- function(request){shinyUI(
                                 ),
                               fluidRow(
                                 column(4, actionButton("go_analysis", "Run Enrichment")),
-                                column(8, tags$p("Note: Currently, only human data is supported"))
-                                ),
+                                column(6, tags$p("Note: Currently, only human data is supported")),
+                                column(2, shinyWidgets::dropdownButton(
+                                  circle = TRUE, status = "danger", right = T,
+                                  icon = icon("gear"), width = "300px",
+                                  numericInput("p_go",
+                                               "customized adjusted p-value cutoff",
+                                               min = 0.0001, max = 0.1, value = 0.01),
+                                  numericInput("lfc_go",
+                                               "customized log2 fold change cutoff",
+                                               min = 0, max = 10, value = 1),
+                                  tooltip = tooltipOptions(title = "customized the cutoffs")
+                                ))
+                              ),
                               fluidRow(
                                 column(12, checkboxInput("go_whole_proteome",
                                               "Whole proteome as background",
@@ -510,7 +523,18 @@ ui <- function(request){shinyUI(
                                 ),
                               fluidRow(
                                 column(4, actionButton("pathway_analysis", "Run Enrichment")),
-                                column(8, tags$p("Note: Currently, only human data is supported"))
+                                column(6, tags$p("Note: Currently, only human data is supported")),
+                                column(2, shinyWidgets::dropdownButton(
+                                  circle = TRUE, status = "danger", right = T,
+                                  icon = icon("gear"), width = "300px",
+                                  numericInput("p_path",
+                                               "customized adjusted p-value cutoff",
+                                               min = 0.0001, max = 0.1, value = 0.01),
+                                  numericInput("lfc_path",
+                                               "customized log2 fold change cutoff",
+                                               min = 0, max = 10, value = 1),
+                                  tooltip = tooltipOptions(title = "customized the cutoffs")
+                                ))
                                 ),
                               fluidRow(
                                 column(12, checkboxInput("pathway_whole_proteome",

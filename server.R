@@ -14,6 +14,16 @@ server <- function(input, output, session) {
     }
   })
 
+  observeEvent(input$lfc, {
+    updateNumericInput(session, "lfc_go", value=input$lfc)
+    updateNumericInput(session, "lfc_path", value=input$lfc)
+  })
+
+  observeEvent(input$p, {
+    updateNumericInput(session, "p_go", value=input$p)
+    updateNumericInput(session, "p_path", value=input$p)
+  })
+
   #  Show elements on clicking Start analysis button
   observeEvent(start_analysis(),{
     if(input$analyze==0 | !start_analysis()){
@@ -764,14 +774,14 @@ server <- function(input, output, session) {
      progress_indicator('Gene ontology enrichment is running....')
     if(!is.null(input$contrast)){
       return(test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
-                                 direction = input$go_direction, log2_threshold = input$lfc, alpha = input$p))
+                                 direction = input$go_direction, log2_threshold = input$lfc_go, alpha = input$p_go))
     }
    })
 
    pathway_results <-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
      return(test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
-                                     direction = input$pathway_direction, log2_threshold = input$lfc, alpha = input$p))
+                                     direction = input$pathway_direction, log2_threshold = input$lfc_path, alpha = input$p_path))
    })
 
    #### Interactive UI
