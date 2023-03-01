@@ -490,11 +490,11 @@ server <- function(input, output, session) {
    })
    
    unimputed_table<-reactive({
-     temp<-assay(filtered_data())
+     temp1 <-assay(filtered_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
-       colnames(temp1)<-paste(colnames(temp1),"original_spectral_count",sep="_")
+       colnames(temp1) <- paste(colnames(temp1), "original_spectral_count", sep="_")
      } else {
-       colnames(temp1)<-paste(colnames(temp1),"original_intensity",sep="_")
+       colnames(temp1) <- paste(colnames(temp1), "original_intensity", sep="_")
      }
     
      temp1<-cbind(ProteinID=rownames(temp1),temp1) 
