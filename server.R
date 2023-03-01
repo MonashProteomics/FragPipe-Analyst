@@ -157,9 +157,15 @@ server <- function(input, output, session) {
      if(!is.null(dep())){
      selectizeInput("dataset",
                     "Choose a dataset to save" ,
-                    c("Results","Original_matrix",
-                      "Imputed_matrix",
-                      "Full_dataset"))
+                    c("DE results(.csv)" = "DE_results",
+                      "Original matrix(.csv)" = "Original_matrix",
+                      "Filtered matrix(.csv)"= "Filtered_matrix",
+                      "Imputed matrix(.csv)" = "Imputed_matrix",
+                      "Full dataset(.csv)" = "Full_dataset",
+                      "Original SE(.RData)" = "Processed_SE",
+                      "Filtered SE(.RData)" = "Filtered_SE",
+                      "Imputed SE(.RData)" = "Imputed_SE"
+                      ))
      }
     })
    
@@ -490,13 +496,26 @@ server <- function(input, output, session) {
    })
    
    unimputed_table<-reactive({
-     temp1 <-assay(filtered_data())
+     temp1 <-assay(processed_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
        colnames(temp1) <- paste(colnames(temp1), "original_spectral_count", sep="_")
      } else {
        colnames(temp1) <- paste(colnames(temp1), "original_intensity", sep="_")
      }
     
+     temp1<-cbind(ProteinID=rownames(temp1),temp1) 
+     #temp1$ProteinID<-rownames(temp1)
+     return(as.data.frame(temp1))
+   })
+   
+   filtered_table<-reactive({
+     temp1 <-assay(filtered_data())
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "original_spectral_count", sep="_")
+     } else {
+       colnames(temp1) <- paste(colnames(temp1), "original_intensity", sep="_")
+     }
+     
      temp1<-cbind(ProteinID=rownames(temp1),temp1) 
      #temp1$ProteinID<-rownames(temp1)
      return(as.data.frame(temp1))
@@ -529,11 +548,16 @@ server <- function(input, output, session) {
    })
    
    imputed_table<-reactive({
-     temp<-assay(imputed_data())
+     temp1 <- assay(imputed_data())
      #tibble::rownames_to_column(temp,var = "ProteinID")
-     temp1<-2^(temp)
-     colnames(temp1)<-paste(colnames(temp1),"imputed_intensity",sep="_")
-     temp1<-cbind(ProteinID=rownames(temp1),temp1) #temp1$ProteinID<-rownames(temp1)
+
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "imputed_spectral_count", sep="_")
+     } else {
+       colnames(temp1) <- paste(colnames(temp1), "imputed_intensity", sep="_")
+     }
+
+     temp1 <- cbind(ProteinID=rownames(temp1),temp1)
      return(as.data.frame(temp1))
    })
    
@@ -1038,23 +1062,37 @@ server <- function(input, output, session) {
   
   datasetInput <- reactive({
     switch(input$dataset,
-           "Results" = get_results_proteins(dep(), input$exp),
+           "DE_results" = get_results_proteins(dep(), input$exp),
            "Original_matrix"= unimputed_table(),
-           # "significant_proteins" = get_results(dep()) %>%
-           #   filter(significant) %>%
-           #   select(-significant),
+           "Filtered_matrix" = filtered_table(),
            "Imputed_matrix" = imputed_table(),
-           "Full_dataset" = get_df_wide(dep()))
+           "Full_dataset" = get_df_wide(dep()),
+           "Processed_SE" = processed_data(),
+           "Filtered_SE" = filtered_data(),
+           "Imputed_SE" = imputed_data()
+           )
   })
   
   output$downloadData <- downloadHandler(
-    filename = function() { paste(input$dataset, ".csv", sep = "") }, ## use = instead of <-
+    filename = function() {
+      if (!grepl("_SE", input$dataset)){
+        paste(input$dataset, ".csv", sep = "") 
+      } else {
+        paste(input$dataset, ".RData", sep = "")
+      }
+    },
     content = function(file) {
-      write.table(datasetInput(),
-                  file,
-                  col.names = TRUE,
-                  row.names = FALSE,
-                  sep =",") }
+      if (!grepl("_SE", input$dataset)){
+        write.table(datasetInput(),
+                    file,
+                    col.names = TRUE,
+                    row.names = FALSE,
+                    sep =",")
+      } else {
+        RData <- datasetInput()
+        save(RData, file = file)
+      }
+    }
   )
   
   ### === Cluster Download ==== ####
