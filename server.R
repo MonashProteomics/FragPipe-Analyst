@@ -781,9 +781,17 @@ server <- function(input, output, session) {
        }
      } else {
        if (input$imputation == "none") {
-         plot_density(list("original data"=processed_data(), "filtered data"=filtered_data()))
+         if (input$normalization == "none") {
+           plot_density(list("original data"=processed_data(), "filtered data"=filtered_data()))
+         } else {
+           plot_density(list("original data"=processed_data(), "normalized data"=normalised_data(), "filtered data"=filtered_data()))
+         }
        } else {
-         plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(),  "imputed data"=imputed_data()))
+         if (input$normalization == "none") {
+           plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(), "imputed data"=imputed_data()))
+         } else {
+           plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(), "normalized data"=normalised_data(), "imputed data"=imputed_data()))
+         }
        }
      }
    })
