@@ -161,9 +161,11 @@ server <- function(input, output, session) {
                       "Original matrix(.csv)" = "Original_matrix",
                       "Filtered matrix(.csv)"= "Filtered_matrix",
                       "Imputed matrix(.csv)" = "Imputed_matrix",
+                      "Normalized matrix(.csv)" = "Normalized_matrix",
                       "Full dataset(.csv)" = "Full_dataset",
                       "Original SE(.RData)" = "Processed_SE",
                       "Filtered SE(.RData)" = "Filtered_SE",
+                      "Normalized SE(.RData)" = "Normalized_SE",
                       "Imputed SE(.RData)" = "Imputed_SE"
                       ))
      }
@@ -511,16 +513,16 @@ server <- function(input, output, session) {
    filtered_table<-reactive({
      temp1 <-assay(filtered_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
-       colnames(temp1) <- paste(colnames(temp1), "original_spectral_count", sep="_")
+       colnames(temp1) <- paste(colnames(temp1), "filtered_spectral_count", sep="_")
      } else {
-       colnames(temp1) <- paste(colnames(temp1), "original_intensity", sep="_")
+       colnames(temp1) <- paste(colnames(temp1), "filtered_intensity", sep="_")
      }
-     
-     temp1<-cbind(ProteinID=rownames(temp1),temp1) 
+
+     temp1<-cbind(ProteinID=rownames(temp1),temp1)
      #temp1$ProteinID<-rownames(temp1)
      return(as.data.frame(temp1))
    })
-   
+
    normalised_data<-reactive({
      if (input$exp == "LFQ" | input$exp == "DIA") {
        if (input$normalization == "vsn") {
@@ -534,6 +536,19 @@ server <- function(input, output, session) {
      return(filtered_data())
    })
    
+   normalized_table<-reactive({
+     temp1 <-assay(normalised_data())
+     if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "normalized_spectral_count", sep="_")
+     } else {
+       colnames(temp1) <- paste(colnames(temp1), "normalized_intensity", sep="_")
+     }
+
+     temp1<-cbind(ProteinID=rownames(temp1),temp1)
+     #temp1$ProteinID<-rownames(temp1)
+     return(as.data.frame(temp1))
+   })
+
    imputed_data<-eventReactive(input$analyze,{
      if (input$imputation == "none"){
        imputed <- filtered_data()
@@ -1075,9 +1090,11 @@ server <- function(input, output, session) {
            "DE_results" = get_results_proteins(dep(), input$exp),
            "Original_matrix"= unimputed_table(),
            "Filtered_matrix" = filtered_table(),
+           "Normalized_matrix" = normalized_table(),
            "Imputed_matrix" = imputed_table(),
            "Full_dataset" = get_df_wide(dep()),
            "Processed_SE" = processed_data(),
+           "Normalized_SE" = normalised_data(),
            "Filtered_SE" = filtered_data(),
            "Imputed_SE" = imputed_data()
            )
