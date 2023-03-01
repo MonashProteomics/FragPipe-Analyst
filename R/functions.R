@@ -80,6 +80,7 @@ plot_cvs<-function(se, id="ID", scale=T, check.names=T) {
 get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
                                 kmeans = FALSE, k = 6,
                                 col_limit = 6, indicate = NULL,
+                                alpha = 0.01, lfc = 1,
                                 clustering_distance = c("euclidean", "maximum", "manhattan", "canberra",
                                                         "binary", "minkowski", "pearson", "spearman", "kendall", "gower"),
                                 row_font_size = 6, col_font_size = 10, plot = TRUE, exp="LFQ", ...) {
@@ -142,15 +143,26 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
     ha1 <- NULL
   }
   
-  # Filter for significant proteins only
-  filtered <- dep[replace_na(row_data$significant, FALSE), ]
+  conditions <- gsub("_diff", "",colnames(row_data)[grepl("_diff", colnames(row_data))])
+  cols_p <- paste0(conditions, "_p.adj")
+  cols_lfc <- paste0(conditions, "_diff")
+  p <- as.matrix(row_data[,cols_p]) <= alpha
+  lfc <- abs(as.matrix(row_data[,cols_lfc])) >= lfc
+  p[is.na(p)] <- FALSE
+  lfc[is.na(p)] <- FALSE
+  colnames(p) <- conditions
+  colnames(lfc) <- conditions
+  combined_rejections <- p
+  colnames(combined_rejections) <- conditions
+  combined_rejections <- p & lfc
+  filtered <- dep[apply(combined_rejections, 1, any), ]
   
   if (nrow(filtered) == 0){
     return(ggplot() +
-      annotate("text", x = 4, y = 25, size=8, label = "No differential expressed genes for the heatmap") + 
+      annotate("text", x = 4, y = 25, size=8, label = "No differential expressed genes available for the heatmap") +
       theme_void())
   }
-  
+
   # Check for missing values
   if(any(is.na(assay(filtered)))) {
     warning("Missing values in '", deparse(substitute(dep)), "'. ",

@@ -647,7 +647,7 @@ server <- function(input, output, session) {
      }
      heatmap_list <- get_cluster_heatmap(dep(),
                          type="centered", kmeans = F,
-                         k=6, col_limit = 6,
+                         alpha = input$p, lfc = input$lfc,
                          indicate = "condition", exp=input$exp
                          )
      return(heatmap_list)
