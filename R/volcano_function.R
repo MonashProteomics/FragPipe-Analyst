@@ -1,6 +1,6 @@
 ## New function for volcano plot
 plot_volcano_new <- function(dep, contrast, label_size = 3,
-                         add_names = TRUE, adjusted = T, plot = TRUE) {
+                         add_names = TRUE, adjusted = T, lfc = 1, alpha = 0.05, plot = TRUE) {
   # Show error if inputs are not the required classes
   if(is.integer(label_size)) label_size <- as.numeric(label_size)
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
@@ -63,11 +63,10 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
     p_values <- grep(paste("^",contrast, "_p.val", sep = ""),
                      colnames(row_data))
   }
-  signif <- grep(paste("^",contrast, "_significant", sep = ""),
-                 colnames(row_data))
+  signif <- abs(row_data[,diff]) >= lfc & row_data[, p_values] <= alpha
   df_tmp <- data.frame(diff = row_data[, diff],
                    p_values = -log10(row_data[, p_values]),
-                   signif = row_data[, signif],
+                   signif = signif,
                    name = row_data$name)
   df <- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
     arrange(signif)

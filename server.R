@@ -689,7 +689,9 @@ server <- function(input, output, session) {
                     input$volcano_cntrst,
                     input$fontsize,
                     input$check_names,
-                    input$p_adj)
+                    input$p_adj,
+                    input$lfc,
+                    input$p)
     
       }
     })
