@@ -552,7 +552,7 @@ server <- function(input, output, session) {
    imputed_data<-eventReactive(input$analyze,{
      if (input$imputation == "none"){
        imputed <- filtered_data()
-       rowData(imputed)$imputed <- apply(is.na(assay(normalised_data())), 1, any)
+       rowData(imputed)$imputed <- F
        rowData(imputed)$num_NAs <- rowSums(is.na(assay(normalised_data())))
      } else {
        # need a customized function here since DIA data has several slashs in the column
