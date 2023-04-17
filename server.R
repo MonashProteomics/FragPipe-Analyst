@@ -1338,7 +1338,7 @@ output$download_density_svg<-downloadHandler(
       # MaxQuant Gene.names is Gene in FragPipe output
       df$Gene <- rowData(processed_data())$Gene
       df$Description <- rowData(processed_data())$Description
-      df$Combined.Total.Peptides <- as.data.frame(rowData(processed_data())["Combined Total Peptides"])
+      df$Combined.Total.Peptides <- rowData(processed_data())[["Combined Total Peptides"]]
       
       if ("" %in% df$Gene){
         df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
@@ -1387,6 +1387,8 @@ output$download_density_svg<-downloadHandler(
       }
       df <- dplyr::relocate(df, "Gene", "Description")
     }
+    
+    rownames(df) <- NULL
     return(df)
   })
   
@@ -1426,10 +1428,7 @@ output$download_density_svg<-downloadHandler(
     options = list(scrollX = TRUE,
                    scroller = TRUE,
                    autoWidth=TRUE,
-                   # columnDefs= list(list(width = "10%", targets = c(1)),
-                   #                  list(width = "400px", targets = grep("Protein.names", names(df)))
-                   #                  )
-                   columnDefs= list(list(width = '400px', targets = c(-1)))
+                   columnDefs= list(list(width = '400px', targets = grep("Description", names(df))))
     )
   )
   
