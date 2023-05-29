@@ -168,7 +168,7 @@ ui <- function(request){shinyUI(
       useShinyjs(), #imp to use shinyjs functions
 
       # comment out when testing on local
-      tags$head(includeHTML(("google_analytics.html"))),
+      # tags$head(includeHTML(("google_analytics.html"))),
      
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "./css/custom.css")
