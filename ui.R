@@ -598,7 +598,7 @@ ui <- function(request){shinyUI(
                                                                     selected = NULL)
                                   ),
                               tags$hr(),
-                              # tags$h4("Number of replicates present"),
+                              tags$h4("Number of samples present"),
                               tags$style(type = "text/css", ".irs-grid-pol.small {height: 0px;}"), # hide minor ticks of a sliderInput
                               uiOutput('sidebar'),
                               status = "success",
