@@ -54,7 +54,7 @@ server <- function(input, output, session) {
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
     } else { # DIA
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-      showTab(inputId = "tab_panels", target = "occ_panel")
+      hideTab(inputId = "tab_panels", target = "occ_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     }
@@ -1432,26 +1432,18 @@ output$download_density_svg<-downloadHandler(
     )
   )
   
-  make_sliderInput <- function(n= 1){
+  make_sliderInput <- function(n = 1){
     exp_design_input <- exp_design_input()
     conditions <- exp_design_input$condition %>% unique()
-    
-    if (input$exp == "LFQ"){
-      sliderInput(paste0("",conditions[n]),
-                  label=paste0("",conditions[n]),
-                  min = min(0),
-                  max = max(exp_design_input$replicate),
-                  value = c(0, max(exp_design_input$replicate)),
-                  step = 1)
-    } else {
-      temp <- exp_design_input[exp_design_input$condition == conditions[n],]
-      sliderInput(paste0("",conditions[n]),
-                  label=paste0("",conditions[n]),
-                  min = min(0),
-                  max = max(nrow(temp)),
-                  value = c(0, max(nrow(temp))),
-                  step = 1)
-    }
+    condition <- conditions[n]
+    temp <- exp_design_input[exp_design_input$condition == condition,]
+    max_val <- nrow(temp)
+    return(sliderInput(paste0("",condition),
+                  label=paste0("",condition),
+                  min = 0,
+                  max = max_val,
+                  value = c(0, max_val),
+                  step = 1))
   }
   
   slider_bars <- reactive({
