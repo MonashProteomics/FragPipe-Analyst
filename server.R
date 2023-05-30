@@ -54,7 +54,7 @@ server <- function(input, output, session) {
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
     } else { # DIA
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-      hideTab(inputId = "tab_panels", target = "occ_panel")
+      hideTab(inputId = "tab_panels", target = "occ_panel") # TODO: support absence/presence tab in DIA
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     }
@@ -1326,52 +1326,58 @@ output$download_density_svg<-downloadHandler(
 )
 
   #### Occurrence page logic ####
-  data_attendance<-eventReactive(start_analysis(),{
+  # data_attendance<-eventReactive(start_analysis(),{
+  data_attendance <- reactive({
     conditions <- condition_list()
-    
-    
+
     df <- as.data.frame(assay(processed_data()), check.names=F)
     sample_cols <- colnames(df)
    
     if (input$exp == "LFQ"){
       # MaxQuant Protein.names is Description in FragPipe output
       # MaxQuant Gene.names is Gene in FragPipe output
+      # print(colnames(rowData(processed_data())))
+      # "Protein"                        "Protein ID"                     "Entry Name"                    
+      # "Gene"                           "Protein Length"                 "Organism"                      
+      # "Protein Existence"              "Description"                    "Protein Probability"           
+      # "name"                           "ID" "Top Peptide Probability", "Indistinguishable Proteins"
       df$Gene <- rowData(processed_data())$Gene
+      df$Protein <- rowData(processed_data())$Protein
+      # df$Protein.ID <- rowData(processed_data())$Protein.ID
       df$Description <- rowData(processed_data())$Description
       df$Combined.Total.Peptides <- rowData(processed_data())[["Combined Total Peptides"]]
-      
       if ("" %in% df$Gene){
         df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
       if ("" %in% df$Description){
         df$Description[df["Description"]==""] <- "NoProteinDescriptionAvailable"}
-    } else { # DIA
-      # "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description" "name"
-      df$Gene <- rowData(processed_data())$Genes
-      df$Description <- rowData(processed_data())$First.Protein.Description
-    }
-    
-
-    # filter if all intensity are NA
-    df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
-
-    # print(conditions)
-    # print(colnames(df))
-    if (input$exp == "LFQ"){
+  
+      # filter if all intensity are NAs
+      df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
+      
       for (i in 1:length(conditions)) {
         condition <- conditions[i]
+        
         temp <- as.data.frame(colData(processed_data()))
         temp <- temp[temp$condition==condition,]
         selected_cols <- rownames(temp)
         df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,selected_cols, drop=F]))
         df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
-        cols <- grep(paste0(condition, "$"),colnames(df))
         if (!is.null(input[[paste0("",condition)]])){
           df <- df %>%
-            dplyr::filter(df[[cols]] >=input[[paste0("",condition)]][1] & df[[cols]] <=input[[paste0("",condition)]][2])
+            dplyr::filter((df[[paste0("#Occurences", sep = "_", condition)]] >= input[[paste0("",condition)]][1]) &
+                            (df[[paste0("#Occurences", sep = "_", condition)]] <= input[[paste0("",condition)]][2]))
         }
       }
-      df <- dplyr::relocate(df, "Gene", "Description", "Combined.Total.Peptides")
-    } else { # DIA
+      df <- dplyr::relocate(df, "Protein", "Gene", "Description", "Combined.Total.Peptides")
+    } else { # DIA doesn't work yet
+      # "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description" "name"
+      df$Gene <- rowData(processed_data())$Genes
+      df$Description <- rowData(processed_data())$First.Protein.Description
+      df$Protein.Ids <- rowData(processed_data())$Protein.Ids
+
+      # filter if all intensity are NAs
+      df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
+      
       for (i in 1:length(conditions)) {
         condition <- conditions[i]
         temp <- as.data.frame(colData(processed_data()))
@@ -1385,7 +1391,7 @@ output$download_density_svg<-downloadHandler(
                             df[[paste("#Occurences", condition, sep="_")]] <=input[[paste0("",condition)]][2])
         }
       }
-      df <- dplyr::relocate(df, "Gene", "Description")
+      df <- dplyr::relocate(df, "Protein.Ids", "Gene", "Description")
     }
     
     rownames(df) <- NULL
@@ -1433,10 +1439,10 @@ output$download_density_svg<-downloadHandler(
   )
   
   make_sliderInput <- function(n = 1){
-    exp_design_input <- exp_design_input()
-    conditions <- exp_design_input$condition %>% unique()
+    conditions <- condition_list()
     condition <- conditions[n]
-    temp <- exp_design_input[exp_design_input$condition == condition,]
+    temp <- as.data.frame(colData(processed_data()))
+    temp <- temp[temp$condition==condition,]
     max_val <- nrow(temp)
     return(sliderInput(paste0("",condition),
                   label=paste0("",condition),
@@ -1448,7 +1454,7 @@ output$download_density_svg<-downloadHandler(
   
   slider_bars <- reactive({
     exp_design <- exp_design_input()
-    lapply(X = 1:length(unique(exp_design$condition)), FUN = make_sliderInput)
+    lapply(X = 1:length(condition_list()), FUN = make_sliderInput)
   })
   
   output$sidebar <- renderUI({
@@ -1503,7 +1509,6 @@ output$download_density_svg<-downloadHandler(
     if (!is.null(condition_list()) & length(condition_list()) > 1){
       selectizeInput("condition_2",
                      "Condition 2",
-                     # choices = condition_list(),
                      choices = condition_list()[condition_list() != input$condition_1],
                      selected = condition_list()[2])
     }
@@ -1520,25 +1525,27 @@ output$download_density_svg<-downloadHandler(
   })
   
   venn_plot_input <- reactive({
-    df<- data_attendance_filtered()
-    
+    df <- data_attendance_filtered()
     if(length(condition_list()) < 2){
-      stop(safeError("Venn plot should contain at least two sets"))
-    } else if(length(condition_list()) < 3){
-      set1 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
-      set2 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
-      x <- list(set1,set2)
-      names(x) <- c("Condition 1", "Condition 2")
+      stop(safeError("It's required to have two different conditions to plot Venn diagram across conditions"))
+    } else if(length(condition_list()) == 2){
+      set1 <- df[df[[paste0("#Occurences",sep = "_",input$condition_1)]] != 0, "Gene"]
+      set2 <- df[df[[paste0("#Occurences",sep = "_",input$condition_2)]] != 0, "Gene"]
+      x <- list(set1, set2)
+      names(x) <- c(paste0("Condition 1: ", input$condition_1), paste0("Condition 2: ", input$condition_2))
     } else {
-      set1 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_1),colnames(df))] != 0]
-      set2 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_2),colnames(df))] != 0]
-      set3 <- df$Gene[df[grep(paste0("#Occurences",sep = "_",input$condition_3),colnames(df))] != 0]
-      x <- list(set1,set2,set3)
-      names(x) <- c("Condition 1", "Condition 2", "Condition 3")
+      set1 <- df[df[[paste0("#Occurences",sep = "_",input$condition_1)]] != 0, "Gene"]
+      set2 <- df[df[[paste0("#Occurences",sep = "_",input$condition_2)]] != 0, "Gene"]
+      set3 <- df[df[[paste0("#Occurences",sep = "_",input$condition_3)]] != 0, "Gene"]
+      x <- list(set1, set2, set3)
+      names(x) <- c((paste0("Condition 1: ", input$condition_1),
+                     paste0("Condition 2: ", input$condition_2),
+                     paste0("Condition 3: ", input$condition_3))
       if (!is.null(input$condition_3)){
         if (input$condition_3 == "NONE"){
           x <- list(set1,set2)
-          names(x) <- c("Condition 1", "Condition 2")
+          names(x) <- c(paste0("Condition 1: ", input$condition_1),
+                        paste0("Condition 2: ", input$condition_2))
         }
       }
     }
