@@ -1538,9 +1538,9 @@ output$download_density_svg<-downloadHandler(
       set2 <- df[df[[paste0("#Occurences",sep = "_",input$condition_2)]] != 0, "Gene"]
       set3 <- df[df[[paste0("#Occurences",sep = "_",input$condition_3)]] != 0, "Gene"]
       x <- list(set1, set2, set3)
-      names(x) <- c((paste0("Condition 1: ", input$condition_1),
-                     paste0("Condition 2: ", input$condition_2),
-                     paste0("Condition 3: ", input$condition_3))
+      names(x) <- c(paste0("Condition 1: ", input$condition_1),
+                    paste0("Condition 2: ", input$condition_2),
+                    paste0("Condition 3: ", input$condition_3))
       if (!is.null(input$condition_3)){
         if (input$condition_3 == "NONE"){
           x <- list(set1,set2)
