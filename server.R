@@ -1463,7 +1463,7 @@ output$download_density_svg<-downloadHandler(
   
   output$download_attendance <- downloadHandler("Occurrences_results_table.csv",
                                                 content = function(file){
-                                                  write.table(data_attendance_filtered(),  
+                                                  write.table(data_attendance(),  
                                                               file,
                                                               col.names = TRUE,
                                                               row.names = FALSE,
