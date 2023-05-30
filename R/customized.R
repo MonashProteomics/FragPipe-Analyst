@@ -1579,6 +1579,9 @@ impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE",
   rowData(se)$imputed <- apply(is.na(assay(se)), 1, any)
   rowData(se)$num_NAs <- rowSums(is.na(assay(se)))
   
+  # Don't impute rows with all missing values
+  se <- se[!rowData(se)$num_NAs == dim(se)[2],]
+  
   # Show error if there are no missing values
   if(!any(is.na(assay(se)))) {
     warning("No missing values in '", deparse(substitute(se)), "'. ",
