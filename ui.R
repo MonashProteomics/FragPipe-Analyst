@@ -57,7 +57,7 @@ ui <- function(request){shinyUI(
                                  conditionalPanel(
                                    condition = "input.exp == 'DIA'",
                                    fileInput('dia_expr',
-                                             'Upload DIA report *.tsv',
+                                             'Upload protein group (PG) matrix *.tsv',
                                              accept=c('text/tsv',
                                                       'text/tab-separated-values,text/plain',
                                                       '.tsv')),
