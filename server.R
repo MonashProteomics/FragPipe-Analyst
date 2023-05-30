@@ -54,7 +54,7 @@ server <- function(input, output, session) {
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
     } else { # DIA
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
-      hideTab(inputId = "tab_panels", target = "occ_panel") # TODO: support absence/presence tab in DIA
+      showTab(inputId = "tab_panels", target = "occ_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     }
@@ -1373,8 +1373,12 @@ output$download_density_svg<-downloadHandler(
       # "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description" "name"
       df$Gene <- rowData(processed_data())$Genes
       df$Description <- rowData(processed_data())$First.Protein.Description
-      df$Protein.Ids <- rowData(processed_data())$Protein.Ids
-
+      df$Protein <- rowData(processed_data())$Protein.Ids
+      if ("" %in% df$Gene){
+        df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
+      if ("" %in% df$Description){
+        df$Description[df["Description"]==""] <- "NoProteinDescriptionAvailable"}
+      
       # filter if all intensity are NAs
       df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
       
@@ -1391,7 +1395,7 @@ output$download_density_svg<-downloadHandler(
                             df[[paste("#Occurences", condition, sep="_")]] <=input[[paste0("",condition)]][2])
         }
       }
-      df <- dplyr::relocate(df, "Protein.Ids", "Gene", "Description")
+      df <- dplyr::relocate(df, "Protein", "Gene", "Description")
     }
     
     rownames(df) <- NULL
