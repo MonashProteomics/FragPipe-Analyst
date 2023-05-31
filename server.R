@@ -1172,9 +1172,7 @@ server <- function(input, output, session) {
       paste0(input$type,".pdf")
     },
     content = function(file) {
-      pdf(file)
-      print(protein_input())
-      dev.off()
+      orca(protein_input(), file)
     }
   )
   

@@ -390,8 +390,8 @@ ui <- function(request){shinyUI(
                                              )
                                            ),
                                            fluidRow(
-                                             shinycssloaders::withSpinner(plotlyOutput("protein_plot"), color = "#3c8dbc"),
-                                             downloadButton('downloadProtein', 'Download Plot')
+                                             shinycssloaders::withSpinner(plotlyOutput("protein_plot"), color = "#3c8dbc")
+                                             # downloadButton('downloadProtein', 'Download Plot')
                                              )
                                            )
 # Abundance plot is under consideration
