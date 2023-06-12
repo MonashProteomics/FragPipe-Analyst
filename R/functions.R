@@ -591,24 +591,54 @@ get_results_proteins <- function(dep, exp) {
     signif(digits = 3)
   
   # Join into a results table
-  ids <- as.data.frame(row_data) %>% dplyr::select(name, ID)
-  table<-dplyr::left_join(ids,ratio, by=c("name"="rowname"))
-  table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
-  # table <- dplyr::left_join(table, centered, by = c("name" = "rowname")) %>%
-  #   dplyr::arrange(desc(significant))
   if (exp == "LFQ") {
+    ids <- as.data.frame(row_data) %>% dplyr::select(ID, name)
+    table<- dplyr::left_join(ids,ratio, by=c("name"="rowname"))
+    table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
     table<-as.data.frame(row_data) %>% 
       dplyr::select(name, imputed, num_NAs, Description) %>%
       dplyr::left_join(table, ., by = "name")
-  } else if (exp == "TMT" | exp == "DIA") {
+    table <- table %>% dplyr::arrange(desc(significant))
+    colnames(table)[1] <- c("Protein ID")
+    colnames(table)[2] <- c("Gene Name")
+  } else if (exp == "TMT") {
+    print(metadata(dep))
+    if(metadata(dep)$level == "gene") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(name, ID)
+      table<- dplyr::left_join(ids,ratio, by=c("name"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
+      table<-as.data.frame(row_data) %>% 
+        dplyr::select(name, imputed, num_NAs) %>%
+        dplyr::left_join(table, ., by = "name")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Gene Name")
+      colnames(table)[2] <- c("Protein ID")
+    } else if (metadata(dep)$level == "protein") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Gene)
+      table <- dplyr::left_join(ids, ratio, by=c("name"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
+      
+      table<-as.data.frame(row_data) %>% 
+        dplyr::select(name, imputed, num_NAs) %>%
+        dplyr::left_join(table, ., by = "name")
+      table <- table %>% dplyr::arrange(desc(significant))
+      print(colnames(table))
+      colnames(table)[1] <- c("Protein ID")
+      colnames(table)[2] <- c("Protein Name")
+      colnames(table)[3] <- c("Gene Name")
+    }
+    
+  } else if (exp == "DIA") {
+    ids <- as.data.frame(row_data) %>% dplyr::select(ID, name)
+    table<- dplyr::left_join(ids,ratio, by=c("name"="rowname"))
+    table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
     table<-as.data.frame(row_data) %>% 
       dplyr::select(name, imputed, num_NAs) %>%
       dplyr::left_join(table, ., by = "name")
+    table <- table %>% dplyr::arrange(desc(significant))
+    colnames(table)[1] <- c("Protein ID")
+    colnames(table)[2] <- c("Gene Name")
   }
-  table<-table %>% dplyr::arrange(desc(significant))
-  colnames(table)[1]<-c("Gene Name")
-  colnames(table)[2]<-c("Protein IDs")
-  # table$Gene_name<-table$name
   return(table)
 }
 

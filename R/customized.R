@@ -30,7 +30,7 @@
 #' exp_design <- UbiLength_ExpDesign
 #' se <- make_se(data_unique, columns, exp_design)
 #' @export
-make_se_customized <- function(proteins_unique, columns, expdesign, log2transform=F) {
+make_se_customized <- function(proteins_unique, columns, expdesign, log2transform=F, exp="LFQ", lfq_type=NULL, exp_type=NULL, level=NULL) {
   # Show error if inputs are not the required classes
   assertthat::assert_that(is.data.frame(proteins_unique),
                           is.integer(columns),
@@ -95,7 +95,13 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   # Generate the SummarizedExperiment object
   se <- SummarizedExperiment(assays = as.matrix(raw),
                              colData = expdesign,
-                             rowData = row_data)
+                             rowData = row_data,
+                             metadata = list("exp"=exp,
+                                             "lfq_type"=lfq_type,
+                                             "level"=level,
+                                             "exp_type"=exp_type,
+                                             "log2transform"=log2transform))
+  
   return(se)
 }
 
@@ -103,7 +109,6 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
 test_diff_customized <- function(se, type = c("control", "all", "manual"),
                                  control = NULL, test = NULL,
                                  design_formula = formula(~ 0 + condition)) {
-  
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(se, "SummarizedExperiment"),
                           is.character(type),

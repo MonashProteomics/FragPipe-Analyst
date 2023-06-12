@@ -239,7 +239,7 @@ server <- function(input, output, session) {
       if (input$exp == "TMT") {
         validate(tmt_input_test(temp_data))
         # convert columns into numeric
-        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity")]
+        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "Gene","ProteinID", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "LFQ") {
         # handle - (dash) in experiment column
@@ -402,9 +402,9 @@ server <- function(input, output, session) {
        exp_design<-reactive({exp_design_input()})
      }
      
-     filtered_data<-fragpipe_data()
+     filtered_data <- fragpipe_data()
      if (input$exp == "LFQ"){
-       data_unique <- DEP::make_unique(filtered_data, "Gene","Protein ID")
+       data_unique <- DEP::make_unique(filtered_data, "Gene", "Protein ID")
        
        if (input$lfq_type == "Intensity") {
          lfq_columns <- setdiff(grep("Intensity", colnames(data_unique)),
@@ -425,18 +425,17 @@ server <- function(input, output, session) {
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
        if (input$lfq_type == "Spectral Count") {
-         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=F)
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=F, exp="LFQ", lfq_type="Spectral Count")
        } else {
-         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T)
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T, exp="LFQ", lfq_type=input$lfq_type)
        }
        return(data_se)
      } else if (input$exp == "DIA") {
        data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
-       # TODO: use DIA function
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
-       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T)
+       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA")
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
@@ -450,17 +449,35 @@ server <- function(input, output, session) {
        # filtered_data <- avearrays(filtered_data)
        # filtered_data <- as.data.frame(filtered_data)
        # print(apply(filtered_data, 2, is.numeric))
+       # check the uploaded report is protein or gene report
+       is_protein_report <- F
+       if ("Gene" %in% colnames(filtered_data)){
+         is_protein_report <- T
+         filtered_data$ProteinID <- filtered_data$Index
+       }
        data_unique <- make_unique(filtered_data, "Index", "ProteinID")
        # handle unmatched columns
        overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
-       data_unique <- data_unique[,colnames(data_unique) %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID", overlapped_samples)]
-       temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples,]
-       cols <- colnames(data_unique)
-       selected_cols <- which(!(cols %in% c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID")))
-       data_unique[selected_cols] <- apply(data_unique[selected_cols], 2, as.numeric)
+       if (!is_protein_report) {
+         interest_cols <- c("Index", "NumberPSM", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID")
+         data_unique <- data_unique[, colnames(data_unique) %in% c(interest_cols, overlapped_samples)]
+         temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples, ]
+         cols <- colnames(data_unique)
+         selected_cols <- which(!(cols %in% interest_cols))
+       } else {
+         interest_cols <- c("Index", "NumberPSM", "Gene", "ProteinID", "MaxPepProb", "ReferenceIntensity", "name", "ID")
+         data_unique <- data_unique[, colnames(data_unique) %in% c(interest_cols, overlapped_samples)]
+         temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples, ]
+         cols <- colnames(data_unique)
+         selected_cols <- which(!(cols %in% interest_cols))
+       }
        test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
        # TMT-I report is already log2 transformed
-       data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design)
+       if (is_protein_report) {
+         data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="protein")
+       } else {
+         data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="gene")
+       }
        return(data_se)
      }
    })
@@ -722,42 +739,49 @@ server <- function(input, output, session) {
     
     volcano_input_selected<-reactive({
       if(!is.null(input$volcano_cntrst)){
-        
         if (!is.null(input$contents_rows_selected)){
           proteins_selected<-data_result()[c(input$contents_rows_selected),]## get all rows selected
         } else if(!is.null(input$protein_brush)){
           proteins_selected <- data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ] 
         }
-
-       ## convert contrast to x and padj to y
-       diff_proteins <- grep(paste("^",input$volcano_cntrst, "_log2", sep = ""),
+        
+        ## convert contrast to x and padj to y
+        diff_proteins <- grep(paste("^",input$volcano_cntrst, "_log2", sep = ""),
                     colnames(proteins_selected))
         if(input$p_adj=="FALSE"){
-       padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.val", sep = ""),
+          padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.val", sep = ""),
                                      colnames(proteins_selected))
-        }
-       else{
-         padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
+        } else {
+          padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
                                colnames(proteins_selected))
-       }
-
-       df_protein <- data.frame(x = proteins_selected[, diff_proteins],
+        }
+        df_protein <- data.frame(x = proteins_selected[, diff_proteins],
                         y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
-                        name = proteins_selected$`Gene Name`)
-       #print(df_protein)
-       p<-plot_volcano_new(dep(),
+                        name = proteins_selected$`Gene Name`,
+                        proteinID = proteins_selected$`Protein ID`)
+        p <- plot_volcano_new(dep(),
                     input$volcano_cntrst,
                     input$fontsize,
                     input$check_names,
                     input$p_adj)
-       
-       p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-         ggrepel::geom_text_repel(data = df_protein,
-                                  aes(x, y, label = name),
-                                  size = 4,
-                                  box.padding = unit(0.1, 'lines'),
-                                  point.padding = unit(0.1, 'lines'),
-                                  segment.size = 0.5)## use the dataframe to plot points
+        if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
+          p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+            ggrepel::geom_text_repel(data = df_protein,
+                                     aes(x, y, label = proteinID),
+                                     size = 4,
+                                     box.padding = unit(0.1, 'lines'),
+                                     point.padding = unit(0.1, 'lines'),
+                                     segment.size = 0.5)## use the dataframe to plot points
+        } else {
+          p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+           ggrepel::geom_text_repel(data = df_protein,
+                                    aes(x, y, label = name),
+                                    size = 4,
+                                    box.padding = unit(0.1, 'lines'),
+                                    point.padding = unit(0.1, 'lines'),
+                                    segment.size = 0.5)## use the dataframe to plot points
+        }
+        return(p)
 
        }
     })
