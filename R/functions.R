@@ -614,7 +614,7 @@ get_results_proteins <- function(dep, exp) {
       colnames(table)[1] <- c("Gene Name")
       colnames(table)[2] <- c("Protein ID")
     } else if (metadata(dep)$level == "protein") {
-      ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Gene)
+      ids <- as.data.frame(row_data) %>% dplyr::select(name, Gene)
       table <- dplyr::left_join(ids, ratio, by=c("name"="rowname"))
       table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
       
@@ -622,10 +622,8 @@ get_results_proteins <- function(dep, exp) {
         dplyr::select(name, imputed, num_NAs) %>%
         dplyr::left_join(table, ., by = "name")
       table <- table %>% dplyr::arrange(desc(significant))
-      print(colnames(table))
       colnames(table)[1] <- c("Protein ID")
-      colnames(table)[2] <- c("Protein Name")
-      colnames(table)[3] <- c("Gene Name")
+      colnames(table)[2] <- c("Gene Name")
     }
     
   } else if (exp == "DIA") {
