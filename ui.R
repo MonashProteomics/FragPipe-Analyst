@@ -92,7 +92,7 @@ ui <- function(request){shinyUI(
                           radioButtons("imputation",
                                        "Imputation type",
                                        choices = c("No imputation"="none", "Perseus-type"="man",
-                                                   "MLE"="MLE", "knn"="knn"),
+                                                   "MLE"="MLE", "knn"="knn", "bpca"="bpca"),
                                        selected = "man"),
                           radioButtons("fdr_correction",
                                        "Type of FDR correction",
@@ -526,7 +526,7 @@ ui <- function(request){shinyUI(
                               ),
                               fluidRow(
                                 column(4, actionButton("pathway_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human data is supported"))
+                                column(6, tags$p("Note: Currently, only human data is supported."))
                               ),
                               fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadPA', 'Download Table')))
