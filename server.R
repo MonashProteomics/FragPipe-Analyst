@@ -947,7 +947,7 @@ server <- function(input, output, session) {
        nrow()
      frac <- num_signif / num_total
      
-       info_box <- 		infoBox("Significant featuress",
+       info_box <- 		infoBox("Significant features",
                              paste0(num_signif,
                                     " out of ",
                                     num_total),
