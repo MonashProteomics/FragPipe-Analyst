@@ -25,6 +25,7 @@ library("shinyBS") # new added
 library("shinycssloaders") # new added
 library("shiny.info")
 library("fastcluster")
+library("factoextra")
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
