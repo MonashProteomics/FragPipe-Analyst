@@ -602,7 +602,6 @@ get_results_proteins <- function(dep, exp) {
     colnames(table)[1] <- c("Protein ID")
     colnames(table)[2] <- c("Gene Name")
   } else if (exp == "TMT") {
-    print(metadata(dep))
     if(metadata(dep)$level == "gene") {
       ids <- as.data.frame(row_data) %>% dplyr::select(name, ID)
       table<- dplyr::left_join(ids,ratio, by=c("name"="rowname"))
@@ -636,6 +635,18 @@ get_results_proteins <- function(dep, exp) {
     table <- table %>% dplyr::arrange(desc(significant))
     colnames(table)[1] <- c("Protein ID")
     colnames(table)[2] <- c("Gene Name")
+  } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
+    ids <- as.data.frame(row_data) %>% dplyr::select(name, ProteinID, Gene)
+    table <- dplyr::left_join(ids, ratio, by=c("name"="rowname"))
+    table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
+    
+    table <- as.data.frame(row_data) %>% 
+      dplyr::select(name, imputed, num_NAs) %>%
+      dplyr::left_join(table, ., by = "name")
+    table <- table %>% dplyr::arrange(desc(significant))
+    colnames(table)[1] <- c("Index")
+    colnames(table)[2] <- c("Protein ID")
+    colnames(table)[3] <- c("Gene Name")
   }
   return(table)
 }

@@ -1,6 +1,12 @@
 # Define UI for data upload app ----
 VERSION <- "v0.23"
 
+ENABLE_PEPTIDE_ANALYSIS <- T
+if (ENABLE_PEPTIDE_ANALYSIS) {
+  analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA", "TMT (peptide)"="TMT-peptide")
+} else {
+  analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA")
+}
 
 ui <- function(request){shinyUI(
   dashboardPage(
@@ -17,56 +23,59 @@ ui <- function(request){shinyUI(
         convertMenuItem(
           tabName = 'analysis',
           menuItem("Analysis", tabName="analysis", icon=icon("flask"),
-                                 selectInput("exp", "Experiment type:", c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA"), selected = "LFQ"),
-                                 conditionalPanel(
-                                   condition = "input.exp == 'LFQ'",
-                                   fileInput('lfq_expr',
-                                             'Upload FragPipe combined_protein.tsv',
-                                      accept=c('text/tsv',
-                                               'text/tab-separated-values,text/plain',
-                                               '.tsv')),
-                                   fileInput('lfq_manifest',
-                                      'Upload sample annotation',
-                                      accept=c('text/tsv',
-                                               'text/tab-separated-values,text/plain',
-                                               '.tsv')),
-                                   radioButtons("lfq_type",
-                                                "Intensity Type",
-                                                choices = c("Intensity"="Intensity",
-                                                            "MaxLFQ Intensity"="MaxLFQ",
-                                                            "Spectral Count"="Spectral Count"),
-                                                selected = "Intensity"),
-                                   tags$hr(),
-                                   downloadLink("lfq_example", label="Example LFQ data"),
-                                   br(),
-                                   downloadLink("lfq_annotation", label="Example annotation")
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.exp == 'TMT'",
-                                   fileInput('tmt_expr',
-                                             'Upload gene-level TMT-I report *.tsv',
-                                             accept=c('text/tsv',
-                                                      'text/tab-separated-values,text/plain',
-                                                      '.tsv')),
-                                   fileInput('tmt_annot',
-                                             'Upload sample annotation',
-                                             accept=c('text/tsv',
-                                                      'text/tab-separated-values,text/plain',
-                                                      '.tsv')),
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.exp == 'DIA'",
-                                   fileInput('dia_expr',
-                                             'Upload protein group (PG) matrix *.tsv',
-                                             accept=c('text/tsv',
-                                                      'text/tab-separated-values,text/plain',
-                                                      '.tsv')),
-                                   fileInput('dia_manifest',
-                                             'Upload sample annotation',
-                                             accept=c('text/tsv',
-                                                      'text/tab-separated-values,text/plain',
-                                                      '.tsv')),
-                                 ),
+                   selectInput("exp", "Experiment type:", analysis_options, selected = "LFQ"),
+                   conditionalPanel(
+                     condition = "input.exp == 'LFQ'",
+                     fileInput('lfq_expr', 'Upload FragPipe combined_protein.tsv',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     fileInput('lfq_manifest', 'Upload sample annotation',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     radioButtons("lfq_type",
+                                  "Intensity Type",
+                                  choices = c("Intensity"="Intensity",
+                                              "MaxLFQ Intensity"="MaxLFQ",
+                                              "Spectral Count"="Spectral Count"),
+                                              selected = "Intensity"),
+                     tags$hr(),
+                     downloadLink("lfq_example", label="Example LFQ data"),
+                     br(),
+                     downloadLink("lfq_annotation", label="Example annotation")),
+                   conditionalPanel(
+                     condition = "input.exp == 'TMT'",
+                     fileInput('tmt_expr', 'Upload gene-level TMT-I report *.tsv',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     fileInput('tmt_annot', 'Upload sample annotation',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv'))
+                     ),
+                   conditionalPanel(
+                     condition = "input.exp == 'DIA'",
+                     fileInput('dia_expr', 'Upload protein group (PG) matrix *.tsv',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     fileInput('dia_manifest', 'Upload sample annotation',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv'))),
+                   conditionalPanel(
+                     condition = "input.exp == 'TMT-peptide'",
+                     fileInput('tmt_pept_expr', 'Upload peptide-level TMT-I report *.tsv',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     fileInput('tmt_pept_annot', 'Upload sample annotation',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv'))
+                   ),
                  tags$hr(),
                  menuItem("Advanced Options",tabName="advanced", icon = icon("cogs"),
                           numericInput("min_global_appearance",
@@ -230,9 +239,9 @@ ui <- function(request){shinyUI(
                           tags$li("For TMT:",
                                   tags$ul(
                                     tags$li("Upload gene-level report", tags$b("[abundance/ratio]_gene_[normalization].tsv"), "generated by ",
-                                            tags$a(href="https://tmt-integrator.nesvilab.org/", target="_blank", "TMT-Integrator"), "in ",
+                                            tags$a(href="https://tmt-integrator.nesvilab.org/", target="_blank", "TMT-Integrator (TMT-I)"), "in ",
                                             tags$a(href="https://fragpipe.nesvilab.org/", target="_blank", "FragPipe"),
-                                            "(we recommend ", tags$b("abundance_gene_MD.tsv"), "file)."),
+                                            "(we recommend ", tags$b("abundance_gene_MD.tsv"), "file). If peptide option is enabled in the server, TMT-I peptide report could also be used alternatively."),
                                     tags$li("Upload", tags$b("experiment_annotation.tsv"), "file. Edit the template file generated by FragPipe;",
                                             " Check ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs", target="_blank", "here"),
                                             " for details.")
@@ -332,11 +341,8 @@ ui <- function(request){shinyUI(
                                            ),
                                            fluidRow(
                                              box(
-                                               tags$p("Select protein from Results Table to highlight on the plot OR 
-                                                      drag the mouse on plot to show expression of proteins in Table"),
-                                               #Add text line
-                                               # tags$p("OR"),
-                                               #  tags$p("Drag the mouse on plot to show expression of proteins in Table")
+                                               tags$p("Select features from Results Table to highlight them on the plot OR 
+                                                      drag the mouse on plot to show expression of features in Table"),
                                                width = 12
                                              )
                                            ),
@@ -366,7 +372,7 @@ ui <- function(request){shinyUI(
                                       tags$style(type='text/css', "#downloadCluster {margin-top: 25px;}"),
                                       tags$style(type='text/css', "#download_hm_svg {margin-top: 25px;}")
                                   ),
-                                  tabPanel(title = "Protein Plot",
+                                  tabPanel(title = "Feature Plot",
                                            fluidRow(
                                              box(radioButtons("type",
                                                               "Plot type",
@@ -394,41 +400,8 @@ ui <- function(request){shinyUI(
                                              # downloadButton('downloadProtein', 'Download Plot')
                                              )
                                            )
-# Abundance plot is under consideration
-#                                   navbarMenu("Abundance Plot", 
-#     								                 tabPanel(title = "Abundance rank",
-#     								                          fluidRow(
-#     								                            tags$p("Select protein from LFQ Results Table to highlight on the plot OR 
-#                                                       drag the mouse on plot to show expression of proteins in Table")
-#     								                          ),
-#     								                          fluidRow(
-#     								                            plotOutput("abundance_rank_dm",
-#     								                                       height = 600,
-#     								                                       brush = "protein_brush_rank_dm",
-#     								                                       click = "protein_click_rank_dm"),
-#     								                            downloadButton('downloadAbundance_rank_dm', 'Save Highlighted Plot'),
-#     								                            actionButton("resetPlot_rank_dm", "Clear Selection")
-#     								                          )
-#     								                 ),
-#     								                 tabPanel("Abundance comparison",
-#     								                          fluidRow(
-#     								                            column(uiOutput("abundance_cntrst_dm"), width = 12),
-#     								                            tags$p("Select protein from LFQ Results Table to highlight on the plot OR 
-#                                                       drag the mouse on plot to show expression of proteins in Table")
-#     								                          ),
-#     								                          fluidRow(
-#     								                            plotOutput("abundance_comp_dm", 
-#     								                                       height = 600,
-#     								                                       brush = "protein_brush_comp_dm",
-#     								                                       click = "protein_click_comp_dm"),
-#     								                            downloadButton('downloadAbundance_comp_dm', 'Save Highlighted Plot'),
-#     								                            actionButton("resetPlot_comp_dm", "Clear Selection")
-#     								                          )
-#     								                 )
-# 								                ) # navbarMenu close
-								  # verbatimTextOutput("protein_info"))
                               ) # tabBox end
-                              ) # box or column end
+                            ) # box or column end
          ), # result fluidRow close
         
         ## QC Box
@@ -470,7 +443,7 @@ ui <- function(request){shinyUI(
                               fluidRow(
                                 downloadButton('download_cvs_svg', "Save svg")
                               )),
-                     tabPanel(title = "Protein Numbers",
+                     tabPanel(title = "Feature Numbers",
                               shinycssloaders::withSpinner(plotOutput("numbers", height = 600), color = "#3c8dbc"),
                               downloadButton('download_num_svg', "Save svg")),
                      tabPanel(title = "Sample coverage", value="sample_coverage_tab",

@@ -16,7 +16,6 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
                           length(plot) == 1)
   
   row_data <- rowData(dep, use.names = FALSE)
-
   # Show error if inputs do not contain required columns
   if(any(!c("name", "ID") %in% colnames(row_data))) {
     stop(paste0("'name' and/or 'ID' columns are not present in '",
@@ -73,9 +72,8 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
 
   name1 <- gsub("_vs_.*", "", contrast)
   name2 <- gsub(".*_vs_", "", contrast)
-  #return(df)
-  # Plot volcano with or without labels
 
+  # Plot volcano with or without labels
   p <- ggplot(df, aes(diff, p_values)) +
     geom_vline(xintercept = 0) +
     geom_point(aes(col = signif)) +

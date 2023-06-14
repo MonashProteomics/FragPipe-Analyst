@@ -3,7 +3,7 @@ server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   
   observeEvent(input$exp, {
-    if(input$exp == "TMT"){
+    if(input$exp == "TMT" | input$exp == "TMT-peptide"){
       updateRadioButtons(session, "imputation",
                          choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
                          selected = "none")
@@ -47,7 +47,7 @@ server <- function(input, output, session) {
         updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       }
       shinyjs::show("venn_filter")
-    } else if (input$exp == "TMT") {
+    } else if (input$exp == "TMT" | input$exp == "TMT-peptide") {
       hideTab(inputId = "tab_panels", target = "occ_panel")
       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "quantification_panel")
@@ -91,6 +91,9 @@ server <- function(input, output, session) {
        } else if (input$exp == "DIA") {
          inFile <- input$dia_expr
          exp_design_file <- input$dia_manifest
+       } else if (input$exp == "TMT-peptide") {
+         inFile <- input$tmt_pept_expr
+         exp_design_file <- input$tmt_pept_annot
        }
        if (is.null(inFile) | is.null(exp_design_file)) {
          shinyalert("Input file missing!", "Please checkout your input files", type="info",
@@ -223,6 +226,8 @@ server <- function(input, output, session) {
         inFile <- input$tmt_expr
       } else if (input$exp == "DIA") {
         inFile <- input$dia_expr
+      } else if (input$exp == "TMT-peptide") {
+        inFile <- input$tmt_pept_expr
       }
       if(is.null(inFile))
         return(NULL)
@@ -239,7 +244,7 @@ server <- function(input, output, session) {
       if (input$exp == "TMT") {
         validate(tmt_input_test(temp_data))
         # convert columns into numeric
-        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "Gene","ProteinID", "MaxPepProb", "ReferenceIntensity")]
+        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "NumberPSM", "Gene", "ProteinID", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "LFQ") {
         # handle - (dash) in experiment column
@@ -247,9 +252,12 @@ server <- function(input, output, session) {
         validate(fragpipe_input_test(temp_data))
         # remove contam
         temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
-      } else { # DIA
+      } else if (input$exp == "DIA"){ # DIA
         validate(fragpipe_DIA_input_test(temp_data))
         # temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+      } else if (input$exp == "TMT-peptide") {
+        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide", "MaxPepProb", "ReferenceIntensity")]
+        temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       }
       return(temp_data)
     })
@@ -276,10 +284,12 @@ server <- function(input, output, session) {
         inFile <- input$tmt_annot
       } else if (input$exp == "DIA") {
         inFile <- input$dia_manifest
+      } else if (input$exp == "TMT-peptide") {
+        inFile <- input$tmt_pept_annot
       }
       if (is.null(inFile))
         return(NULL)
-      if (input$exp == "TMT") {
+      if (input$exp == "TMT" | input$exp == "TMT-peptide") {
         temp_df <- read.table(inFile$datapath,
                               header = T,
                               sep="\t",
@@ -439,7 +449,7 @@ server <- function(input, output, session) {
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
-     } else { # TMT
+     } else if (input$exp == "TMT") {
        temp_exp_design <- exp_design()
        # sample without specified condition will be removed
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
@@ -478,6 +488,23 @@ server <- function(input, output, session) {
        } else {
          data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="gene")
        }
+       return(data_se)
+     } else if (input$exp == "TMT-peptide") {
+       temp_exp_design <- exp_design()
+       # sample without specified condition will be removed
+       temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
+       temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
+       data_unique <- make_unique(filtered_data, "Index", "ProteinID")
+       # handle unmatched columns
+       overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
+       interest_cols <- c("Index", "Gene", "ProteinID", "Peptide", "MaxPepProb", "ReferenceIntensity", "name", "ID")
+       data_unique <- data_unique[, colnames(data_unique) %in% c(interest_cols, overlapped_samples)]
+       temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples, ]
+       cols <- colnames(data_unique)
+         selected_cols <- which(!(cols %in% interest_cols))
+       test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
+       # TMT-I report is already log2 transformed
+       data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="peptide")
        return(data_se)
      }
    })
@@ -601,7 +628,7 @@ server <- function(input, output, session) {
      test_diff_customized(imputed_data(), type = "all")
    })
 
-   dep<-eventReactive(input$analyze,{
+   dep <- eventReactive(input$analyze, {
      # TODO: test_limma for paired samples
      # diff_all <- test_diff_customized(imputed_data(), type = "manual",
      #                      test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType))
@@ -614,11 +641,12 @@ server <- function(input, output, session) {
      } else { # t-statistics-based
        diff_all <- test_diff_customized(data, type = "all")
      }
-     add_rejections_customized(diff_all, alpha = input$p, lfc= input$lfc)
+     result_se <- add_rejections_customized(diff_all, alpha = input$p, lfc= input$lfc)
+     return(result_se)
    })
    
    comparisons<-reactive ({
-    if (input$exp == "TMT"  | input$exp == "DIA") {
+    if (input$exp == "TMT"  | input$exp == "DIA" | input$exp == "TMT-peptide") {
        temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
        # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
        #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
@@ -755,34 +783,53 @@ server <- function(input, output, session) {
           padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
                                colnames(proteins_selected))
         }
-        df_protein <- data.frame(x = proteins_selected[, diff_proteins],
-                        y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
-                        name = proteins_selected$`Gene Name`,
-                        proteinID = proteins_selected$`Protein ID`)
-        p <- plot_volcano_new(dep(),
-                    input$volcano_cntrst,
-                    input$fontsize,
-                    input$check_names,
-                    input$p_adj)
-        if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
-          p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-            ggrepel::geom_text_repel(data = df_protein,
-                                     aes(x, y, label = proteinID),
+        if (metadata(dep())$level == "peptide") {
+          df_peptide <- data.frame(x = proteins_selected[, diff_proteins],
+                                   y = -log10(as.numeric(proteins_selected[, padj_proteins])),
+                                   name = proteins_selected$`Index`,
+                                   proteinID = proteins_selected$`Protein ID`)
+          p <- plot_volcano_new(dep(),
+                                input$volcano_cntrst,
+                                input$fontsize,
+                                input$check_names,
+                                input$p_adj)
+          p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
+            ggrepel::geom_text_repel(data = df_peptide,
+                                     color = "maroon",
+                                     aes(x, y, label = name),
                                      size = 4,
                                      box.padding = unit(0.1, 'lines'),
                                      point.padding = unit(0.1, 'lines'),
                                      segment.size = 0.5)## use the dataframe to plot points
         } else {
-          p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-           ggrepel::geom_text_repel(data = df_protein,
-                                    aes(x, y, label = name),
-                                    size = 4,
-                                    box.padding = unit(0.1, 'lines'),
-                                    point.padding = unit(0.1, 'lines'),
-                                    segment.size = 0.5)## use the dataframe to plot points
+          df_protein <- data.frame(x = proteins_selected[, diff_proteins],
+                          y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
+                          name = proteins_selected$`Gene Name`,
+                          proteinID = proteins_selected$`Protein ID`)
+          p <- plot_volcano_new(dep(),
+                                input$volcano_cntrst,
+                                input$fontsize,
+                                input$check_names,
+                                input$p_adj)
+          if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
+            p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+              ggrepel::geom_text_repel(data = df_protein,
+                                       aes(x, y, label = proteinID),
+                                       size = 4,
+                                       box.padding = unit(0.1, 'lines'),
+                                       point.padding = unit(0.1, 'lines'),
+                                       segment.size = 0.5)## use the dataframe to plot points
+          } else {
+            p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+              ggrepel::geom_text_repel(data = df_protein,
+                                       aes(x, y, label = name),
+                                       size = 4,
+                                       box.padding = unit(0.1, 'lines'),
+                                       point.padding = unit(0.1, 'lines'),
+                                       segment.size = 0.5)## use the dataframe to plot points
+          }
         }
         return(p)
-
        }
     })
     
@@ -804,7 +851,7 @@ server <- function(input, output, session) {
      
    ## QC plots inputs
    missval_input <- reactive({
-     plot_missval_customized(filtered_data(), input$exp)
+     plot_missval_customized(filtered_data())
    })
    
    detect_input <- reactive({
@@ -900,12 +947,12 @@ server <- function(input, output, session) {
        nrow()
      frac <- num_signif / num_total
      
-       info_box <- 		infoBox("Significant proteins",
+       info_box <- 		infoBox("Significant featuress",
                              paste0(num_signif,
                                     " out of ",
                                     num_total),
                              paste0(signif(frac * 100, digits = 3),
-                                    "% of proteins differentially expressed across all conditions"),
+                                    "% of features differentially expressed across all conditions"),
                              icon = icon("stats", lib = "glyphicon"),
                              color = "olive", width=12)
      
@@ -913,7 +960,7 @@ server <- function(input, output, session) {
    })
 
   ##### Get results dataframe from Summarizedexperiment object
-   data_result<- eventReactive(input$analyze, {
+   data_result <- eventReactive(input$analyze, {
       get_results_proteins(dep(), input$exp)
       #get_results(dep())
     })

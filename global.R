@@ -24,10 +24,12 @@ library("rhandsontable") # new added
 library("shinyBS") # new added
 library("shinycssloaders") # new added
 library("shiny.info")
+library("fastcluster")
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
 conflict_prefer("filter", "dplyr")
+conflict_prefer("desc", "dplyr")
 source("R/functions.R")
 source("R/volcano_function.R")
 source("R/customized.R")
