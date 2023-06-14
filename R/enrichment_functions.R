@@ -86,12 +86,14 @@ test_ora_mod <- function(dep,
   
   # Run background list
   message("Background")
-  if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
+  if (metadata(dep)$level == "protein" & metadata(dep)$exp == "TMT") {
+    background <- unique(row_data$Gene)
+  } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
     background <- gsub("[.].*", "", row_data$name)
   } else if (metadata(dep)$level == "peptide") {
-    # TODO:
     background <- unique(row_data$Gene)
   }
+
   background_enriched <- enrichr_mod(background, databases)
   df_background <- NULL
   for(database in databases) {
@@ -131,10 +133,13 @@ test_ora_mod <- function(dep,
         significant <- significant[significant[gsub("_significant", "_diff", contrast)] < -log2_threshold,]
       }
       significant <- significant[significant[gsub("_significant", "_p.adj", contrast)] < alpha,]
-      if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
+      
+      if (metadata(dep)$level == "protein" & metadata(dep)$exp == "TMT") {
+        genes <- unique(significant$Gene)
+      } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
         genes <- significant$name
-      } else if (metadata(dep)$level == "peptide"){
-        genes <- significant$Gene
+      } else if (metadata(dep)$level == "peptide") {
+        genes <- unique(significant$Gene)
       }
       
       message(paste0(length(genes), " genes are submitted"))
@@ -176,7 +181,14 @@ test_ora_mod <- function(dep,
       mutate(name = gsub("[.].*", "", name))
     
     # Run enrichR
-    genes <- significant$name
+    if (metadata(dep)$level == "protein" & metadata(dep)$exp == "TMT") {
+      genes <- unique(significant$Gene)
+    } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
+      genes <- significant$name
+    } else if (metadata(dep)$level == "peptide") {
+      genes <- unique(significant$Gene)
+    }
+
     enriched <- enrichr_mod(genes, databases)
     
     # Tidy output
