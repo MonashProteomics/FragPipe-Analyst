@@ -261,7 +261,7 @@ ui <- function(request){shinyUI(
                                   "Adjust the p-value cut-off, the log2 fold change cut-off, missing value imputation, FDR correction method ",
                                   "in the", tags$b("Advanced Options"),
                                   '. Note that the missing value imputation method is set by default to “Perseus-like” for DDA LFQ and DIA, and to “No imputation” for TMT.'),
-                          tags$li("Press ", tags$b("'Start Analysis' ")),
+                          tags$li("Press ", tags$b("'Run' ")),
                           tags$li(tags$b("Hint: "), " Check the ", tags$b("Documentation ")," tab for a detailed explanation of inputs, 
                                 advanced options and outputs"),
                         ),
