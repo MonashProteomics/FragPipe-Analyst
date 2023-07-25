@@ -435,9 +435,9 @@ server <- function(input, output, session) {
        ## Check for matching columns in expression report and experiment manifest file
        test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
        if (input$lfq_type == "Spectral Count") {
-         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=F, exp="LFQ", lfq_type="Spectral Count")
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=F, exp="LFQ", lfq_type="Spectral Count", level="protein")
        } else {
-         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T, exp="LFQ", lfq_type=input$lfq_type)
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T, exp="LFQ", lfq_type=input$lfq_type, level="protein")
        }
        return(data_se)
      } else if (input$exp == "DIA") {
