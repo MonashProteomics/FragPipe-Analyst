@@ -445,7 +445,7 @@ server <- function(input, output, session) {
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
-       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA")
+       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="protein")
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
