@@ -83,7 +83,7 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
                                 alpha = 0.01, lfc = 1,
                                 clustering_distance = c("euclidean", "maximum", "manhattan", "canberra",
                                                         "binary", "minkowski", "pearson", "spearman", "kendall", "gower"),
-                                row_font_size = 6, col_font_size = 10, plot = TRUE, exp="LFQ", ...) {
+                                row_font_size = 6, col_font_size = 10, plot = TRUE, exp="LFQ", show_row_names=F, ...) {
   
   # Show error if inputs are not the required classes
   if(is.integer(k)) k <- as.numeric(k)
@@ -259,6 +259,7 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
                   seq(-col_limit, col_limit, (col_limit/5)),
                   rev(RColorBrewer::brewer.pal(11, "RdBu"))),
                 split = if(kmeans) {df_kmeans$cluster} else {NULL},
+                show_row_names = show_row_names,
                 cluster_rows = col_clust,
                 cluster_columns = row_clust,
                 row_names_side = "left",

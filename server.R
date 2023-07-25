@@ -549,7 +549,7 @@ server <- function(input, output, session) {
        colnames(temp1) <- paste(colnames(temp1), "original_intensity", sep="_")
      }
     
-     temp1<-cbind(ProteinID=rownames(temp1),temp1) 
+     temp1<-cbind(ProteinID=rownames(temp1),temp1)
      #temp1$ProteinID<-rownames(temp1)
      return(as.data.frame(temp1))
    })
@@ -725,14 +725,17 @@ server <- function(input, output, session) {
    })
    
    ### Heatmap for differentially expressed proteins
-   heatmap_cluster<-eventReactive(input$analyze, { 
+   heatmap_cluster<-eventReactive({
+     input$analyze
+     input$show_row_names
+     }, { 
      if(input$analyze==0 | !start_analysis()){
        return()
      }
      heatmap_list <- get_cluster_heatmap(dep(),
                          type="centered", kmeans = F,
                          alpha = input$p, lfc = input$lfc,
-                         indicate = "condition", exp=input$exp
+                         indicate = "condition", exp=input$exp, show_row_names=input$show_row_names
                          )
      return(heatmap_list)
    })

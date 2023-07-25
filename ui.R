@@ -357,6 +357,13 @@ ui <- function(request){shinyUI(
                                            )),
                                   tabPanel(title= "Heatmap",
                                            fluidRow(
+                                             box(checkboxInput("show_row_names",
+                                                               "Show rownames",
+                                                               value = F),
+                                                 width = 6
+                                             )
+                                           ),
+                                           fluidRow(
                                              shinycssloaders::withSpinner(plotOutput("heatmap", height = 600), color = "#3c8dbc")
                                            ),
                                            fluidRow(
