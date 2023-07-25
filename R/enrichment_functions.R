@@ -212,9 +212,11 @@ test_ora_mod <- function(dep,
     cat("Done.")
   }
   
-  df_enrich$p_hyper = phyper(q=(df_enrich$IN-1), m = df_enrich$bg_IN, n = df_enrich$bg_OUT, k = (df_enrich$IN+df_enrich$OUT),
-                             lower.tail = F )
-  df_enrich$p.adjust_hyper = p.adjust(df_enrich$p_hyper, method = "BH")
+  if (nrow(df_enrich) != 0) {
+    df_enrich$p_hyper = phyper(q=(df_enrich$IN-1), m = df_enrich$bg_IN, n = df_enrich$bg_OUT, k = (df_enrich$IN+df_enrich$OUT),
+                               lower.tail = F )
+    df_enrich$p.adjust_hyper = p.adjust(df_enrich$p_hyper, method = "BH")
+  }
   return(df_enrich)
 }
 
@@ -295,7 +297,6 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
     
     gsea_results <- filter(gsea_results, var %in% databases)
   }
-  
   # Get top enriched gene sets
   if (!use_whole_proteome) {
     if (adjust) {

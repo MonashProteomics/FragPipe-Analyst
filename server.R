@@ -1121,7 +1121,7 @@ server <- function(input, output, session) {
   observeEvent(input$go_analysis, {
     output$go_enrichment<-renderPlot({
       Sys.sleep(2)
-      null_enrichment_test(go_results())
+      null_enrichment_test(go_results(), alpha = 0.05)
       # TODO: if user changes the go_database, it might cause error here
       plot_go <- plot_enrichment(go_results(), number = 10, alpha = 0.05, contrasts = input$contrast,
                                  databases = as.character(input$go_database), adjust = input$go_adjust,
@@ -1139,7 +1139,7 @@ server <- function(input, output, session) {
   observeEvent(input$pathway_analysis, {
     output$pathway_enrichment<-renderPlot({
       Sys.sleep(2)
-      null_enrichment_test(pathway_results())
+      null_enrichment_test(pathway_results(), alpha = 0.05)
       plot_pathway <-plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
                                      databases = as.character(input$pathway_database), adjust = input$path_adjust,
                                      use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
