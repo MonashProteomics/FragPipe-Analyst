@@ -52,9 +52,14 @@ server <- function(input, output, session) {
       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "quantification_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
-    } else { # DIA
+    } else if (input$exp == "DIA"){ # DIA
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "occ_panel")
+      updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+      shinyjs::hide("venn_filter")
+    } else if (input$exp == "DIA-peptide") { # DIA-peptide
+      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      hideTab(inputId = "tab_panels", target = "occ_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     }
@@ -94,6 +99,9 @@ server <- function(input, output, session) {
        } else if (input$exp == "TMT-peptide") {
          inFile <- input$tmt_pept_expr
          exp_design_file <- input$tmt_pept_annot
+       } else if (input$exp == "DIA-peptide") {
+         inFile <- input$dia_pept_expr
+         exp_design_file <- input$dia_pept_annot
        }
        if (is.null(inFile) | is.null(exp_design_file)) {
          shinyalert("Input file missing!", "Please checkout your input files", type="info",
@@ -228,6 +236,8 @@ server <- function(input, output, session) {
         inFile <- input$dia_expr
       } else if (input$exp == "TMT-peptide") {
         inFile <- input$tmt_pept_expr
+      } else if (input$exp == "DIA-peptide") {
+        inFile <- input$dia_pept_expr
       }
       if(is.null(inFile))
         return(NULL)
@@ -258,6 +268,13 @@ server <- function(input, output, session) {
       } else if (input$exp == "TMT-peptide") {
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
+      } else if (input$exp == "DIA-peptide") {
+        temp_data <- temp_data %>% select(.,-c("Proteotypic", "Precursor.Charge")) %>%
+          group_by(Protein.Group, Protein.Names, Protein.Ids, Genes, Stripped.Sequence) %>%
+          summarise_if(is.numeric, max, na.rm=T)
+        temp_data[sapply(temp_data, is.infinite)] <- NA
+        temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
+        temp_data <- temp_data %>% select(Index, everything())
       }
       return(temp_data)
     })
@@ -286,7 +303,9 @@ server <- function(input, output, session) {
         inFile <- input$dia_manifest
       } else if (input$exp == "TMT-peptide") {
         inFile <- input$tmt_pept_annot
-      }
+      } else if (input$exp == "DIA-peptide") {
+        inFile <- input$dia_pept_annot
+      } 
       if (is.null(inFile))
         return(NULL)
       if (input$exp == "TMT" | input$exp == "TMT-peptide") {
@@ -350,7 +369,7 @@ server <- function(input, output, session) {
             temp_df$label <- paste(temp_df$label, "Spectral.Count", sep=" ")
           }
         }
-      } else if (input$exp == "DIA") {
+      } else if (input$exp == "DIA" | input$exp == "DIA-peptide") {
         temp_df <- read.table(inFile$datapath,
                               header = T,
                               sep="\t",
@@ -440,15 +459,6 @@ server <- function(input, output, session) {
          data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T, exp="LFQ", lfq_type=input$lfq_type, level="protein")
        }
        return(data_se)
-     } else if (input$exp == "DIA") {
-       data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
-       cols <- colnames(data_unique)
-       selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
-       test_match_DIA_column_design(data_unique, selected_cols, exp_design())
-       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="protein")
-       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
-       colData(data_se)$label <- colData(data_se)$sample_name
-       return(data_se)
      } else if (input$exp == "TMT") {
        temp_exp_design <- exp_design()
        # sample without specified condition will be removed
@@ -489,6 +499,15 @@ server <- function(input, output, session) {
          data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="gene")
        }
        return(data_se)
+     } else if (input$exp == "DIA") {
+       data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
+       cols <- colnames(data_unique)
+       selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+       test_match_DIA_column_design(data_unique, selected_cols, exp_design())
+       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="protein")
+       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
+       colData(data_se)$label <- colData(data_se)$sample_name
+       return(data_se)
      } else if (input$exp == "TMT-peptide") {
        temp_exp_design <- exp_design()
        # sample without specified condition will be removed
@@ -505,6 +524,15 @@ server <- function(input, output, session) {
        test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
        # TMT-I report is already log2 transformed
        data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="peptide")
+       return(data_se)
+     } else if (input$exp == "DIA-peptide") {
+       data_unique <- DEP::make_unique(filtered_data, "Index", "Protein.Group")
+       cols <- colnames(data_unique)
+       selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+       test_match_DIA_column_design(data_unique, selected_cols, exp_design())
+       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="peptide")
+       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
+       colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
      }
    })
@@ -568,9 +596,9 @@ server <- function(input, output, session) {
    })
 
    normalised_data<-reactive({
-     if (input$exp == "LFQ" | input$exp == "DIA") {
+     if (input$exp == "LFQ") {
        if (input$normalization == "vsn") {
-         if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+         if (input$lfq_type == "Spectral Count") {
            return(filtered_data())
          } else {
            return(normalize_vsn(filtered_data()))
@@ -646,7 +674,7 @@ server <- function(input, output, session) {
    })
    
    comparisons<-reactive ({
-    if (input$exp == "TMT"  | input$exp == "DIA" | input$exp == "TMT-peptide") {
+    if (input$exp == "TMT"  | input$exp == "DIA" | input$exp == "TMT-peptide" | input$exp == "DIA-peptide") {
        temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
        # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
        #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
@@ -768,71 +796,81 @@ server <- function(input, output, session) {
     })
 
     
-    volcano_input_selected<-reactive({
+    volcano_input_selected <- reactive({
       if(!is.null(input$volcano_cntrst)){
+        proteins_selected <- NULL
         if (!is.null(input$contents_rows_selected)){
           proteins_selected<-data_result()[c(input$contents_rows_selected),]## get all rows selected
-        } else if(!is.null(input$protein_brush)){
-          proteins_selected <- data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ] 
-        }
+        } 
+        
+        # TODO: brush doesn't work now
+        # else if(!is.null(input$protein_brush)){
+        #   if (metadata(dep())$level == "peptide") {
+        #     proteins_selected <- data_result()[data_result()[["Index"]] %in% protein_name_brush(), ]
+        #   } else {
+        #     proteins_selected <- data_result()[data_result()[["Gene Name"]] %in% protein_name_brush(), ]
+        #   }
+        # }
         
         ## convert contrast to x and padj to y
-        diff_proteins <- grep(paste("^",input$volcano_cntrst, "_log2", sep = ""),
-                    colnames(proteins_selected))
-        if(input$p_adj=="FALSE"){
-          padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.val", sep = ""),
-                                     colnames(proteins_selected))
-        } else {
-          padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
-                               colnames(proteins_selected))
-        }
-        if (metadata(dep())$level == "peptide") {
-          df_peptide <- data.frame(x = proteins_selected[, diff_proteins],
-                                   y = -log10(as.numeric(proteins_selected[, padj_proteins])),
-                                   name = proteins_selected$`Index`,
-                                   proteinID = proteins_selected$`Protein ID`)
-          p <- plot_volcano_new(dep(),
-                                input$volcano_cntrst,
-                                input$fontsize,
-                                input$check_names,
-                                input$p_adj)
-          p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
-            ggrepel::geom_text_repel(data = df_peptide,
-                                     color = "maroon",
-                                     aes(x, y, label = name),
-                                     size = 4,
-                                     box.padding = unit(0.1, 'lines'),
-                                     point.padding = unit(0.1, 'lines'),
-                                     segment.size = 0.5)## use the dataframe to plot points
-        } else {
-          df_protein <- data.frame(x = proteins_selected[, diff_proteins],
-                          y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
-                          name = proteins_selected$`Gene Name`,
-                          proteinID = proteins_selected$`Protein ID`)
-          p <- plot_volcano_new(dep(),
-                                input$volcano_cntrst,
-                                input$fontsize,
-                                input$check_names,
-                                input$p_adj)
-          if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
-            p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-              ggrepel::geom_text_repel(data = df_protein,
-                                       aes(x, y, label = proteinID),
-                                       size = 4,
-                                       box.padding = unit(0.1, 'lines'),
-                                       point.padding = unit(0.1, 'lines'),
-                                       segment.size = 0.5)## use the dataframe to plot points
+        if (!is.null(proteins_selected)) {
+          diff_proteins <- grep(paste("^",input$volcano_cntrst, "_log2", sep = ""),
+                      colnames(proteins_selected))
+          if(input$p_adj=="FALSE"){
+            padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.val", sep = ""),
+                                       colnames(proteins_selected))
           } else {
-            p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-              ggrepel::geom_text_repel(data = df_protein,
+            padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
+                                 colnames(proteins_selected))
+          }
+          if (metadata(dep())$level == "peptide") {
+            df_peptide <- data.frame(x = proteins_selected[, diff_proteins],
+                                     y = -log10(as.numeric(proteins_selected[, padj_proteins])),
+                                     name = proteins_selected$`Index`,
+                                     proteinID = proteins_selected$`Protein ID`)
+            p <- plot_volcano_new(dep(),
+                                  input$volcano_cntrst,
+                                  input$fontsize,
+                                  input$check_names,
+                                  input$p_adj)
+            p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
+              ggrepel::geom_text_repel(data = df_peptide,
+                                       color = "maroon",
                                        aes(x, y, label = name),
                                        size = 4,
                                        box.padding = unit(0.1, 'lines'),
                                        point.padding = unit(0.1, 'lines'),
                                        segment.size = 0.5)## use the dataframe to plot points
+          } else {
+            df_protein <- data.frame(x = proteins_selected[, diff_proteins],
+                            y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
+                            name = proteins_selected$`Gene Name`,
+                            proteinID = proteins_selected$`Protein ID`)
+            p <- plot_volcano_new(dep(),
+                                  input$volcano_cntrst,
+                                  input$fontsize,
+                                  input$check_names,
+                                  input$p_adj)
+            if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
+              p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+                ggrepel::geom_text_repel(data = df_protein,
+                                         aes(x, y, label = proteinID),
+                                         size = 4,
+                                         box.padding = unit(0.1, 'lines'),
+                                         point.padding = unit(0.1, 'lines'),
+                                         segment.size = 0.5)## use the dataframe to plot points
+            } else {
+              p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+                ggrepel::geom_text_repel(data = df_protein,
+                                         aes(x, y, label = name),
+                                         size = 4,
+                                         box.padding = unit(0.1, 'lines'),
+                                         point.padding = unit(0.1, 'lines'),
+                                         segment.size = 0.5)## use the dataframe to plot points
+            }
           }
+          return(p)
         }
-        return(p)
        }
     })
     
@@ -842,8 +880,12 @@ server <- function(input, output, session) {
       } else {
         data <- processed_data()
       }
-      if (input$exp == "TMT" & metadata(data)$level == "protein") {
+      if (metadata(data)$exp == "TMT" & metadata(data)$level == "protein") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
+      } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "peptide") {
+        protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
+      } else if (metadata(data)$exp == "DIA" & metadata(data)$level == "peptide") {
+        protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else {
         protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
       }
@@ -968,18 +1010,16 @@ server <- function(input, output, session) {
 
   ##### Get results dataframe from Summarizedexperiment object
    data_result <- eventReactive(input$analyze, {
-      get_results_proteins(dep(), input$exp)
-      #get_results(dep())
+      get_results_proteins(dep())
     })
 
   #### Data table
    output$contents <- DT::renderDataTable({
      df<- data_result()
      return(df)
-     },
-     options = list(scrollX = TRUE,
-                    autoWidth=TRUE,
-                    columnDefs= list(list(width = '400px', targets = c(-1)))))
+   }, options = list(scrollX = TRUE,
+                     autoWidth=TRUE,
+                     columnDefs= list(list(width = '400px', targets = c(-1)))))
   
   ## Deselect all rows button
   proxy <- dataTableProxy("contents")
@@ -999,39 +1039,67 @@ server <- function(input, output, session) {
     )
   })
 
-  protein_name_brush<- reactive({
+  protein_name_brush <- reactive({
     if (input$p_adj) {
       yvar <- "adjusted_p_value_-log10"
     } else {
       yvar <- "p_value_-log10"
     }
-    if(is.null(input$contents_rows_selected)){
-      protein_tmp<-brushedPoints(plot_volcano_new(dep(),
-                                                  input$volcano_cntrst,
-                                                  input$fontsize,
-                                                  input$check_names,
-                                                  input$p_adj, plot=F), input$protein_brush,
-                                 xvar = "log2_fold_change", yvar = yvar)
-      return(protein_tmp$protein)
+    if (!input$exp %in% c("TMT-peptide", "DIA-peptide")) {
+      if(is.null(input$contents_rows_selected)){
+        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+                                                    input$volcano_cntrst,
+                                                    input$fontsize,
+                                                    input$check_names,
+                                                    input$p_adj, plot=F), input$protein_brush,
+                                   xvar = "log2_fold_change", yvar = yvar)
+        return(protein_tmp$protein)
+      } else {
+        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+                                                    input$volcano_cntrst,
+                                                    input$fontsize,
+                                                    input$check_names,
+                                                    input$p_adj, plot=F), input$protein_brush,
+                                   xvar = "log2_fold_change", yvar = yvar)
+        proteins_selected <- data_result()[c(input$contents_rows_selected), "Gene Name"] ## get all rows selected
+        return(c(proteins_selected, protein_tmp$protein))
+      }
     } else {
-      protein_tmp<-brushedPoints(plot_volcano_new(dep(),
-                                                  input$volcano_cntrst,
-                                                  input$fontsize,
-                                                  input$check_names,
-                                                  input$p_adj, plot=F), input$protein_brush,
-                                 xvar = "log2_fold_change", yvar = yvar)
-      proteins_selected <- data_result()[c(input$contents_rows_selected), "Gene Name"] ## get all rows selected
-      return(c(proteins_selected, protein_tmp$protein))
+      if(is.null(input$contents_rows_selected)){
+        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+                                                    input$volcano_cntrst,
+                                                    input$fontsize,
+                                                    input$check_names,
+                                                    input$p_adj, plot=F), input$protein_brush,
+                                   xvar = "log2_fold_change", yvar = yvar)
+        brush_selected <- protein_tmp$protein
+      } else {
+        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+                                                    input$volcano_cntrst,
+                                                    input$fontsize,
+                                                    input$check_names,
+                                                    input$p_adj, plot=F), input$protein_brush,
+                                   xvar = "log2_fold_change", yvar = yvar)
+        proteins_selected <- data_result()[c(input$contents_rows_selected), "Index"] ## get all rows selected
+        brush_selected <- c(proteins_selected, protein_tmp$protein)
+      }
+      return(brush_selected)
     }
   })
   
   ## Select rows dynamically
   brush <- NULL
   makeReactiveBinding("brush")
-  observeEvent(input$protein_brush,{
-    data <- data_result()
-    proxy %>% selectRows(which(data[["Gene Name"]] %in% protein_name_brush()))
-  })
+
+  # TODO: brush can manipulate data table content
+  # observeEvent(input$protein_brush,{
+  #   data <- data_result()
+  #   if (!input$exp %in% c("TMT-peptide", "DIA-ptpide")) {
+  #     proxy %>% selectRows(which(data[["Gene Name"]] %in% protein_name_brush()))
+  #   } else {
+  #     proxy %>% selectRows(which(data[["Index"]] %in% protein_name_brush()))
+  #   }
+  # })
  
  observeEvent(input$resetPlot,{
    session$resetBrush("protein_brush")
@@ -1065,11 +1133,18 @@ server <- function(input, output, session) {
                      Sys.sleep(0.25)
                    }
                  })
+    # TODO: brush doesn't work here
     if(is.null(input$contents_rows_selected)){
       volcano_input()
-    } else if(!is.null(input$volcano_cntrst)){
+    } else {
       volcano_input_selected()
-    }# else close
+    }
+    # if(!is.null(input$volcano_cntrst)){
+    #   if (is.null(input$protin_brush)) {
+    #     volcano_input()
+    #   } else {
+    #     volcano_input_selected()
+    #   }
   })
   
   output$protein_plot<-renderPlotly({
@@ -1165,7 +1240,7 @@ server <- function(input, output, session) {
   
   datasetInput <- reactive({
     switch(input$dataset,
-           "DE_results" = get_results_proteins(dep(), input$exp),
+           "DE_results" = get_results_proteins(dep()),
            "Original_matrix"= unimputed_table(),
            "Filtered_matrix" = filtered_table(),
            "Normalized_matrix" = normalized_table(),
@@ -1407,9 +1482,10 @@ output$download_density_svg<-downloadHandler(
     conditions <- condition_list()
 
     df <- as.data.frame(assay(processed_data()), check.names=F)
+    exp <- metadata(processed_data())$exp
+    level <- metadata(processed_data())$level
     sample_cols <- colnames(df)
-   
-    if (input$exp == "LFQ"){
+    if (exp == "LFQ"){
       # MaxQuant Protein.names is Description in FragPipe output
       # MaxQuant Gene.names is Gene in FragPipe output
       # print(colnames(rowData(processed_data())))
@@ -1445,7 +1521,7 @@ output$download_density_svg<-downloadHandler(
         }
       }
       df <- dplyr::relocate(df, "Protein", "Gene", "Description", "Combined.Total.Peptides")
-    } else { # DIA doesn't work yet
+    } else if (exp == "DIA" & level == "protein") { # DIA doesn't work yet
       # "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description" "name"
       df$Gene <- rowData(processed_data())$Genes
       df$Description <- rowData(processed_data())$First.Protein.Description
@@ -1472,6 +1548,31 @@ output$download_density_svg<-downloadHandler(
         }
       }
       df <- dplyr::relocate(df, "Protein", "Gene", "Description")
+    } else { # exp == "DIA" & level == "peptide"
+      # DIA peptide part wasn't test carefully
+      df$Peptide <- rowData(processed_data())$Stripped.Sequence
+      df$Gene <- rowData(processed_data())$Genes
+      df$Protein <- rowData(processed_data())$Protein.Ids
+      if ("" %in% df$Gene){
+        df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
+      
+      # filter if all intensity are NAs
+      df <- df[rowSums(!is.na(df[,sample_cols])) != 0,]
+      
+      for (i in 1:length(conditions)) {
+        condition <- conditions[i]
+        temp <- as.data.frame(colData(processed_data()))
+        temp <- temp[temp$condition==condition,]
+        selected_cols <- temp$label
+        df[paste0("#Occurences", sep = "_", condition)] <- rowSums(!is.na(df[,selected_cols, drop=F]))
+        df <- dplyr::relocate(df, paste0("#Occurences",sep = "_", condition))
+        if (!is.null(input[[paste0("",condition)]])){
+          df <- df %>%
+            dplyr::filter(df[[paste("#Occurences", condition, sep="_")]] >=input[[paste0("",condition)]][1] &
+                            df[[paste("#Occurences", condition, sep="_")]] <=input[[paste0("",condition)]][2])
+        }
+      }
+      df <- dplyr::relocate(df, "Peptide", "Protein", "Gene")
     }
     
     rownames(df) <- NULL

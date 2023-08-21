@@ -90,10 +90,12 @@ test_ora_mod <- function(dep,
     background <- unique(row_data$Gene)
   } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
     background <- gsub("[.].*", "", row_data$name)
-  } else if (metadata(dep)$level == "peptide") {
+  } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
     background <- unique(row_data$Gene)
+  } else if (metadata(dep)$exp == "DIA"  & metadata(dep)$level == "peptide") {
+    background <- unique(row_data$Genes)
   }
-
+  
   background_enriched <- enrichr_mod(background, databases)
   df_background <- NULL
   for(database in databases) {
@@ -138,8 +140,10 @@ test_ora_mod <- function(dep,
         genes <- unique(significant$Gene)
       } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
         genes <- significant$name
-      } else if (metadata(dep)$level == "peptide") {
+      } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
         genes <- unique(significant$Gene)
+      } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "peptide") {
+        genes <- unique(significant$Genes)
       }
       
       message(paste0(length(genes), " genes are submitted"))

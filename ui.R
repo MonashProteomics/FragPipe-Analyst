@@ -3,7 +3,8 @@ VERSION <- "v0.28"
 
 ENABLE_PEPTIDE_ANALYSIS <- T
 if (ENABLE_PEPTIDE_ANALYSIS) {
-  analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA", "TMT (peptide)"="TMT-peptide")
+  analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA",
+                        "TMT (peptide)"="TMT-peptide", "DIA (peptide)"= "DIA-peptide")
 } else {
   analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA")
 }
@@ -72,6 +73,17 @@ ui <- function(request){shinyUI(
                                         'text/tab-separated-values,text/plain',
                                         '.tsv')),
                      fileInput('tmt_pept_annot', 'Upload sample annotation',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv'))
+                   ),
+                   conditionalPanel(
+                     condition = "input.exp == 'DIA-peptide'",
+                     fileInput('dia_pept_expr', 'Upload DIA precursor report *.pr_matrix.tsv',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     fileInput('dia_pept_annot', 'Upload sample annotation',
                                accept=c('text/tsv',
                                         'text/tab-separated-values,text/plain',
                                         '.tsv'))
