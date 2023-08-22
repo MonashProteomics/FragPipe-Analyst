@@ -4,7 +4,7 @@ VERSION <- "v0.28"
 ENABLE_PEPTIDE_ANALYSIS <- T
 if (ENABLE_PEPTIDE_ANALYSIS) {
   analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA",
-                        "TMT (peptide)"="TMT-peptide", "DIA (peptide)"= "DIA-peptide")
+                        "LFQ (peptide)"="LFQ-peptide", "TMT (peptide)"="TMT-peptide", "DIA (peptide)"= "DIA-peptide")
 } else {
   analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA")
 }
@@ -66,6 +66,23 @@ ui <- function(request){shinyUI(
                                accept=c('text/tsv',
                                         'text/tab-separated-values,text/plain',
                                         '.tsv'))),
+                   conditionalPanel(
+                     condition = "input.exp == 'LFQ-peptide'",
+                     fileInput('lfq_pept_expr', 'Upload combined_peptide.tsv',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     fileInput('lfq_pept_annot', 'Upload sample annotation',
+                               accept=c('text/tsv',
+                                        'text/tab-separated-values,text/plain',
+                                        '.tsv')),
+                     radioButtons("lfq_pept_type",
+                                  "Intensity Type",
+                                  choices = c("Intensity"="Intensity",
+                                              "MaxLFQ Intensity"="MaxLFQ",
+                                              "Spectral Count"="Spectral Count"),
+                                  selected = "Intensity"),
+                   ),
                    conditionalPanel(
                      condition = "input.exp == 'TMT-peptide'",
                      fileInput('tmt_pept_expr', 'Upload peptide-level TMT-I report *.tsv',

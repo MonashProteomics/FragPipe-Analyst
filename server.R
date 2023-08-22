@@ -62,6 +62,11 @@ server <- function(input, output, session) {
       hideTab(inputId = "tab_panels", target = "occ_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
+    } else { # LFQ-peptide
+      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      hideTab(inputId = "tab_panels", target = "occ_panel")
+      updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+      shinyjs::hide("venn_filter")
     }
   })
    
@@ -96,6 +101,9 @@ server <- function(input, output, session) {
        } else if (input$exp == "DIA") {
          inFile <- input$dia_expr
          exp_design_file <- input$dia_manifest
+       } else if (input$exp == "LFQ-peptide") {
+         inFile <- input$lfq_pept_expr
+         exp_design_file <- input$lfq_pept_annot
        } else if (input$exp == "TMT-peptide") {
          inFile <- input$tmt_pept_expr
          exp_design_file <- input$tmt_pept_annot
@@ -234,6 +242,8 @@ server <- function(input, output, session) {
         inFile <- input$tmt_expr
       } else if (input$exp == "DIA") {
         inFile <- input$dia_expr
+      } else if (input$exp == "LFQ-peptide") {
+        inFile <- input$lfq_pept_expr
       } else if (input$exp == "TMT-peptide") {
         inFile <- input$tmt_pept_expr
       } else if (input$exp == "DIA-peptide") {
@@ -265,6 +275,13 @@ server <- function(input, output, session) {
       } else if (input$exp == "DIA"){ # DIA
         validate(fragpipe_DIA_input_test(temp_data))
         # temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+      } else if (input$exp == "LFQ-peptide") {
+        colnames(temp_data) <- gsub("-", ".", colnames(temp_data))
+        colnames(temp_data)[colnames(temp_data) == "Protein Description"] <- "Description"
+        validate(fragpipe_input_test(temp_data))
+        # remove contam
+        temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Peptide Sequence`)
       } else if (input$exp == "TMT-peptide") {
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide", "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
@@ -301,6 +318,8 @@ server <- function(input, output, session) {
         inFile <- input$tmt_annot
       } else if (input$exp == "DIA") {
         inFile <- input$dia_manifest
+      } else if (input$exp == "LFQ-peptide") {
+        inFile <- input$lfq_pept_annot
       } else if (input$exp == "TMT-peptide") {
         inFile <- input$tmt_pept_annot
       } else if (input$exp == "DIA-peptide") {
@@ -344,7 +363,7 @@ server <- function(input, output, session) {
           samples_with_replicate <- unique(gsub("_\\d+$", "", samples_with_replicate))
           temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
         }
-      } else if (input$exp == "LFQ"){
+      } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide"){
         temp_df <- read.table(inFile$datapath,
                               header = T,
                               sep="\t",
@@ -508,6 +527,33 @@ server <- function(input, output, session) {
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
+     } else if (input$exp == "LFQ-peptide"){
+       data_unique <- DEP::make_unique(filtered_data, "Index", "Protein ID")
+       
+       if (input$lfq_pept_type == "Intensity") {
+         lfq_columns <- setdiff(grep("Intensity", colnames(data_unique)),
+                                grep("MaxLFQ", colnames(data_unique)))
+         lfq_columns <- setdiff(lfq_columns, grep("Total Intensity", colnames(data_unique)))
+         lfq_columns <- setdiff(lfq_columns, grep("Unique Intensity", colnames(data_unique)))
+       } else if (input$lfq_pept_type == "MaxLFQ") {
+         lfq_columns<-grep("MaxLFQ", colnames(data_unique))
+         if (length(lfq_columns) == 0) {
+           stop(safeError("No MaxLFQ column available. Please make sure your files have MaxLFQ intensity columns."))
+         }
+       } else if (input$lfq_pept_type == "Spectral Count") {
+         lfq_columns<-grep("Spectral", colnames(data_unique))
+         lfq_columns <- setdiff(lfq_columns, grep("Total Spectral Count", colnames(data_unique)))
+         lfq_columns <- setdiff(lfq_columns, grep("Unique Spectral Count", colnames(data_unique)))
+       }
+       
+       ## Check for matching columns in expression report and experiment manifest file
+       test_match_lfq_column_manifest(data_unique, lfq_columns, exp_design())
+       if (input$lfq_pept_type == "Spectral Count") {
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=F, exp="LFQ", lfq_type="Spectral Count", level="peptide")
+       } else {
+         data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T, exp="LFQ", lfq_type=input$lfq_pept_type, level="peptide")
+       }
+       return(data_se)
      } else if (input$exp == "TMT-peptide") {
        temp_exp_design <- exp_design()
        # sample without specified condition will be removed
@@ -573,6 +619,8 @@ server <- function(input, output, session) {
      temp1 <-assay(processed_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
        colnames(temp1) <- paste(colnames(temp1), "original_spectral_count", sep="_")
+     } else if (input$exp == "LFQ-peptide" & input$lfq_pept_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "original_spectral_count", sep="_")
      } else {
        colnames(temp1) <- paste(colnames(temp1), "original_intensity", sep="_")
      }
@@ -585,6 +633,8 @@ server <- function(input, output, session) {
    filtered_table<-reactive({
      temp1 <-assay(filtered_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "filtered_spectral_count", sep="_")
+     } else if (input$exp == "LFQ-peptide" & input$lfq_pept_type == "Spectral Count") {
        colnames(temp1) <- paste(colnames(temp1), "filtered_spectral_count", sep="_")
      } else {
        colnames(temp1) <- paste(colnames(temp1), "filtered_intensity", sep="_")
@@ -604,6 +654,14 @@ server <- function(input, output, session) {
            return(normalize_vsn(filtered_data()))
          }
        }
+     } else if (input$exp == "LFQ-peptide") {
+       if (input$normalization == "vsn") {
+         if (input$lfq_pept_type == "Spectral Count") {
+           return(filtered_data())
+         } else {
+           return(normalize_vsn(filtered_data()))
+         }
+       }
      }
      return(filtered_data())
    })
@@ -611,6 +669,8 @@ server <- function(input, output, session) {
    normalized_table<-reactive({
      temp1 <-assay(normalised_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "normalized_spectral_count", sep="_")
+     } else if (input$exp == "LFQ-peptide" & input$lfq_pept_type == "Spectral Count") {
        colnames(temp1) <- paste(colnames(temp1), "normalized_spectral_count", sep="_")
      } else {
        colnames(temp1) <- paste(colnames(temp1), "normalized_intensity", sep="_")
@@ -640,6 +700,8 @@ server <- function(input, output, session) {
 
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
        colnames(temp1) <- paste(colnames(temp1), "imputed_spectral_count", sep="_")
+     } else if (input$exp == "LFQ-peptide" & input$lfq_pept_type == "Spectral Count") {
+       colnames(temp1) <- paste(colnames(temp1), "imputed_spectral_count", sep="_")
      } else {
        colnames(temp1) <- paste(colnames(temp1), "imputed_intensity", sep="_")
      }
@@ -663,6 +725,8 @@ server <- function(input, output, session) {
      data <- imputed_data()
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
        assay(data) <- log2(assay(data))
+     } else if (input$exp == "LFQ-peptide" & input$lfq_pept_type == "Spectral Count") {
+       assay(data) <- log2(assay(data))
      }
      if(input$fdr_correction=="BH"){
        diff_all <- test_limma_customized(data, type='all', paired = F)
@@ -684,7 +748,7 @@ server <- function(input, output, session) {
        unlist(strsplit(temp,","))
        ## Remove leading and trailing spaces
        trimws(temp)
-     } else if (input$exp == "LFQ") {
+     } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide") {
        temp<-capture.output(test_diff(imputed_data(),type='all'),type = "message")
        gsub(".*: ","",temp)
        ## Split conditions into character vector
@@ -882,6 +946,8 @@ server <- function(input, output, session) {
       }
       if (metadata(data)$exp == "TMT" & metadata(data)$level == "protein") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
+      } else if (metadata(data)$exp == "LFQ" & metadata(data)$level == "peptide") {
+        protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "peptide") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "DIA" & metadata(data)$level == "peptide") {
