@@ -369,6 +369,9 @@ ui <- function(request){shinyUI(
                                                  checkboxInput("show_gene",
                                                                "Show gene names",
                                                                value = F),
+                                                 checkboxInput("disable_peptides",
+                                                               "Don't color peptides from the same protein",
+                                                               value = F),
                                                  width = 4),
                                            ),
                                            fluidRow(

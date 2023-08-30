@@ -911,6 +911,7 @@ server <- function(input, output, session) {
                                   show_gene = input$show_gene
                                   )
             if (input$show_gene) {
+              df_peptide$Gene <- proteins_selected$`Gene Name`
               df_peptide$Peptide <- gsub(".*_", "", df_peptide$name)
               df_peptide$name <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
             }
@@ -923,16 +924,18 @@ server <- function(input, output, session) {
                                        point.padding = unit(0.1, 'lines'),
                                        segment.size = 0.5)
             # label peptides from the same protein
-            df_peptide_from_same_proteins <- data.frame(x = temp[, diff_proteins],
-                                                        y = -log10(as.numeric(temp[, padj_proteins])),
-                                                        name = temp$`Index`,
-                                                        proteinID = temp$`Protein ID`)
-            if (input$show_gene) {
-              df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$name)
-              df_peptide_from_same_proteins$name <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+            if (!input$disable_peptides) {
+              df_peptide_from_same_proteins <- data.frame(x = temp[, diff_proteins],
+                                                          y = -log10(as.numeric(temp[, padj_proteins])),
+                                                          name = temp$`Index`,
+                                                          proteinID = temp$`Protein ID`)
+              if (input$show_gene) {
+                df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$name)
+                df_peptide_from_same_proteins$name <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+              }
+              p <- p +
+                geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
             }
-            p <- p +
-              geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
           } else {
             df_protein <- data.frame(x = proteins_selected[, diff_proteins],
                             y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
