@@ -1077,7 +1077,7 @@ server <- function(input, output, session) {
    })
    
    coverage_input <- reactive({
-     plot_coverage(filtered_data())
+     plot_coverage_customized(filtered_data())
    })
    
    correlation_input<- eventReactive({
