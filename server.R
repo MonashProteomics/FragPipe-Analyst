@@ -842,12 +842,12 @@ server <- function(input, output, session) {
       if(!is.null(input$volcano_cntrst)) {
                     plot_volcano_new(dep(),
                     input$volcano_cntrst,
-                    input$fontsize,
-                    input$check_names,
-                    input$p_adj,
-                    input$lfc,
-                    input$p)
-    
+                    label_size = input$fontsize,
+                    add_names = input$check_names,
+                    adjusted = input$p_adj,
+                    lfc = input$lfc,
+                    alpha = input$p,
+                    show_gene = input$show_gene)
       }
     })
     
@@ -894,9 +894,13 @@ server <- function(input, output, session) {
                                      proteinID = proteins_selected$`Protein ID`)
             p <- plot_volcano_new(dep(),
                                   input$volcano_cntrst,
-                                  input$fontsize,
-                                  input$check_names,
-                                  input$p_adj)
+                                  label_size = input$fontsize,
+                                  add_names = input$check_names,
+                                  adjusted = input$p_adj,
+                                  lfc = input$lfc,
+                                  alpha = input$p,
+                                  show_gene = input$show_gene
+                                  )
             p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
               ggrepel::geom_text_repel(data = df_peptide,
                                        color = "maroon",
@@ -912,9 +916,13 @@ server <- function(input, output, session) {
                             proteinID = proteins_selected$`Protein ID`)
             p <- plot_volcano_new(dep(),
                                   input$volcano_cntrst,
-                                  input$fontsize,
-                                  input$check_names,
-                                  input$p_adj)
+                                  label_size = input$fontsize,
+                                  add_names = input$check_names,
+                                  adjusted = input$p_adj,
+                                  lfc = input$lfc,
+                                  alpha = input$p,
+                                  show_gene = input$show_gene
+            )
             if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
               p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
                 ggrepel::geom_text_repel(data = df_protein,
@@ -1111,20 +1119,28 @@ server <- function(input, output, session) {
     } else {
       yvar <- "p_value_-log10"
     }
-    if (!input$exp %in% c("TMT-peptide", "DIA-peptide")) {
+    if (!input$exp %in% c("TMT-peptide", "DIA-peptide", "LFQ-peptide")) {
       if(is.null(input$contents_rows_selected)){
         protein_tmp<-brushedPoints(plot_volcano_new(dep(),
                                                     input$volcano_cntrst,
-                                                    input$fontsize,
-                                                    input$check_names,
-                                                    input$p_adj, plot=F), input$protein_brush,
+                                                    label_size = input$fontsize,
+                                                    add_names = input$check_names,
+                                                    adjusted = input$p_adj,
+                                                    lfc = input$lfc,
+                                                    alpha = input$p,
+                                                    show_gene = input$show_gene,
+                                                    plot=F), input$protein_brush,
                                    xvar = "log2_fold_change", yvar = yvar)
         return(protein_tmp$protein)
       } else {
         protein_tmp<-brushedPoints(plot_volcano_new(dep(),
                                                     input$volcano_cntrst,
-                                                    input$fontsize,
-                                                    input$check_names,
+                                                    label_size = input$fontsize,
+                                                    add_names = input$check_names,
+                                                    adjusted = input$p_adj,
+                                                    lfc = input$lfc,
+                                                    alpha = input$p,
+                                                    show_gene = input$show_gene,
                                                     input$p_adj, plot=F), input$protein_brush,
                                    xvar = "log2_fold_change", yvar = yvar)
         proteins_selected <- data_result()[c(input$contents_rows_selected), "Gene Name"] ## get all rows selected
@@ -1134,16 +1150,24 @@ server <- function(input, output, session) {
       if(is.null(input$contents_rows_selected)){
         protein_tmp<-brushedPoints(plot_volcano_new(dep(),
                                                     input$volcano_cntrst,
-                                                    input$fontsize,
-                                                    input$check_names,
+                                                    label_size = input$fontsize,
+                                                    add_names = input$check_names,
+                                                    adjusted = input$p_adj,
+                                                    lfc = input$lfc,
+                                                    alpha = input$p,
+                                                    show_gene = input$show_gene,
                                                     input$p_adj, plot=F), input$protein_brush,
                                    xvar = "log2_fold_change", yvar = yvar)
         brush_selected <- protein_tmp$protein
       } else {
         protein_tmp<-brushedPoints(plot_volcano_new(dep(),
                                                     input$volcano_cntrst,
-                                                    input$fontsize,
-                                                    input$check_names,
+                                                    label_size = input$fontsize,
+                                                    add_names = input$check_names,
+                                                    adjusted = input$p_adj,
+                                                    lfc = input$lfc,
+                                                    alpha = input$p,
+                                                    show_gene = input$show_gene,
                                                     input$p_adj, plot=F), input$protein_brush,
                                    xvar = "log2_fold_change", yvar = yvar)
         proteins_selected <- data_result()[c(input$contents_rows_selected), "Index"] ## get all rows selected

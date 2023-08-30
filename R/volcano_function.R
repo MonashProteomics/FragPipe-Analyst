@@ -1,6 +1,6 @@
 ## New function for volcano plot
 plot_volcano_new <- function(dep, contrast, label_size = 3,
-                         add_names = TRUE, adjusted = T, lfc = 1, alpha = 0.05, plot = TRUE) {
+                         add_names = TRUE, adjusted = T, lfc = 1, alpha = 0.05, plot = TRUE, show_gene = F) {
   # Show error if inputs are not the required classes
   if(is.integer(label_size)) label_size <- as.numeric(label_size)
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
@@ -63,10 +63,55 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
                      colnames(row_data))
   }
   signif <- abs(row_data[,diff]) >= lfc & row_data[, p_values] <= alpha
-  df_tmp <- data.frame(diff = row_data[, diff],
+  if (!show_gene) {
+    df_tmp <- data.frame(diff = row_data[, diff],
                    p_values = -log10(row_data[, p_values]),
                    signif = signif,
                    name = row_data$name)
+  } else {
+    if (metadata(dep)$exp == "LFQ") {
+      if (metadata(dep)$level != "peptide") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = row_data$Gene)
+      } else {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = paste0(row_data$Gene, "_", row_data$Peptide.Sequence))
+      }
+    } else if (metadata(dep)$exp == "TMT") {
+      if (metadata(dep)$level == "protein") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = row_data$Gene)
+      } else if (metadata(dep)$level == "gene") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = row_data$name)
+      } else if (metadata(dep)$level == "peptide") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = paste0(row_data$Gene, "_", row_data$Peptide))
+      }
+    } else if (metadata(dep)$exp == "DIA") {
+      if (metadata(dep)$level != "peptide") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                           p_values = -log10(row_data[, p_values]),
+                           signif = signif,
+                           name = row_data$Genes)
+      } else {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
+      }
+    }
+  }
   df <- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
     arrange(signif)
 

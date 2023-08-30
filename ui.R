@@ -366,6 +366,9 @@ ui <- function(request){shinyUI(
                                                  checkboxInput("p_adj",
                                                                "Adjusted p values",
                                                                value = T),
+                                                 checkboxInput("show_gene",
+                                                               "Show gene names",
+                                                               value = F),
                                                  width = 4),
                                            ),
                                            fluidRow(
