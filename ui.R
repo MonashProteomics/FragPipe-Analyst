@@ -24,7 +24,7 @@ ui <- function(request){shinyUI(
         convertMenuItem(
           tabName = 'analysis',
           menuItem("Analysis", tabName="analysis", icon=icon("flask"),
-                   selectInput("exp", "Experiment type:", analysis_options, selected = "LFQ"),
+                   selectInput("exp", "Data type:", analysis_options, selected = "LFQ"),
                    conditionalPanel(
                      condition = "input.exp == 'LFQ'",
                      fileInput('lfq_expr', 'Upload FragPipe combined_protein.tsv',
@@ -373,8 +373,8 @@ ui <- function(request){shinyUI(
                                            ),
                                            fluidRow(
                                              box(
-                                               tags$p("Select features from Results Table to highlight them on the plot OR 
-                                                      drag the mouse on plot to show expression of features in Table"),
+                                               tags$p("Select features from Results Table to highlight them on the plot"),
+                                               #  OR drag the mouse on plot to show expression of features in Table
                                                width = 12
                                              )
                                            ),
