@@ -864,7 +864,16 @@ server <- function(input, output, session) {
       if(!is.null(input$volcano_cntrst)){
         proteins_selected <- NULL
         if (!is.null(input$contents_rows_selected)){
-          proteins_selected<-data_result()[c(input$contents_rows_selected),]## get all rows selected
+          if (metadata(dep())$level != "peptide") {
+            proteins_selected <- data_result()[c(input$contents_rows_selected),]
+          } else {
+            temp <- data_result()
+            temp$selected <- 0
+            temp[c(input$contents_rows_selected), "selected"] <- 1
+            temp <- temp[temp[["Protein ID"]] %in% temp[c(input$contents_rows_selected), "Protein ID"],]
+            proteins_selected <- temp[temp$selected,]
+            temp <- temp[!temp$selected,]
+          }
         } 
         
         # TODO: brush doesn't work now
@@ -913,6 +922,17 @@ server <- function(input, output, session) {
                                        box.padding = unit(0.1, 'lines'),
                                        point.padding = unit(0.1, 'lines'),
                                        segment.size = 0.5)
+            # label peptides from the same protein
+            df_peptide_from_same_proteins <- data.frame(x = temp[, diff_proteins],
+                                                        y = -log10(as.numeric(temp[, padj_proteins])),
+                                                        name = temp$`Index`,
+                                                        proteinID = temp$`Protein ID`)
+            if (input$show_gene) {
+              df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$name)
+              df_peptide_from_same_proteins$name <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+            }
+            p <- p +
+              geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
           } else {
             df_protein <- data.frame(x = proteins_selected[, diff_proteins],
                             y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
