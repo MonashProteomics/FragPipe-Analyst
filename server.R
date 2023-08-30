@@ -901,6 +901,10 @@ server <- function(input, output, session) {
                                   alpha = input$p,
                                   show_gene = input$show_gene
                                   )
+            if (input$show_gene) {
+              df_peptide$Peptide <- gsub(".*_", "", df_peptide$name)
+              df_peptide$name <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
+            }
             p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
               ggrepel::geom_text_repel(data = df_peptide,
                                        color = "maroon",
@@ -908,7 +912,7 @@ server <- function(input, output, session) {
                                        size = 4,
                                        box.padding = unit(0.1, 'lines'),
                                        point.padding = unit(0.1, 'lines'),
-                                       segment.size = 0.5)## use the dataframe to plot points
+                                       segment.size = 0.5)
           } else {
             df_protein <- data.frame(x = proteins_selected[, diff_proteins],
                             y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
@@ -924,21 +928,41 @@ server <- function(input, output, session) {
                                   show_gene = input$show_gene
             )
             if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
-              p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-                ggrepel::geom_text_repel(data = df_protein,
-                                         aes(x, y, label = proteinID),
-                                         size = 4,
-                                         box.padding = unit(0.1, 'lines'),
-                                         point.padding = unit(0.1, 'lines'),
-                                         segment.size = 0.5)## use the dataframe to plot points
+              if (input$show_gene) {
+                p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+                  ggrepel::geom_text_repel(data = df_protein,
+                                           aes(x, y, label = name),
+                                           size = 4,
+                                           box.padding = unit(0.1, 'lines'),
+                                           point.padding = unit(0.1, 'lines'),
+                                           segment.size = 0.5)
+              } else {
+                p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+                  ggrepel::geom_text_repel(data = df_protein,
+                                           aes(x, y, label = proteinID),
+                                           size = 4,
+                                           box.padding = unit(0.1, 'lines'),
+                                           point.padding = unit(0.1, 'lines'),
+                                           segment.size = 0.5)
+              }
             } else {
-              p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
-                ggrepel::geom_text_repel(data = df_protein,
-                                         aes(x, y, label = name),
-                                         size = 4,
-                                         box.padding = unit(0.1, 'lines'),
-                                         point.padding = unit(0.1, 'lines'),
-                                         segment.size = 0.5)## use the dataframe to plot points
+              if (input$show_gene) {
+                p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+                  ggrepel::geom_text_repel(data = df_protein,
+                                           aes(x, y, label = name),
+                                           size = 4,
+                                           box.padding = unit(0.1, 'lines'),
+                                           point.padding = unit(0.1, 'lines'),
+                                           segment.size = 0.5)
+              } else {
+                p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
+                  ggrepel::geom_text_repel(data = df_protein,
+                                           aes(x, y, label = proteinID),
+                                           size = 4,
+                                           box.padding = unit(0.1, 'lines'),
+                                           point.padding = unit(0.1, 'lines'),
+                                           segment.size = 0.5)
+              }
             }
           }
           return(p)

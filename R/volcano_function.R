@@ -64,10 +64,22 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
   }
   signif <- abs(row_data[,diff]) >= lfc & row_data[, p_values] <= alpha
   if (!show_gene) {
-    df_tmp <- data.frame(diff = row_data[, diff],
-                   p_values = -log10(row_data[, p_values]),
-                   signif = signif,
-                   name = row_data$name)
+    if (metadata(dep)$exp == "LFQ") {
+      df_tmp <- data.frame(diff = row_data[, diff],
+                           p_values = -log10(row_data[, p_values]),
+                           signif = signif,
+                           name = row_data$Protein.ID)
+    } else if (metadata(dep)$exp == "TMT") {
+      df_tmp <- data.frame(diff = row_data[, diff],
+                           p_values = -log10(row_data[, p_values]),
+                           signif = signif,
+                           name = row_data$name)
+    } else if (metadata(dep)$exp == "DIA") {
+      df_tmp <- data.frame(diff = row_data[, diff],
+                           p_values = -log10(row_data[, p_values]),
+                           signif = signif,
+                           name = row_data$ID)
+    }
   } else {
     if (metadata(dep)$exp == "LFQ") {
       if (metadata(dep)$level != "peptide") {
