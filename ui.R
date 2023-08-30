@@ -491,7 +491,7 @@ ui <- function(request){shinyUI(
                      tabPanel(title = "Sample coverage", value="sample_coverage_tab",
                               shinycssloaders::withSpinner(plotOutput("coverage", height = 600), color = "#3c8dbc"),
                               downloadButton('download_cov_svg', "Save svg")),
-                     tabPanel(title = "Missing values - Heatmap",
+                     tabPanel(title = "Missing values - Heatmap", value="missingval_heatmap_tab",
                               shinycssloaders::withSpinner(plotOutput("missval", height = 600), color = "#3c8dbc"),
                               downloadButton('download_missval_svg', "Save svg")
                               ),

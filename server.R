@@ -38,33 +38,45 @@ server <- function(input, output, session) {
       exp <- exp_design_input()
       if (all(is.na(exp$replicate))) {
         showTab(inputId = "tab_panels", target = "quantification_panel")
+        showTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
         updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       } else {
         showTab(inputId = "tab_panels", target = "quantification_panel")
+        showTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
         showTab(inputId="qc_tabBox", target="sample_coverage_tab")
         # make sure occ_panel visible after users updating their analysis
         showTab(inputId = "tab_panels", target = "occ_panel")
         updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       }
       shinyjs::show("venn_filter")
-    } else if (input$exp == "TMT" | input$exp == "TMT-peptide") {
+    } else if (input$exp == "TMT") {
       hideTab(inputId = "tab_panels", target = "occ_panel")
       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      showTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       showTab(inputId = "tab_panels", target = "quantification_panel")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
     } else if (input$exp == "DIA"){ # DIA
-      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       showTab(inputId = "tab_panels", target = "occ_panel")
+      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      showTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     } else if (input$exp == "DIA-peptide") { # DIA-peptide
-      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       hideTab(inputId = "tab_panels", target = "occ_panel")
+      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      hideTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
-    } else { # LFQ-peptide
-      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
+    } else if (input$exp == "TMT-peptide") {
       hideTab(inputId = "tab_panels", target = "occ_panel")
+      hideTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
+      hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
+      showTab(inputId = "tab_panels", target = "quantification_panel")
+      updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
+    } else { # LFQ-peptide
+      hideTab(inputId = "tab_panels", target = "occ_panel")
+      hideTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
+      showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
     }
