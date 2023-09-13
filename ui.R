@@ -632,7 +632,11 @@ ui <- function(request){shinyUI(
                               downloadButton('download_attendance', 'Download Table'),
                               status = "success",
                               solidHeader = TRUE),
-                          box(width = NULL,
+                          
+                          tabBox(
+                            width = NULL,
+                            height = 640,
+                            tabPanel(
                               title = "Venn Plot",
                               tags$p('Select conditions/groups to generate the Venn plot. By default, more than three conditions/groups generates a 3D Venn plot,
                                             set Condition 3 as "NONE" to generate a 2D Venn plot'),
@@ -642,9 +646,29 @@ ui <- function(request){shinyUI(
                                      box(width = 4,id = "con_3", uiOutput("condition_3"))),
                               column(12,
                                      shinycssloaders::withSpinner(plotOutput("venn_plot"), color = "#3c8dbc")),
-                              column(12, downloadButton('download_venn_svg', "Save svg")),
-                              status = "success",
-                              solidHeader = TRUE)
+                              downloadButton('download_venn_svg', "Save svg")
+                            ),
+                            tabPanel(
+                              title = "UpSet Plot",
+                              shinycssloaders::withSpinner(plotOutput("upset_plot",width = "100%", height = 540), 
+                                                           color = "#bec8da"),
+                              downloadButton('download_upset_svg', "Save svg")
+                            )
+                          )
+                          
+                          # box(width = NULL,
+                          #     title = "Venn Plot",
+                          #     tags$p('Select conditions/groups to generate the Venn plot. By default, more than three conditions/groups generates a 3D Venn plot,
+                          #                   set Condition 3 as "NONE" to generate a 2D Venn plot'),
+                          #     column(12,
+                          #            box(width = 4,id = "con_1",uiOutput("condition_1")),
+                          #            box(width = 4,id = "con_2", uiOutput("condition_2")),
+                          #            box(width = 4,id = "con_3", uiOutput("condition_3"))),
+                          #     column(12,
+                          #            shinycssloaders::withSpinner(plotOutput("venn_plot"), color = "#3c8dbc")),
+                          #     column(12, downloadButton('download_venn_svg', "Save svg")),
+                          #     status = "success",
+                          #     solidHeader = TRUE)
                    ) # Venn plot column closed
                  ) # fuildRow closed
               )  # occurrence panel closed
