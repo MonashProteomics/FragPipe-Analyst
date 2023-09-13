@@ -1880,7 +1880,8 @@ output$download_density_svg<-downloadHandler(
       }
     }
     ggVennDiagram::ggVennDiagram(x,label_alpha = 0) +
-      scale_fill_gradient(low = "#F4FAFE", high = "#4981BF")
+      scale_fill_gradient(low = "#F4FAFE", high = "#4981BF") + 
+      scale_x_continuous(expand = expansion(mult = .3))  # avoid group names be cropped if too long
   })
   
   output$venn_plot <- renderPlot({
@@ -1894,6 +1895,52 @@ output$download_density_svg<-downloadHandler(
     content = function(file) {
       svg(file)
       print(venn_plot_input())
+      dev.off()
+    }
+  )
+  
+  ## UpSet plot
+  upset_plot_input <- reactive({
+    df <- data_attendance_filtered()
+    df <- df[,grep("#Occurences", colnames(df))]
+    # change occurences to binary value
+    df <- ifelse(df != 0, 1,0)
+    
+    df <- data.frame(df)
+    colnames(df) <- colnames(df) %>% gsub("X.Occurences_","",.)
+    
+    if (sum(colSums(df) != 0) > 1){ # avoid error if only has one dimension for the UpSet plot
+      UpSetR::upset(df,nsets = ncol(df),
+                    mb.ratio = c(0.6, 0.4),
+                    text.scale = 1.5,
+                    point.size = 3,
+                    order.by = "freq",
+                    decreasing = T,
+                    nintersects = NA,
+                    mainbar.y.label = "#Features in intersection",
+                    sets.x.label = "#Features",
+                    set_size.scale_max = nrow(df) + 1000, #TODO: find a better way to avoid cropping of set_size number
+                    # set_size.angles = 45, 
+                    set_size.show = T
+      )
+    } else {
+      ggplot() +
+        annotate("text", x = 1,  y = 1,
+                 size = 7,
+                 label = "UpSet Plot could not be performed.\nAt least two conditions/groups are required") + 
+        theme_void()
+    }
+  })
+  
+  output$upset_plot <- renderPlot({
+    upset_plot_input()
+  })
+  
+  output$download_upset_svg<-downloadHandler(
+    filename = function() { "upset_plot.svg" }, 
+    content = function(file) {
+      svg(file)
+      print(upset_plot_input())
       dev.off()
     }
   )
