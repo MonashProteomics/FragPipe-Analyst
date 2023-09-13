@@ -173,6 +173,12 @@ ui <- function(request){shinyUI(
       tags$head(
         tags$link(rel = "stylesheet", type = "text/css", href = "./css/custom.css")
       ),
+      
+      tags$head(tags$script(HTML(
+        '// Enable navigation prompt
+          window.onbeforeunload = function() {
+          return "Changes that you made may not be saved.";};'
+      ))),
 
       #  Add logo to the body
       #  tags$img(src="mbpf_logo.jpg",height=50, align="right"),
