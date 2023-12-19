@@ -1,6 +1,7 @@
 #Define server logic to read selected file ----
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
+  ENTRY_LIMIT <- 180000
   
   observeEvent(input$exp, {
     if(input$exp == "TMT" | input$exp == "TMT-peptide"){
@@ -305,6 +306,11 @@ server <- function(input, output, session) {
         temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
         temp_data <- temp_data %>% select(Index, everything())
       }
+
+      if (nrow(temp_data) > ENTRY_LIMIT) {
+        stop(safeError(paste0("Number of entries of input file exceed the limit:", ENTRY_LIMIT, ". Please switch to the local version. If you are using local version already, please increase your ENTRY_LIMIT setting. \n")))
+      }
+
       return(temp_data)
     })
 
