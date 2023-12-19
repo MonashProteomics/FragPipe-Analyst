@@ -766,7 +766,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   legendgrouptitle_text=indicate[1])
     }
   } else if(length(indicate) == 2) {
-    if (exp == "TMT"){
+    if (exp == "TMT" | exp == "TMT-peptide"){
       pca_df$plex <- as.factor(pca_df$plex)
       p <- plot_ly() %>%
         #Overlay color for gears
