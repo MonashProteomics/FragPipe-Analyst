@@ -791,17 +791,10 @@ server <- function(input, output, session) {
      }
      if (num_total<=500){
        if(length(levels(as.factor(colData(data)$replicate))) <= 6){
-         pca_plot<- plot_pca_plotly(data, n=num_total, ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
-       } else{
-           pca_plot<- plot_pca_plotly(data, n=num_total, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
+         pca_plot<- plot_pca_plotly(data, n=num_total, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
        }
      } else {
-         if(length(levels(as.factor(colData(data)$replicate))) <= 6){
-           pca_plot<- plot_pca_plotly(data, ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
-         }
-         else{
-           pca_plot<-plot_pca_plotly(data, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
-         }
+       pca_plot<-plot_pca_plotly(data, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
      }
      return(pca_plot)
    })
@@ -1023,12 +1016,7 @@ server <- function(input, output, session) {
         protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
       }
       protein_selected <- as.character(protein_selected)
-      if(length(levels(as.factor(colData(processed_data())$replicate))) <= 8){
-        return(plot_protein(data, protein_selected, as.character(input$type), id="label"))
-      } else {
-        protein_plot <- plot_protein(data, protein_selected, as.character(input$type), id="label")
-        return(protein_plot + scale_color_brewer(palette = "Paired"))
-      }
+      return(plot_protein(data, protein_selected, as.character(input$type), id="label"))
     })
      
    ## QC plots inputs
@@ -1147,11 +1135,13 @@ server <- function(input, output, session) {
     })
 
   #### Data table
-   output$contents <- DT::renderDataTable({
+   output$contents <- renderDT({
      df<- data_result()
      return(df)
    }, options = list(scrollX = TRUE,
                      autoWidth=TRUE,
+                     pageLength = 20,
+                     lengthMenu = c(20, 40, 80, 100),
                      columnDefs= list(list(width = '400px', targets = c(-1)))))
   
   ## Deselect all rows button
