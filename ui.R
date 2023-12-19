@@ -1,6 +1,6 @@
 # Define UI for data upload app ----
 VERSION <- "v0.33"
-
+DEBUG <- F
 ENABLE_PEPTIDE_ANALYSIS <- T
 if (ENABLE_PEPTIDE_ANALYSIS) {
   analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA",
@@ -175,9 +175,10 @@ ui <- function(request){shinyUI(
       ),
       
       tags$head(tags$script(HTML(
-        '// Enable navigation prompt
+        ifelse(DEBUG, '', '// Enable navigation prompt
           window.onbeforeunload = function() {
-          return "Changes that you made may not be saved.";};'
+          return "Changes that you made may not be saved.";
+        };')
       ))),
 
       #  Add logo to the body
@@ -339,9 +340,18 @@ ui <- function(request){shinyUI(
                           
                           ## Data table and result plots box
                           fluidRow(id="results_tab",
+                              tags$style(type="text/css",
+                                         ".datatables.html-widget.html-widget-static-bound {
+                                            height: auto !important;
+                                            width: 90vw !important;
+                                          }
+                              .dataTables_scrollBody {
+                                height: unset !important;
+                                max-height: none !important;
+                              }"),
                               box(
                                 title = "Results Table",
-                                shinycssloaders::withSpinner(DT::dataTableOutput("contents"),
+                                shinycssloaders::withSpinner(DTOutput("contents"),
                                                              color = "#3c8dbc"),
                                 #  actionButton("clear", "Deselect Rows"),
                                 actionButton("original", "Refresh Table"),
