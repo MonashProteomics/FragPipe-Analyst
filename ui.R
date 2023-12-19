@@ -364,7 +364,7 @@ ui <- function(request){shinyUI(
                               # column(
                               box(
                                 width = 6,
-                                collapsible = TRUE,
+                                collapsible = F,
                                 #status="primary",
                                 #solidHeader=TRUE,
                                 tabBox(
@@ -620,14 +620,14 @@ ui <- function(request){shinyUI(
                    ),
                    column(3,
                           box(width =NULL,
-                              title = "Options",
-                              tags$p("Pre-filtering Results table and Venn plot based on preference Filter Condition if has, 
-                                                    and/or changing the Sliders of each condition/group below"),
+                              title = "Filter Options",
+                              tags$p("Filtering your identification result based on predeefined filter conditions,
+                                                    and/or changing the sliders of each condition below"),
                               br(),
                               div(id = "venn_filter",
                                   tags$h4("Subset Results Table"),
                                   shinyWidgets::prettyCheckboxGroup("filtered_condition_fragpipe",
-                                                                    "Filtered Condition",
+                                                                    "Filters",
                                                                     choices = c('Proteins with more than two peptides'),
                                                                     shape = "round",
                                                                     selected = NULL)
@@ -641,7 +641,8 @@ ui <- function(request){shinyUI(
                    ), # slider bar column closed
                    column(9,
                           box(width = NULL,
-                              title = "Results Table",
+                              collapsible = T,
+                              title = "Filtered Results Table",
                               shinycssloaders::withSpinner(DT::dataTableOutput("contents_occ"), color = "#3c8dbc"),
                               downloadButton('download_attendance', 'Download Table'),
                               status = "success",
@@ -667,9 +668,13 @@ ui <- function(request){shinyUI(
                               shinycssloaders::withSpinner(plotOutput("upset_plot",width = "100%", height = 540), 
                                                            color = "#bec8da"),
                               downloadButton('download_upset_svg', "Save svg")
-                            )
+                            ),
+                            tabPanel(
+                              title = "Jaccard Similarity",
+                              shinycssloaders::withSpinner(plotOutput("Jaccard",width = "100%", height = 540),
+                                                           color = "#bec8da")
+                              )
                           )
-                          
                           # box(width = NULL,
                           #     title = "Venn Plot",
                           #     tags$p('Select conditions/groups to generate the Venn plot. By default, more than three conditions/groups generates a 3D Venn plot,

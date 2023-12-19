@@ -26,6 +26,7 @@ library("shinycssloaders") # new added
 library("shiny.info")
 library("fastcluster")
 library("factoextra")
+library("vegan")
 library("UpSetR")
 
 conflict_prefer("box", "shinydashboard")

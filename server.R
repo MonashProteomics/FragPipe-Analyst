@@ -1086,6 +1086,12 @@ server <- function(input, output, session) {
      return(plot_cor_customized(data, significant=FALSE, indicate="condition", exp=input$exp))
    })
    
+   Jaccard_input <- eventReactive({
+     input$analyze
+   },{
+     return(plot_Jaccard(processed_data()))
+   })
+   
    cvs_input<-reactive({
      plot_cvs(dep(), id="label", scale=!input$cvs_full_range, check.names=F)
    })
@@ -1302,6 +1308,10 @@ server <- function(input, output, session) {
   ### QC Outputs
   output$sample_corr <-renderPlot({
     correlation_input()
+  })
+  
+  output$Jaccard <-renderPlot({
+    Jaccard_input()
   })
   
   output$sample_cvs <- renderPlot({
