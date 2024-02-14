@@ -26,13 +26,16 @@ library("shinycssloaders") # new added
 library("shiny.info")
 library("fastcluster")
 library("factoextra")
-library("vegan")
 library("UpSetR")
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
 conflict_prefer("filter", "dplyr")
 conflict_prefer("desc", "dplyr")
+conflict_prefer("setdiff", "base")
+conflict_prefer("unite", "tidyr")
+conflict_prefer("intersect", "base")
+
 source("R/functions.R")
 source("R/volcano_function.R")
 source("R/customized.R")
