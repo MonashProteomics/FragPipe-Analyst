@@ -363,6 +363,7 @@ server <- function(input, output, session) {
                      "Error: coudn't read the experiment_annotation.tsv. Note that experiment_annotation.tsv is not annotation.txt used to denote channel assignment in each plex set."))
           })
         }
+
         # change it to lower case
         colnames(temp_df) <- tolower(colnames(temp_df))
         # to support - (dash) or name starts with number in condition column
@@ -468,6 +469,9 @@ server <- function(input, output, session) {
        exp_design<-reactive({exp_design_input()})
      }
      
+     validate(need(sum(duplicated(exp_design()$sample_name)) == 0,
+                   "Error: duplicated sample_name detected. Please check your experiment_annotation.tsv again."))
+
      filtered_data <- fragpipe_data()
      if (input$exp == "LFQ"){
        data_unique <- DEP::make_unique(filtered_data, "Gene", "Protein ID")
