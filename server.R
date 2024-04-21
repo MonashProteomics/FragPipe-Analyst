@@ -668,7 +668,7 @@ server <- function(input, output, session) {
    })
 
    normalised_data<-reactive({
-     if (input$exp == "LFQ") {
+     if (input$exp %in% c("LFQ", "LFQ-peptide")) {
        if (input$normalization == "vsn") {
          if (input$lfq_type == "Spectral Count") {
            return(filtered_data())
@@ -676,13 +676,9 @@ server <- function(input, output, session) {
            return(normalize_vsn(filtered_data()))
          }
        }
-     } else if (input$exp == "LFQ-peptide") {
+     } else if (input$exp %in% c("DIA", "DIA-peptide") ) {
        if (input$normalization == "vsn") {
-         if (input$lfq_pept_type == "Spectral Count") {
-           return(filtered_data())
-         } else {
-           return(normalize_vsn(filtered_data()))
-         }
+         return(normalize_vsn(filtered_data()))
        }
      }
      return(filtered_data())
