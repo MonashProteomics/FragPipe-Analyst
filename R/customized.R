@@ -1,4 +1,4 @@
-# customized functions to make LFQ-FP functional
+# customized functions in addition to LFQ-Analyst
 
 # original: make_se from
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
@@ -2207,3 +2207,274 @@ plot_missval_customized <- function(se) {
   draw(ht2, heatmap_legend_side = "top")
 }
 
+# make_unique from DEP
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' \code{make_unique} generates unique identifiers
+#' for a proteomics dataset based on "name" and "id" columns.
+#' @export
+make_unique <- function(proteins, names, ids, delim = ";") {
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(is.data.frame(proteins),
+                          is.character(names),
+                          length(names) == 1,
+                          is.character(ids),
+                          length(ids) == 1,
+                          is.character(delim),
+                          length(delim) == 1)
+  
+  col_names <- colnames(proteins)
+  # Show error if inputs do not contain required columns
+  if(!names %in% col_names) {
+    stop("'", names, "' is not a column in '",
+         deparse(substitute(proteins)), "'",
+         call. = FALSE)
+  }
+  if(!ids %in% col_names) {
+    stop("'", ids, "' is not a column in '",
+         deparse(substitute(proteins)), "'",
+         call. = FALSE)
+  }
+  
+  # If input is a tibble, convert to data.frame
+  if(tibble::is_tibble(proteins))
+    proteins <- as.data.frame(proteins)
+  
+  # Select the name and id columns, and check for NAs
+  double_NAs <- apply(proteins[,c(names, ids)], 1, function(x) all(is.na(x)))
+  if(any(double_NAs)) {
+    stop("NAs in both the 'names' and 'ids' columns")
+  }
+  
+  # Take the first identifier per row and make unique names.
+  # If there is no name, the ID will be taken.
+  proteins_unique <- proteins %>%
+    mutate(name = gsub(paste0(delim, ".*"), "", get(names)),
+           ID = gsub(paste0(delim, ".*"), "", get(ids)),
+           name = make.unique(ifelse(name == "" | is.na(name), ID, name)))
+  return(proteins_unique)
+}
+
+
+# normalize_vsn from DEP
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' Normalization using vsn
+#' @export
+normalize_vsn <- function(se) {
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"))
+  
+  # Variance stabilization transformation on assay data
+  se_vsn <- se
+  vsn.fit <- vsn::vsnMatrix(2 ^ assay(se_vsn))
+  assay(se_vsn) <- vsn::predict(vsn.fit, 2 ^ assay(se_vsn))
+  return(se_vsn)
+}
+
+# test_diff from DEP
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' performs a differential enrichment test based on
+#' protein-wise linear models and empirical Bayes
+#' statistics using \pkg{limma}. False Discovery Rates are estimated
+#' using \pkg{fdrtool}.
+#' @export
+test_diff <- function(se, type = c("control", "all", "manual"),
+                      control = NULL, test = NULL,
+                      design_formula = formula(~ 0 + condition)) {
+  
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(se, "SummarizedExperiment"),
+                          is.character(type),
+                          class(design_formula) == "formula")
+  
+  # Show error if inputs do not contain required columns
+  type <- match.arg(type)
+  
+  col_data <- colData(se)
+  raw <- assay(se)
+  
+  if(any(!c("name", "ID") %in% colnames(rowData(se, use.names = FALSE)))) {
+    stop("'name' and/or 'ID' columns are not present in '",
+         deparse(substitute(se)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  if(any(!c("label", "condition", "replicate") %in% colnames(col_data))) {
+    stop("'label', 'condition' and/or 'replicate' columns are not present in '",
+         deparse(substitute(se)),
+         "'\nRun make_se() or make_se_parse() to obtain the required columns",
+         call. = FALSE)
+  }
+  if(any(is.na(raw))) {
+    warning("Missing values in '", deparse(substitute(se)), "'")
+  }
+  
+  if(!is.null(control)) {
+    # Show error if control input is not valid
+    assertthat::assert_that(is.character(control),
+                            length(control) == 1)
+    if(!control %in% unique(col_data$condition)) {
+      stop("run test_diff() with a valid control.\nValid controls are: '",
+           paste0(unique(col_data$condition), collapse = "', '"), "'",
+           call. = FALSE)
+    }
+  }
+  
+  # variables in formula
+  variables <- terms.formula(design_formula) %>%
+    attr(., "variables") %>%
+    as.character() %>%
+    .[-1]
+  
+  # Throw error if variables are not col_data columns
+  if(any(!variables %in% colnames(col_data))) {
+    stop("run make_diff() with an appropriate 'design_formula'")
+  }
+  if(variables[1] != "condition") {
+    stop("first factor of 'design_formula' should be 'condition'")
+  }
+  
+  # Obtain variable factors
+  for(var in variables) {
+    temp <- factor(col_data[[var]])
+    assign(var, temp)
+  }
+  
+  # Make an appropriate design matrix
+  design <- model.matrix(design_formula, data = environment())
+  colnames(design) <- gsub("condition", "", colnames(design))
+  
+  # Generate contrasts to be tested
+  # Either make all possible combinations ("all"),
+  # only the contrasts versus the control sample ("control") or
+  # use manual contrasts
+  conditions <- as.character(unique(condition))
+  if(type == "all") {
+    # All possible combinations
+    cntrst <- apply(utils::combn(conditions, 2), 2, paste, collapse = " - ")
+    
+    if(!is.null(control)) {
+      # Make sure that contrast containing
+      # the control sample have the control as denominator
+      flip <- grep(paste("^", control, sep = ""), cntrst)
+      if(length(flip) >= 1) {
+        cntrst[flip] <- cntrst[flip] %>%
+          gsub(paste(control, "- ", sep = " "), "", .) %>%
+          paste(" - ", control, sep = "")
+      }
+    }
+    
+  }
+  if(type == "control") {
+    # Throw error if no control argument is present
+    if(is.null(control))
+      stop("run test_diff(type = 'control') with a 'control' argument")
+    
+    # Make contrasts
+    cntrst <- paste(conditions[!conditions %in% control],
+                    control,
+                    sep = " - ")
+  }
+  if(type == "manual") {
+    # Throw error if no test argument is present
+    if(is.null(test)) {
+      stop("run test_diff(type = 'manual') with a 'test' argument")
+    }
+    assertthat::assert_that(is.character(test))
+    
+    if(any(!unlist(strsplit(test, "_vs_")) %in% conditions)) {
+      stop("run test_diff() with valid contrasts in 'test'",
+           ".\nValid contrasts should contain combinations of: '",
+           paste0(conditions, collapse = "', '"),
+           "', for example '", paste0(conditions[1], "_vs_", conditions[2]),
+           "'.", call. = FALSE)
+    }
+    
+    cntrst <- gsub("_vs_", " - ", test)
+    
+  }
+  # Print tested contrasts
+  message("Tested contrasts: ",
+          paste(gsub(" - ", "_vs_", cntrst), collapse = ", "))
+  
+  # Test for differential expression by empirical Bayes moderation
+  # of a linear model on the predefined contrasts
+  fit <- lmFit(raw, design = design)
+  made_contrasts <- makeContrasts(contrasts = cntrst, levels = design)
+  contrast_fit <- contrasts.fit(fit, made_contrasts)
+  
+  if(any(is.na(raw))) {
+    for(i in cntrst) {
+      covariates <- strsplit(i, " - ") %>% unlist
+      single_contrast <- makeContrasts(contrasts = i, levels = design[, covariates])
+      single_contrast_fit <- contrasts.fit(fit[, covariates], single_contrast)
+      contrast_fit$coefficients[, i] <- single_contrast_fit$coefficients[, 1]
+      contrast_fit$stdev.unscaled[, i] <- single_contrast_fit$stdev.unscaled[, 1]
+    }
+  }
+  
+  eB_fit <- eBayes(contrast_fit)
+  
+  # function to retrieve the results of
+  # the differential expression test using 'fdrtool'
+  retrieve_fun <- function(comp, fit = eB_fit){
+    res <- topTable(fit, sort.by = "t", coef = comp,
+                    number = Inf, confint = TRUE)
+    res <- res[!is.na(res$t),]
+    fdr_res <- fdrtool::fdrtool(res$t, plot = FALSE, verbose = FALSE)
+    res$qval <- fdr_res$qval
+    res$lfdr <- fdr_res$lfdr
+    res$comparison <- rep(comp, dim(res)[1])
+    res <- rownames_to_column(res)
+    return(res)
+  }
+  
+  # Retrieve the differential expression test results
+  limma_res <- map_df(cntrst, retrieve_fun)
+  
+  # Select the logFC, CI and qval variables
+  table <- limma_res %>%
+    select(rowname, logFC, CI.L, CI.R, P.Value, qval, comparison) %>%
+    mutate(comparison = gsub(" - ", "_vs_", comparison)) %>%
+    gather(variable, value, -c(rowname,comparison)) %>%
+    mutate(variable = recode(variable, logFC = "diff", P.Value = "p.val", qval = "p.adj")) %>%
+    unite(temp, comparison, variable) %>%
+    spread(temp, value)
+  rowData(se) <- merge(rowData(se, use.names = FALSE), table,
+                       by.x = "name", by.y = "rowname", all.x = TRUE, sort=FALSE)
+  return(se)
+}
+
+# theme_DEP1 from DEP https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' @export
+theme_DEP1 <- function() {
+  # Use theme_bw() as default
+  basesize <- 12
+  theme <- ggplot2::theme_bw(base_size = basesize)
+  
+  # Change plot title appearance
+  theme$plot.title$face <- "bold"
+  theme$plot.title$size <- basesize + 2
+  theme$plot.title$hjust <- 0.5
+  
+  # Change axis title appearance
+  theme$axis.title.x$size <- basesize + 2
+  
+  theme$axis.title.y$size <- basesize + 2
+  
+  # Change axis text appearance
+  theme$axis.text$size <- basesize
+  theme$axis.text$colour <- "black"
+  
+  # Change legend title appearance
+  theme$legend.title$size <- basesize + 2
+  
+  # Change legend text appearance
+  theme$legend.text$size <- basesize
+  
+  # Change strip text (facet headers) appearance
+  theme$strip.text$face <- "bold"
+  theme$strip.text$size <- basesize + 2
+  theme$strip.text$colour <- "black"
+  
+  return(theme)
+}
