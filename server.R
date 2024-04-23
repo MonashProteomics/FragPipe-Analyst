@@ -668,17 +668,24 @@ server <- function(input, output, session) {
    })
 
    normalised_data<-reactive({
-     if (input$exp %in% c("LFQ", "LFQ-peptide")) {
+     if (input$normalization == "none"){
+       return(filtered_data())
+     } else {
        if (input$normalization == "vsn") {
-         if (input$lfq_type == "Spectral Count") {
-           return(filtered_data())
-         } else {
-           return(normalize_vsn(filtered_data()))
+         if (input$exp %in% c("LFQ", "LFQ-peptide")) {
+             if (input$lfq_type == "Spectral Count") {
+               return(filtered_data())
+             } else {
+               return(normalize_vsn(filtered_data()))
+             }
+         } else if (input$exp %in% c("DIA", "DIA-peptide") ) {
+             return(normalize_vsn(filtered_data()))
          }
-       }
-     } else if (input$exp %in% c("DIA", "DIA-peptide") ) {
-       if (input$normalization == "vsn") {
-         return(normalize_vsn(filtered_data()))
+       } else if (input$normalization == "MD"){
+         se <- filtered_data()
+         data <- assay(se)
+         assay(se) <- sweep(data, 2, colMedians(data, na.rm = T))
+         return(se)
        }
      }
      return(filtered_data())

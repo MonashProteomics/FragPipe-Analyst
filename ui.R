@@ -124,8 +124,8 @@ ui <- function(request){shinyUI(
                           radioButtons("normalization",
                                        "Normalization type",
                                        choices = c("No normalization"="none",
-                                                   "Variance stabilizing normalization (LFQ and DIA only)"="vsn"
-                                                   #, "Median centered"="MD"
+                                                   "Variance stabilizing normalization (LFQ and DIA only)"="vsn",
+                                                   "Median centered"="MD"
                                                    ), selected = "none"),
                           radioButtons("imputation",
                                        "Imputation type",

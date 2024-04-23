@@ -35,6 +35,7 @@ conflict_prefer("desc", "dplyr")
 conflict_prefer("setdiff", "base")
 conflict_prefer("unite", "tidyr")
 conflict_prefer("intersect", "base")
+conflict_prefer("colMedians", "matrixStats")
 
 source("R/functions.R")
 source("R/volcano_function.R")
