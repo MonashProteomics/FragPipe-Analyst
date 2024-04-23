@@ -35,7 +35,7 @@ There are two server instances
 ## Install on your own machine
 
 ### Prerequisite
-- R 4.2
+- R >= 4.2
 - PDFlatex
   
 ### Multiple options
@@ -50,6 +50,30 @@ git clone https://github.com/MonashProteomics/FragPipe-Analys.git
 cd FragPipe-Analyst
 
 # Inside R console or R studio
+> install.packages("renv")
+> renv::install("shiny")
+> renv::install("bioc::SummarizedExperiment")
+> renv::install("bioc::ComplexHeatmap")
+> renv::install("tidyverse")
+> renv::install("testthat")
+> renv::install("shinyjs")
+> renv::install("shinyalert")
+> renv::install("svglite")
+> renv::install("bioc::ensembldb")
+> renv::install("bioc::EnsDb.Hsapiens.v86")
+> renv::install("plotly")
+> renv::install("shinyWidgets")
+> renv::install("ggVennDiagram")
+> renv::install("rhandsontable")
+> renv::install("shinyBS")
+> renv::install("shinycssloaders")
+> renv::install("shiny.info")
+> renv::install("fastcluster")
+> renv::install("factoextra")
+> renv::install("UpSetR")
+> renv::install("vegan")
+
+# Execute
 > library("shiny")
 > runApp()
 ```
