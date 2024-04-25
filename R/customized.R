@@ -2478,3 +2478,12 @@ theme_DEP1 <- function() {
   
   return(theme)
 }
+
+theme_DEP2 <- function() {
+  # Get vertical x-axis labels
+  theme <- theme_DEP1()
+  theme$axis.text.x$angle <- 90
+  theme$axis.text.x$hjust <- 1
+  theme$axis.text.x$vjust <- 0.5
+  return(theme)
+}
