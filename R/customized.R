@@ -2487,3 +2487,42 @@ theme_DEP2 <- function() {
   theme$axis.text.x$vjust <- 0.5
   return(theme)
 }
+
+#' Generate a wide data.frame from a SummarizedExperiment (from DEP)
+#'
+#' \code{get_df_wide} generate a wide data.frame from a SummarizedExperiment.
+#'
+#' @param se SummarizedExperiment,
+#' Proteomics data (output from \code{\link{make_se}()} or
+#' \code{\link{make_se_parse}()}).
+#' @return A data.frame object
+#' containing all data in a wide format,
+#' where each row represents a protein.
+#' @examples
+#' @export
+get_df_wide <- function(se) {
+  # Show error if inputs are not the required classes
+  assert_that(inherits(se, "SummarizedExperiment"))
+  
+  # Show error if inputs do not contain required columns
+  if (!"name" %in% colnames(rowData(se, use.names = FALSE))) {
+    stop("'name' column is not present in '",
+         deparse(substitute(se)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  
+  # Extract row data
+  row_data <- rowData(se, use.names = FALSE) %>%
+    data.frame()
+  # Extract assay data
+  assay_data <- assay(se) %>%
+    data.frame() %>%
+    rownames_to_column()
+  colnames(assay_data)[1] <- "name"
+  
+  # Merge row and assay data into a wide data.frame
+  wide <- full_join(assay_data, row_data, by = "name")
+  
+  return(wide)
+}

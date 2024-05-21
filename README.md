@@ -39,7 +39,8 @@ There are two server instances
 - PDFlatex
   
 ### Multiple options
-Once all the dependencies are installed, follow steps below to run the server locally.
+Once all the prerequisites are installed, follow steps below to build and run the server locally.
+
 You can build it natively:
 
 ``` sh
@@ -72,6 +73,7 @@ cd FragPipe-Analyst
 > renv::install("factoextra")
 > renv::install("UpSetR")
 > renv::install("vegan")
+> renv::install("assertthat")
 
 # Execute
 > library("shiny")

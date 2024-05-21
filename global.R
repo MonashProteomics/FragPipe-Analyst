@@ -27,6 +27,8 @@ library("fastcluster")
 library("factoextra")
 library("UpSetR")
 library(vegan)
+library(assertthat)
+
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
