@@ -157,7 +157,7 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
                                        fontface = "bold")) +
     labs(title = contrast,
          x = expression(log[2]~"Fold change")) +
-    theme_DEP1() +
+    theme_bw() +
     theme(legend.position = "none") +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
   if (add_names) {

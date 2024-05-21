@@ -858,7 +858,7 @@ server <- function(input, output, session) {
    ### Volcano Plot
     volcano_input <- reactive({
       if(!is.null(input$volcano_cntrst)) {
-                    plot_volcano_new(dep(),
+        p <- plot_volcano_new(dep(),
                     input$volcano_cntrst,
                     label_size = input$fontsize,
                     add_names = input$check_names,
@@ -866,6 +866,7 @@ server <- function(input, output, session) {
                     lfc = input$lfc,
                     alpha = input$p,
                     show_gene = input$show_gene)
+        return(p)
       }
     })
     
@@ -892,7 +893,7 @@ server <- function(input, output, session) {
             proteins_selected <- temp[temp$selected,]
             temp <- temp[!temp$selected,]
           }
-        } 
+        }
         
         # TODO: brush doesn't work now
         # else if(!is.null(input$protein_brush)){
@@ -954,9 +955,9 @@ server <- function(input, output, session) {
               p <- p +
                 geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
             }
-          } else {
+          } else { # protein level
             df_protein <- data.frame(x = proteins_selected[, diff_proteins],
-                            y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
+                            y = -log10(as.numeric(proteins_selected[, padj_proteins])),
                             name = proteins_selected$`Gene Name`,
                             proteinID = proteins_selected$`Protein ID`)
             p <- plot_volcano_new(dep(),
@@ -966,9 +967,8 @@ server <- function(input, output, session) {
                                   adjusted = input$p_adj,
                                   lfc = input$lfc,
                                   alpha = input$p,
-                                  show_gene = input$show_gene
-            )
-            if (metadata(dep())$exp == "TMT" & metadata(dep())$level == "protein") {
+                                  show_gene = input$show_gene)
+            if (metadata(dep())$exp == "TMT") {
               if (input$show_gene) {
                 p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
                   ggrepel::geom_text_repel(data = df_protein,
@@ -1467,15 +1467,22 @@ server <- function(input, output, session) {
     content = function(file) {
       pdf(file)
       if(is.null(input$protein_brush)){
-        print(volcano_input())
+        if (is.null(input$contents_rows_selected)){
+          print(volcano_input())
+        } else {
+          print(volcano_input_selected())
+        }
         dev.off()
-      }
-      else{
-      observeEvent(input$protein_brush,{
-        print(p)
-      })
-      print(volcano_input_selected())
-      dev.off()
+      } else{
+        # observeEvent(input$protein_brush,{
+        #   print(p)
+        #   })
+        if (is.null(input$contents_rows_selected)){
+          print(volcano_input())
+        } else {
+          print(volcano_input_selected())
+        }
+        dev.off()
       }
     }
   )
