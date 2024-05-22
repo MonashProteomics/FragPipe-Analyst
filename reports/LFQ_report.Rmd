@@ -116,7 +116,7 @@ print(params$density_input())
 ## Differential Expression Analysis (Results Plots) 
 
 ### Heatmap
-  A plot representing an overview of expression of all significant (differencially expressed) proteins (rows) in all samples (columns).
+  A plot representing an overview of expression of all significant (differentially expressed) proteins (rows) in all samples (columns).
 
  
 ```{r heatmap_2,  echo=FALSE, warning=FALSE, results='hide', fig.keep="first"}

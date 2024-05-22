@@ -130,10 +130,9 @@ print(params$heatmap_input())
 ```{r volcano,  echo=FALSE, warning=FALSE, comment=NA}
 print(params$volcano_input())
 # source("./R/volcano_function.R", local = knitr::knit_global())
-#for(i in params$tested_contrasts){
-#  # print(paste0('volcano_plot_',i,sep=""))
-#  print(plot_volcano_new(params$dep(),contrast = i,label_size = 2, add_names = F))
-# }
+for(i in params$tested_contrasts){
+ print(plot_volcano_new(params$dep(),contrast = i,label_size = 2, add_names = F))
+}
 ```
 
 
