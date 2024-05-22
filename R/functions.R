@@ -333,14 +333,19 @@ get_annotation <- function(dep, indicate) {
   names(anno_col) <- names
   for(i in names) {
     var = anno[[i]] %>% unique() %>% sort()
-    if(length(var) == 1)
+    if(length(var) == 1) {
       cols <- c("black")
-    if(length(var) == 2)
+    } else if(length(var) == 2) {
       cols <- c("orangered", "cornflowerblue")
-    if(length(var) < 7 & length(var) > 2)
+    } else if(length(var) < 7 & length(var) > 2) {
       cols <- RColorBrewer::brewer.pal(length(var), "Pastel1")
-    if(length(var) > 7)
+    } else if(length(var) <= 12) {
       cols <- RColorBrewer::brewer.pal(length(var), "Set3")
+    } else {
+      cols <- colorRampPalette(brewer.pal(12, "Set3"))(length(var))
+    }
+    names(cols) <- var
+    anno_col[[i]] <-  cols
     names(cols) <- var
     anno_col[[i]] <-  cols
   }
