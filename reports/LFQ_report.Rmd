@@ -119,7 +119,7 @@ print(params$density_input())
   A plot representing an overview of expression of all significant (differentially expressed) proteins (rows) in all samples (columns).
 
  
-```{r heatmap_2,  echo=FALSE, warning=FALSE, results='hide', fig.keep="first"}
+```{r heatmap_2,  echo=F, warning=F, error=T, results='hide', fig.keep="first"}
 print(params$heatmap_input())
 ```
 
