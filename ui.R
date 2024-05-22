@@ -245,7 +245,7 @@ ui <- function(request){shinyUI(
                         h4("Support"),
                         tags$ul(
                           tags$li(tags$b("Questions/Suggestions/Bug reports: "), "Ask us in ", tags$a(href="https://github.com/Nesvilab/FragPipe-Analyst", target="_blank", "our GitHub forum"), "."),
-                          tags$li(tags$b("Documentation/Tutorials: "), "Learn more ", tags$a(href="https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs", target="_blank", "here"), "."),
+                          tags$li(tags$b("Documentation/Tutorials: "), "Learn more ", tags$a(href="https://fragpipe-analyst-doc.nesvilab.org/", target="_blank", "here"), "."),
                           tags$li(tags$b("Servers:"), "Our production (stable) server is at ", tags$a(href="https://fragpipe-analyst.org/", target="_blank", "https://fragpipe-analyst.org/"), "but we also provide our latest dev server ", tags$a(href="http://fragpipe-analyst.nesvilab.org/", target="_blank", "http://fragpipe-analyst.nesvilab.org/"), "with most recent updates and bug fixes."),
                         )
                       )
@@ -310,7 +310,7 @@ ui <- function(request){shinyUI(
                                   "in the", tags$b("Advanced Options"),
                                   '. Note that the missing value imputation method is set by default to “Perseus-like” for DDA LFQ and DIA, and to “No imputation” for TMT.'),
                           tags$li("Press ", tags$b("'Run' ")),
-                          tags$li(tags$b("Hint: "), " Check the ", tags$b("Documentation ")," tab for a detailed explanation of inputs, 
+                          tags$li(tags$b("Hint: "), " Check the ", tags$b("Documentation")," tab for a detailed explanation of inputs, 
                                 advanced options and outputs"),
                         ),
                         br(),
@@ -713,7 +713,7 @@ ui <- function(request){shinyUI(
                    title = "Documentation",
                    h3("Need help?"),
                    tags$ul(
-                     tags$li("Read our documentation and tutorial ", a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst/tree/main/docs', target='_blank', tags$b('here')), "."), 
+                     tags$li("Read our documentation and tutorial ", a(href = 'https://fragpipe-analyst-doc.nesvilab.org/', target='_blank', tags$b('here')), "."), 
                      tags$li("Report issues and ask questions ", a(href = 'https://github.com/Nesvilab/FragPipe-Analyst', target='_blank', tags$b('here')), "."), 
                      tags$li("FragPipe-Analyst is open-source! You are more than welcome to ",a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst', target='_blank', tags$b('contribute')), "."),
                      tags$li('Learn more about our FragPipe', a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')), "."),
@@ -725,10 +725,11 @@ ui <- function(request){shinyUI(
                    p("For any feedback or question regarding FragPipe-Analyst, please contact the 
                      Proteomics & Integrative Bioinformatics Lab (P.I. Alexey Nesvizhskii; University of Michigan):"),
                    tags$ul(
+                     tags$li("Yi Hsiao: ", a(href="mailto: yihsiao@umich.edu", target='_blank', "yihsiao@umich.edu")),
                      tags$li("Professor Alexey Nesvizhskii: ", a(href="mailto: nesvi@med.umich.edu", target='_blank', "nesvi@med.umich.edu"))),
-
                    h4("News and Updates"),
                    tags$ul(
+                     tags$li("03-11-2024: ", a(href = 'https://www.biorxiv.org/content/10.1101/2024.03.05.583643v1', target='_blank', tags$b("Preprint of FragPipe-Analyst")), " is available in bioRxiv."),
                      tags$li("12-02-2022: FragPipe-Analyst is first released for beta testing."),
                      tags$li("07-13-2022: FragPipe-Analyst is first created.")
                     ),
