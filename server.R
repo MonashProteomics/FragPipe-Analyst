@@ -474,7 +474,7 @@ server <- function(input, output, session) {
 
      filtered_data <- fragpipe_data()
      if (input$exp == "LFQ"){
-       data_unique <- DEP::make_unique(filtered_data, "Gene", "Protein ID")
+       data_unique <- make_unique(filtered_data, "Gene", "Protein ID")
        
        if (input$lfq_type == "Intensity") {
          lfq_columns <- setdiff(grep("Intensity", colnames(data_unique)),
@@ -516,7 +516,7 @@ server <- function(input, output, session) {
          is_protein_report <- T
          filtered_data$ProteinID <- filtered_data$Index
        }
-       data_unique <- make_unique(filtered_data, "Index", "ProteinID")
+       data_unique <- make_unique(filtered_data, "ProteinID", "Index")
        # handle unmatched columns
        overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
        if (!is_protein_report) {
@@ -541,7 +541,7 @@ server <- function(input, output, session) {
        }
        return(data_se)
      } else if (input$exp == "DIA") {
-       data_unique <- DEP::make_unique(filtered_data, "Genes", "Protein.Group")
+       data_unique <- make_unique(filtered_data, "Genes", "Protein.Group")
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
@@ -550,7 +550,7 @@ server <- function(input, output, session) {
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
      } else if (input$exp == "LFQ-peptide"){
-       data_unique <- DEP::make_unique(filtered_data, "Index", "Protein ID")
+       data_unique <- make_unique(filtered_data, "Protein ID", "Index")
        
        if (input$lfq_pept_type == "Intensity") {
          lfq_columns <- setdiff(grep("Intensity", colnames(data_unique)),
@@ -581,7 +581,7 @@ server <- function(input, output, session) {
        # sample without specified condition will be removed
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
        temp_exp_design <- temp_exp_design[!temp_exp_design$condition == "",]
-       data_unique <- make_unique(filtered_data, "Index", "ProteinID")
+       data_unique <- make_unique(filtered_data, "ProteinID", "Index")
        # handle unmatched columns
        overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
        interest_cols <- c("Index", "Gene", "ProteinID", "Peptide", "MaxPepProb", "ReferenceIntensity", "name", "ID")
@@ -594,7 +594,7 @@ server <- function(input, output, session) {
        data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="peptide")
        return(data_se)
      } else if (input$exp == "DIA-peptide") {
-       data_unique <- DEP::make_unique(filtered_data, "Index", "Protein.Group")
+       data_unique <- make_unique(filtered_data, "Protein.Group", "Index")
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
@@ -889,8 +889,9 @@ server <- function(input, output, session) {
             temp <- data_result()
             temp$selected <- 0
             temp[c(input$contents_rows_selected), "selected"] <- 1
+            selected_index <- temp[c(input$contents_rows_selected), "Index"]
             temp <- temp[temp[["Protein ID"]] %in% temp[c(input$contents_rows_selected), "Protein ID"],]
-            proteins_selected <- temp[temp$selected,]
+            proteins_selected <- temp[temp$Index %in% selected_index,]
             temp <- temp[!temp$selected,]
           }
         }
@@ -918,8 +919,14 @@ server <- function(input, output, session) {
           if (metadata(dep())$level == "peptide") {
             df_peptide <- data.frame(x = proteins_selected[, diff_proteins],
                                      y = -log10(as.numeric(proteins_selected[, padj_proteins])),
-                                     name = proteins_selected$`Index`,
+                                     name = proteins_selected$`Protein ID`,
+                                     ID = proteins_selected$Index,
                                      proteinID = proteins_selected$`Protein ID`)
+            if (input$show_gene) {
+              df_peptide$Gene <- proteins_selected$`Gene Name`
+              df_peptide$Peptide <- gsub(".*_", "", df_peptide$ID)
+              df_peptide$ID <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
+            }
             p <- plot_volcano_new(dep(),
                                   input$volcano_cntrst,
                                   label_size = input$fontsize,
@@ -928,33 +935,29 @@ server <- function(input, output, session) {
                                   lfc = input$lfc,
                                   alpha = input$p,
                                   show_gene = input$show_gene
-                                  )
-            if (input$show_gene) {
-              df_peptide$Gene <- proteins_selected$`Gene Name`
-              df_peptide$Peptide <- gsub(".*_", "", df_peptide$name)
-              df_peptide$name <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
-            }
-            p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
-              ggrepel::geom_text_repel(data = df_peptide,
-                                       color = "maroon",
-                                       aes(x, y, label = name),
-                                       size = 4,
-                                       box.padding = unit(0.1, 'lines'),
-                                       point.padding = unit(0.1, 'lines'),
-                                       segment.size = 0.5)
+            )
             # label peptides from the same protein
             if (!input$disable_peptides) {
               df_peptide_from_same_proteins <- data.frame(x = temp[, diff_proteins],
                                                           y = -log10(as.numeric(temp[, padj_proteins])),
-                                                          name = temp$`Index`,
+                                                          ID = temp$`Index`,
+                                                          Gene = temp$`Gene Name`,
                                                           proteinID = temp$`Protein ID`)
               if (input$show_gene) {
-                df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$name)
-                df_peptide_from_same_proteins$name <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+                df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
+                df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
               }
               p <- p +
                 geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
             }
+            p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
+              ggrepel::geom_text_repel(data = df_peptide,
+                                       color = "maroon",
+                                       aes(x, y, label = ID),
+                                       size = 4,
+                                       box.padding = unit(0.1, 'lines'),
+                                       point.padding = unit(0.1, 'lines'),
+                                       segment.size = 0.5)
           } else { # protein level
             df_protein <- data.frame(x = proteins_selected[, diff_proteins],
                             y = -log10(as.numeric(proteins_selected[, padj_proteins])),
@@ -1025,6 +1028,8 @@ server <- function(input, output, session) {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "DIA" & metadata(data)$level == "peptide") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
+      } else if (metadata(data)$exp == "DIA") {
+        protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
       } else {
         protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
       }
@@ -1377,7 +1382,7 @@ server <- function(input, output, session) {
     output$pathway_enrichment<-renderPlot({
       Sys.sleep(2)
       null_enrichment_test(pathway_results(), alpha = 0.05)
-      plot_pathway <-plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
+      plot_pathway <- plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
                                      databases = as.character(input$pathway_database), adjust = input$path_adjust,
                                      use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
       return(plot_pathway)

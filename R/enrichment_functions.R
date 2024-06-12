@@ -58,8 +58,8 @@ enrichr_mod <- function(genes, databases = NULL) {
 
 
 test_ora_mod <- function(dep,
-                          databases,
-                          contrasts = TRUE, direction="UP", log2_threshold=0.7, alpha=0.05) {
+                         databases,
+                         contrasts = TRUE, direction="UP", log2_threshold=0.7, alpha=0.05) {
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
                           is.character(databases),
@@ -86,10 +86,12 @@ test_ora_mod <- function(dep,
   
   # Run background list
   message("Background")
-  if (metadata(dep)$level == "protein" & metadata(dep)$exp == "TMT") {
+  if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "protein") {
     background <- unique(row_data$Gene)
-  } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
-    background <- gsub("[.].*", "", row_data$name)
+  } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "gene") {
+    background <- unique(row_data$ID)
+  } else if (metadata(dep)$level == "protein") {
+      background <- unique(gsub("[.].*", "", row_data$name))
   } else if (metadata(dep)$exp == "LFQ" & metadata(dep)$level == "peptide") {
     background <- unique(row_data$Gene)
   } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
@@ -138,9 +140,11 @@ test_ora_mod <- function(dep,
       }
       significant <- significant[significant[gsub("_significant", "_p.adj", contrast)] < alpha,]
       
-      if (metadata(dep)$level == "protein" & metadata(dep)$exp == "TMT") {
+      if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "protein") {
         genes <- unique(significant$Gene)
-      } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
+      } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "gene") {
+        genes <- unique(significant$ID)
+      } else if (metadata(dep)$level == "protein") {
         genes <- significant$name
       } else if (metadata(dep)$exp == "LFQ" & metadata(dep)$level == "peptide") {
         genes <- unique(significant$Gene)
@@ -189,9 +193,11 @@ test_ora_mod <- function(dep,
       mutate(name = gsub("[.].*", "", name))
     
     # Run enrichR
-    if (metadata(dep)$level == "protein" & metadata(dep)$exp == "TMT") {
+    if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "protein") {
       genes <- unique(significant$Gene)
-    } else if (metadata(dep)$level == "protein" | metadata(dep)$level == "gene") {
+    } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "gene") {
+      genes <- unique(significant$ID)
+    } else if (metadata(dep)$level == "protein") {
       genes <- significant$name
     } else if (metadata(dep)$level == "peptide") {
       genes <- unique(significant$Gene)

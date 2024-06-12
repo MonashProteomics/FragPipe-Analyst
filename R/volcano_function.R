@@ -1,5 +1,5 @@
 ## New function for volcano plot
-plot_volcano_new <- function(dep, contrast, label_size = 3,
+plot_volcano_new <- function(dep, contrast, label_size = 3, name_col = NULL,
                          add_names = TRUE, adjusted = T, lfc = 1, alpha = 0.05, plot = TRUE, show_gene = F) {
   # Show error if inputs are not the required classes
   if(is.integer(label_size)) label_size <- as.numeric(label_size)
@@ -17,7 +17,10 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
   
   row_data <- rowData(dep, use.names = FALSE)
   # Show error if inputs do not contain required columns
-  if(any(!c("name", "ID") %in% colnames(row_data))) {
+  if (is.null(name_col)) {
+    name_col <- "ID"
+  }
+  if (any(!c("name", "ID", name_col) %in% colnames(row_data))) {
     stop(paste0("'name' and/or 'ID' columns are not present in '",
                 deparse(substitute(dep)),
                 "'.\nRun make_unique() to obtain required columns."),
@@ -69,18 +72,34 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
-                             name = row_data$Protein.ID)
+                             name = row_data$name,
+                             ID = row_data$ID,
+                             label = row_data[,name_col])
       } else {
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
-                             name = row_data$name)
+                             name = row_data$name,
+                             ID = row_data$ID,
+                             label = row_data[,name_col])
       }
     } else if (metadata(dep)$exp == "TMT") {
-      df_tmp <- data.frame(diff = row_data[, diff],
-                           p_values = -log10(row_data[, p_values]),
-                           signif = signif,
-                           name = row_data$name)
+      if (metadata(dep)$level == "protein") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = row_data$ID)
+      } else if (metadata(dep)$level == "gene") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = row_data$ID)
+      } else { # peptide
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = row_data$Index)
+      }
     } else if (metadata(dep)$exp == "DIA") {
       if (metadata(dep)$level != "peptide") {
         df_tmp <- data.frame(diff = row_data[, diff],
@@ -117,7 +136,7 @@ plot_volcano_new <- function(dep, contrast, label_size = 3,
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
-                             name = row_data$name)
+                             name = row_data$ID)
       } else if (metadata(dep)$level == "peptide") {
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
@@ -249,6 +268,7 @@ get_volcano_df <- function(dep, contrast, adjusted = FALSE) {
   df_tmp <- data.frame(diff = row_data[, diff],
                        p_values = -log10(row_data[, p_values]),
                        signif = row_data[, signif],
+                       ID = row_data$ID,
                        name = row_data$name)
   df<- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
     arrange(signif)
@@ -340,7 +360,7 @@ plot_protein<-function(dep, protein, type, id="ID"){
   }
 }
 
-plot_volcano_mod <- function(dep, contrast, label_size = 3,
+plot_volcano_mod <- function(dep, contrast, label_size = 3, name_col = NULL,
                              add_names = TRUE, adjusted = FALSE, plot = TRUE) {
   # Show error if inputs are not the required classes
   if(is.integer(label_size)) label_size <- as.numeric(label_size)
@@ -359,7 +379,10 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
   row_data <- rowData(dep, use.names = FALSE)
 
   # Show error if inputs do not contain required columns
-  if(any(!c("name", "ID") %in% colnames(row_data))) {
+  if (is.null(name_col)) {
+    name_col <- "ID"
+  }
+  if (any(!c("name", "ID", name_col) %in% colnames(row_data))) {
     stop(paste0("'name' and/or 'ID' columns are not present in '",
                 deparse(substitute(dep)),
                 "'.\nRun make_unique() to obtain required columns."),
@@ -410,7 +433,9 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
                    y = -log10(row_data[, p_values]),
                    p.val = row_data[, p_values],
                    significant = row_data[, signif],
-                   name = row_data$name) %>%
+                   name = row_data$name,
+                   ID = row_data$ID,
+                   label = row_data[,name_col]) %>%
     filter(!is.na(significant)) %>%
     arrange(significant)
   
@@ -435,7 +460,7 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3,
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
   if (add_names) {
     p <- p + ggrepel::geom_text_repel(data = filter(df, significant),
-                                      aes(label = name),
+                                      aes(label = label),
                                       size = label_size,
                                       box.padding = unit(0.1, 'lines'),
                                       point.padding = unit(0.1, 'lines'),

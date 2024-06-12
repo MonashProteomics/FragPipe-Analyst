@@ -61,7 +61,7 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
     expdesign <- as.data.frame(expdesign)
   
   # Select the assay data
-  rownames(proteins_unique) <- proteins_unique$name
+  rownames(proteins_unique) <- proteins_unique$ID
   raw <- proteins_unique[, columns]
   raw[raw == 0] <- NA
   if (log2transform) {
@@ -90,7 +90,7 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
 
   # Select the rowData
   row_data <- proteins_unique[, -columns]
-  rownames(row_data) <- row_data$name
+  rownames(row_data) <- row_data$ID
 
   # Generate the SummarizedExperiment object
   se <- SummarizedExperiment(assays = as.matrix(raw),
@@ -271,7 +271,7 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
     unite(temp, comparison, variable) %>%
     spread(temp, value)
   rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
-                                         by=c("name"="rowname")))
+                                         by=c("ID"="rowname")))
   return(se)
 }
 
@@ -358,9 +358,9 @@ add_rejections_customized <- function(diff, alpha = 0.05, lfc = 1) {
     sign_df <- cbind(sign_df,
                      significant = apply(sign_df, 1, function(x) any(x)))
     colnames(sign_df) <- gsub("_p.adj", "_significant", colnames(sign_df))
-    sign_df <- cbind(name = row_data$name, as.data.frame(sign_df))
+    sign_df <- cbind(ID = row_data$ID, as.data.frame(sign_df))
     rowData(diff) <- as.data.frame(left_join(as.data.frame(rowData(diff)), sign_df,
-                                           by=c("name"="name")))
+                                           by=c("ID"="ID")))
   }
   return(diff)
 }
@@ -1321,7 +1321,6 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
                        control = NULL, test = NULL,
                        design_formula = formula(~ 0 + condition),
                        paired = FALSE) {
-  #require("dplyr", "tidyr", "purrr")
   
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(se, "SummarizedExperiment"),
@@ -1491,7 +1490,7 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
     tidyr::unite(temp, comparison, variable) %>%
     tidyr::spread(temp, value)
   rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
-                                         by=c("name"="rowname")))
+                                         by=c("ID"="rowname")))
   return(se)
 }
 
@@ -2255,7 +2254,7 @@ make_unique <- function(proteins, names, ids, delim = ";") {
   proteins_unique <- proteins %>%
     mutate(name = gsub(paste0(delim, ".*"), "", get(names)),
            ID = gsub(paste0(delim, ".*"), "", get(ids)),
-           name = make.unique(ifelse(name == "" | is.na(name), ID, name)))
+           name = ifelse(name == "" | is.na(name), ID, name))
   return(proteins_unique)
 }
 
