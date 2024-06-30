@@ -1563,9 +1563,9 @@ manual_impute_customized <- function(se, scale = 0.3, shift = 1.8) {
               infin = nrow(se_assay) - n)
   # Impute missing values by random draws from a distribution
   # which is left-shifted by parameter 'shift' * sd and scaled by parameter 'scale' * sd.
+  set.seed(123)
   for (a in seq_len(nrow(stat))) {
     
-    set.seed(123)
     assay(se)[is.na(assay(se)[, stat$samples[a]]), stat$samples[a]] <-
       rnorm(stat$infin[a],
             mean = stat$median[a] - shift * stat$sd[a],
