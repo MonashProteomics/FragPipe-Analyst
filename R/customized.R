@@ -59,7 +59,7 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
     proteins_unique <- as.data.frame(proteins_unique)
   if(tibble::is_tibble(expdesign))
     expdesign <- as.data.frame(expdesign)
-  
+
   # Select the assay data
   rownames(proteins_unique) <- proteins_unique$name
   raw <- proteins_unique[, columns]
@@ -1867,9 +1867,9 @@ plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
       } else if (length(var) == 2) {
         cols <- c("orangered", "cornflowerblue")
       } else if (length(var) < 7 & length(var) > 2) {
-        cols <- brewer.pal(length(var), "Pastel1")
+        cols <- RColorBrewer::brewer.pal(length(var), "Pastel1")
       } else if (length(var) <= 12) {
-        cols <- brewer.pal(length(var), "Set3")
+        cols <- RColorBrewer::brewer.pal(length(var), "Set3")
       } else {
         cols <- colorRampPalette(brewer.pal(12, "Set3"))(length(var))
       }

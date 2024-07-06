@@ -28,7 +28,7 @@ library("factoextra")
 library("UpSetR")
 library(vegan)
 library(assertthat)
-
+library(RColorBrewer)
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
