@@ -45,7 +45,7 @@ Statistical analysis was performed using an in-house generated R script based on
 
 ## Results
 
-#### MaxQuant result output contains `r nrow(params$data)` proteins groups of which _`r nrow(params$dep())`_ proteins were reproducibly quantified.
+#### Result output contains `r nrow(params$data)` features of which _`r nrow(params$dep())`_ features were reproducibly quantified.
 
 #### `r params$num_signif` proteins differ significantly between samples.
 
