@@ -708,7 +708,7 @@ server <- function(input, output, session) {
 
    imputed_data<-eventReactive(input$analyze,{
      if (input$imputation == "none"){
-       imputed <- filtered_data()
+       imputed <- normalised_data()
        rowData(imputed)$imputed <- F
        rowData(imputed)$num_NAs <- rowSums(is.na(assay(normalised_data())))
      } else {
