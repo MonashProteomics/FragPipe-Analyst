@@ -73,16 +73,14 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   #   unite(ID, condition, replicate, remove = FALSE)
   # rownames(expdesign) <- expdesign$ID
   rownames(expdesign) <- expdesign$label
-  # print(expdesign)
-  # print(colnames(raw))
   matched <- match(make.names(expdesign$label),
                    make.names(colnames(raw)))
-
+  # print(matched)
   if(any(is.na(matched))) {
-    stop("None of the labels in the experimental design match ",
-         "with column names in 'proteins_unique'",
-         "\nRun make_se() with the correct labels in the experimental design",
-         "and/or correct columns specification")
+    stop("Some of the samples in the experiment_annotation.tsv don't match ",
+         "with column names in the quantification table",
+         "make sure every sample in the experiment_annotation.tsv",
+         "exists in the quantification table you uploaded")
   }
   
   colnames(raw)[matched] <- expdesign$label
