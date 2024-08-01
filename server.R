@@ -1031,7 +1031,7 @@ server <- function(input, output, session) {
       } else if (metadata(data)$exp == "DIA") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
       } else {
-        protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
+        protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
       }
       protein_selected <- as.character(protein_selected)
       return(plot_protein(data, protein_selected, as.character(input$type), id="label"))
