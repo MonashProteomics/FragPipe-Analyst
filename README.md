@@ -84,7 +84,7 @@ Or run it through Docker:
 
 ``` sh
 # Clone the repository
-git clone https://github.com/MonashProteomics/FragPipe-Analys.git
+git clone https://github.com/MonashProteomics/FragPipe-Analyst.git
 
 # Move to the folder
 cd FragPipe-Analyst
