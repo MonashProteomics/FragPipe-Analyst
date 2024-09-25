@@ -192,8 +192,8 @@ server <- function(input, output, session) {
                     c("DE results(.csv)" = "DE_results",
                       "Original matrix(.csv)" = "Original_matrix",
                       "Filtered matrix(.csv)"= "Filtered_matrix",
-                      "Imputed matrix(.csv)" = "Imputed_matrix",
                       "Normalized matrix(.csv)" = "Normalized_matrix",
+                      "Imputed matrix(.csv)" = "Imputed_matrix",
                       "Full dataset(.csv)" = "Full_dataset",
                       "Original SE(.RData)" = "Processed_SE",
                       "Filtered SE(.RData)" = "Filtered_SE",
@@ -1414,8 +1414,8 @@ server <- function(input, output, session) {
            "Imputed_matrix" = imputed_table(),
            "Full_dataset" = get_df_wide(dep()),
            "Processed_SE" = processed_data(),
-           "Normalized_SE" = normalised_data(),
            "Filtered_SE" = filtered_data(),
+           "Normalized_SE" = normalised_data(),
            "Imputed_SE" = imputed_data()
            )
   })
