@@ -14,28 +14,27 @@ params:
   coverage_input: NA
   pca_input: NA
   correlation_input: NA
-  missval_input: NA
   detect_input: NA
   density_input: NA
   p_hist_input: NA
   heatmap_input: NA
+  missval_input: NA
   dep: NA
   cvs_input: NA
   volcano_input: NA
 output: 
   pdf_document:
+    extra_dependencies: ["float"]
     fig_caption: yes
-always_allow_html: true
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(opts.label="kill_prefix") # Remove line number and Comment "##" from printing
+knitr::opts_chunk$set(opts.label="kill_prefix", fig.pos = "!H", out.extra = "")
+# Remove line number and Comment "##" from printing
 ```
 
 ## Method details
 
-The raw data files were analyzed using TMT workflows in FragPipe to obtain protein quantification. 
-
-Statistical analysis was performed using an in-house generated R script based on the ProteinGroup.txt file. Protein-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine  differentially expressed proteins in each pairwise comparison.
+The raw data files were analyzed using FragPipe to obtain protein identifications and their respective label-free quantification values using IonQuant. Statistical analysis was performed based on the combined_peptide.tsv file. First, contaminants were filtered out. In addition, peptides that were not identified/quantified consistantly in same condition have been removed (). The quantification values were converted to log2 scale if intensities were used. A normalization was then applied (`params$normalizaition`).  Samples were grouped by conditions and missing values were imputed using the `params$imputation`. Peptide-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine differentially expressed  peptides in each pairwise comparison.
 
 
 ### Quick summary of parameters used:
@@ -48,9 +47,9 @@ Statistical analysis was performed using an in-house generated R script based on
 
 ## Results
 
-#### Result output contains `r nrow(params$data)` features of which _`r nrow(params$dep())`_ features were reproducibly quantified.
+### FragPipe result output contains `r nrow(params$data)` proteins groups of which _`r nrow(params$dep())`_ proteins were reproducibly quantified.
 
-#### `r params$num_signif` proteins differ significantly between samples.
+### `r params$num_signif` proteins differ significantly between samples.
 
 \pagebreak
 
@@ -58,7 +57,7 @@ Statistical analysis was performed using an in-house generated R script based on
 
 ## Exploratory Analysis (QC Plots)
 
-#### Principle Component Analysis (PCA) plot
+### Principle Component Analysis (PCA) plot
 
 
 ```{r pca_plot, echo=FALSE, fig.height= 4}
@@ -66,14 +65,14 @@ print(params$pca_input())
 ```
 \pagebreak
 
-#### Sample Correlation matrix
+### Sample Correlation matrix
 
-```{r correlation_heatmap, echo=FALSE, fig.keep='first'}
+```{r correlation_heatmap, echo=FALSE, fig.keep='last', tidy=T, out.height='50%'}
 print(params$correlation_input())
 ```
 \pagebreak
 
-#### Sample Coefficient of variation (CVs)
+### Sample Coefficient of variation (CVs)
 
 ```{r sample_cv,  echo=FALSE, warning=FALSE }
 print(params$cvs_input())
@@ -101,16 +100,7 @@ print(params$coverage_input())
 
 ## Missing Value handling
 
-#### Missing value heatmap
-A heatmap for proteins with missing value in each dataset. Each row represent a protein with missing value in one or more replicate. Each replicate is clustered based on presence of missing values in the sample. 
-
-
-```{r missing_value_heatmap, echo=FALSE, message=FALSE, results='hide',warning=FALSE, fig.keep='first', tidy=TRUE}
-params$missval_input()
-```
-\pagebreak
-
-#### Missing value distribution
+### Missing value distribution
 Protein expression distribution before and after imputation. The plot showing the effect of imputation on protein expression distribution.
 
 ```{r imputation_effect, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
@@ -120,7 +110,7 @@ print(params$density_input())
 
 ## Differential Expression Analysis (Results Plots) 
 
-#### Heatmap
+### Heatmap
   A plot representing an overview of expression of all significant (differentially expressed) proteins (rows) in all samples (columns).
 
  
@@ -128,15 +118,14 @@ print(params$density_input())
 print(params$heatmap_input())
 ```
 
-#### Volcano Plots
+### Volcano Plots
 
 ```{r volcano,  echo=FALSE, warning=FALSE, comment=NA}
-print(params$volcano_input())
+# print(params$volcano_input())
 # source("./R/volcano_function.R", local = knitr::knit_global())
-#for(i in params$tested_contrasts){
-#  # print(paste0('volcano_plot_',i,sep=""))
-#  print(plot_volcano_new(params$dep(),contrast = i,label_size = 2, add_names = F))
-# }
+for(i in params$tested_contrasts){
+ print(plot_volcano_customized(params$dep(),contrast = i,label_size = 2, add_names = F))
+}
 ```
 
 

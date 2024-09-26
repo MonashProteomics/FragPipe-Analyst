@@ -5,6 +5,9 @@ params:
   data: NA
   alpha: NA
   lfc: NA
+  normalization: NA
+  imputation: NA
+  fdr_correction: NA
   num_signif: NA
   tested_contrasts: NA
   numbers_input: NA
@@ -17,7 +20,6 @@ params:
   p_hist_input: NA
   heatmap_input: NA
   dep: NA
-  pg_width: NA
   cvs_input: NA
   volcano_input: NA
 output: 
@@ -32,14 +34,16 @@ knitr::opts_chunk$set(opts.label="kill_prefix", fig.pos = "!H", out.extra = "")
 
 ## Method details
 
-The raw data files were analyzed using FragPipe to obtain protein identifications and their respective label-free quantification values using in-house standard parameters. Statistical analysis was performed based on the combined_protein.tsv file. First, contaminant proteins were filtered out. In addition, proteins that were not identified/quantified consistantly in same condition have been removed as well. The MaxLFQ intensity values were converted to log2 scale, samples were grouped by conditions and missing values were imputed using the ‘Missing not At Random’ (MNAR) method, which uses random draws from a left-shifted Gaussian distribution of 1.8 StDev (standard deviation) apart with a width of 0.3. Protein-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (Benjamini-Hochberg method) along with a |log2 fold change| of `r params$lfc` has been applied to determine significantly regulated proteins in each pairwise comparison.
+The raw data files were analyzed using FragPipe to obtain protein identifications and their respective label-free quantification values using in-house standard parameters. Statistical analysis was performed based on the combined_protein.tsv file. First, contaminant proteins were filtered out. In addition, proteins that were not identified/quantified consistantly in same condition have been removed as well. The MaxLFQ intensity values were converted to log2 scale, samples were grouped by conditions and missing values were imputed using the ‘Missing not At Random’ (MNAR) method, which uses random draws from a left-shifted Gaussian distribution of 1.8 StDev (standard deviation) apart with a width of 0.3. Protein-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine differentially expressed proteins in each pairwise comparison.
 
 
 ### Quick summary of parameters used:
 
-* Tested pairwise comparisons = <span style="color:blue">`r params$tested_contrasts`</span>  
-* Adjusted _p-value_ cutoff <= <span style="color:blue">`r params$alpha`</span>  
-* Log fold change cutoff >= <span style="color:blue">`r params$lfc`</span>  
+* Normalization = <span style="color:blue">`r params$normalization`</span>
+* Imputation = <span style="color:blue">`r params$imputation`</span>
+* Tested comparisons = <span style="color:blue">`r params$tested_contrasts`</span>
+* Adjusted _p-value_ cutoff <= <span style="color:blue">`r params$alpha`</span>
+* Log2 fold change cutoff >= <span style="color:blue">`r params$lfc`</span>
 
 ## Results
 

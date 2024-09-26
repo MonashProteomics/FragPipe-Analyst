@@ -1555,22 +1555,30 @@ output$download_hm_svg<-downloadHandler(
       tested_contrasts<- gsub("_p.adj", "", 
                               colnames(SummarizedExperiment::rowData(dep()))[grep("p.adj", 
                               colnames(SummarizedExperiment::rowData(dep())))])
-      pg_width<- ncol(imputed_data()) / 2.5
+
       # Set up parameters to pass to Rmd document
+      if (input$exp %in% c("LFQ-peptide", "DIA-peptide", "TMT-peptide")) {
+        temp_missval_input <- NA
+      } else {
+        temp_missval_input <- missval_input
+      }
+      
       params <- list(data = processed_data,
                      alpha = input$p,
                      lfc = input$lfc,
+                     normalization = input$normalization,
+                     imputation = input$imputation,
+                     fdr_correction = input$fdr_correction,
                      num_signif= sig_proteins,
-                     pg_width = pg_width,
                      tested_contrasts= tested_contrasts,
                      numbers_input= numbers_input,
                      detect_input = detect_input,
                      density_input = density_input,
-                     missval_input = missval_input,
+                     missval_input = temp_missval_input,
                      # p_hist_input = p_hist_input,
                      pca_input = pca_static_input,
                      coverage_input= coverage_input,
-                     correlation_input =correlation_input,
+                     correlation_input = correlation_input,
                      heatmap_input = heatmap_input,
                      cvs_input = cvs_input,
                      volcano_input = volcano_input,
