@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM rocker/shiny-verse:4.2.1
+FROM rocker/shiny-verse:4.4
 RUN apt-get update && apt-get install -yq \
     libbz2-dev \
     libhdf5-dev \
@@ -18,7 +18,7 @@ RUN Rscript -e 'install.packages(c("devtools", "BiocManager", "tidyverse", "ggre
 "imputeLCMD", "plotly", "DT", "testthat", "RColorBrewer", "shiny","shinyalert","shinydashboard", \
 "shinyjs", "svglite", "rhandsontable", "shinyBS", "shinyWidgets", "ggVennDiagram", "conflicted", "png", "vegan", "assertthat", \
 "shinycssloaders","shiny.info", "factoextra", "UpSetR","fastcluster","fdrtool"), dependencies=TRUE)'
-### #FROM bioconductor/bioconductor_docker:RELEASE_3_15
+### #FROM bioconductor/bioconductor_docker:RELEASE_3_19
 RUN Rscript -e 'BiocManager::install(pkgs=c("ensembldb", "EnsDb.Hsapiens.v86", "SummarizedExperiment", "limma", "ComplexHeatmap", "impute", "pcaMethods"), ask=F, dependencies=TRUE)'
 
 ### RUN Rscript -e 'install.packages("renv")'
