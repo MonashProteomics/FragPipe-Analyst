@@ -6,11 +6,13 @@ server <- function(input, output, session) {
   observeEvent(input$exp, {
     if(input$exp == "TMT" | input$exp == "TMT-peptide"){
       updateRadioButtons(session, "imputation",
-                         choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
+                         choices = c("No imputation"="none", "Perseus-type"="man", "knn"="knn", # "bpca"="bpca", "RF"="RF",
+                                     "MLE"="MLE", "min"="min", "zero"="zero"),
                          selected = "none")
     } else {
       updateRadioButtons(session, "imputation",
-                         choices = c("No imputation"="none", "Perseus-type"="man", "MLE"="MLE", "knn"="knn", "min"="min", "zero"="zero"),
+                         choices = c("No imputation"="none", "Perseus-type"="man", "knn"="knn", # "bpca"="bpca", "RF"="RF",
+                                     "MLE"="MLE", "min"="min", "zero"="zero"),
                          selected = "man")
     }
   })

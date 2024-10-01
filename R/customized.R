@@ -1613,7 +1613,7 @@ manual_impute_customized <- function(se, scale = 0.3, shift = 1.8) {
 #'
 #' imputed_manual <- impute(norm, fun = "man", shift = 1.8, scale = 0.3)
 #' @export
-impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE",
+impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE", "RF",
                                "MinDet", "MinProb", "man", "min", "zero",
                                "mixed", "nbavg"), ...) {
   # Show error if inputs are not the required classes

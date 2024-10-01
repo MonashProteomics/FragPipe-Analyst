@@ -19,7 +19,7 @@ RUN Rscript -e 'install.packages(c("devtools", "BiocManager", "tidyverse", "ggre
 "shinyjs", "svglite", "rhandsontable", "shinyBS", "shinyWidgets", "ggVennDiagram", "conflicted", "png", "vegan", "assertthat", \
 "shinycssloaders","shiny.info", "factoextra", "UpSetR","fastcluster","fdrtool"), dependencies=TRUE)'
 ### #FROM bioconductor/bioconductor_docker:RELEASE_3_19
-RUN Rscript -e 'BiocManager::install(pkgs=c("ensembldb", "EnsDb.Hsapiens.v86", "SummarizedExperiment", "limma", "ComplexHeatmap", "MSnbase", "impute", "pcaMethods"), ask=F, dependencies=TRUE)'
+RUN Rscript -e 'BiocManager::install(pkgs=c("ensembldb", "EnsDb.Hsapiens.v86", "SummarizedExperiment", "limma", "ComplexHeatmap", "MSnbase", "missForest", "impute", "pcaMethods"), ask=F, dependencies=TRUE)'
 
 ### RUN Rscript -e 'install.packages("renv")'
 COPY ./ /srv/shiny-server/fragpipe-analyst
