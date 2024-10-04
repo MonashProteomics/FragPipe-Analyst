@@ -52,32 +52,10 @@ cd FragPipe-Analyst
 
 # Inside R console or R studio
 > install.packages("renv")
-> renv::install("shiny")
-> renv::install("bioc::SummarizedExperiment")
-> renv::install("bioc::ComplexHeatmap")
-> renv::install("tidyverse")
-> renv::install("testthat")
-> renv::install("shinyjs")
-> renv::install("shinyalert")
-> renv::install("svglite")
-> renv::install("bioc::ensembldb")
-> renv::install("bioc::EnsDb.Hsapiens.v86")
-> renv::install("plotly")
-> renv::install("shinyWidgets")
-> renv::install("ggVennDiagram")
-> renv::install("rhandsontable")
-> renv::install("shinyBS")
-> renv::install("shinycssloaders")
-> renv::install("shiny.info")
-> renv::install("fastcluster")
-> renv::install("factoextra")
-> renv::install("UpSetR")
-> renv::install("vegan")
-> renv::install("assertthat")
+> renv::init(bioconductor = T)
 
 # Execute
-> library("shiny")
-> runApp()
+> shiny::runApp()
 ```
 
 Or run it through Docker:
