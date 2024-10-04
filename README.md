@@ -35,7 +35,7 @@ There are two server instances
 ## Install on your own machine
 
 ### Prerequisite
-- R >= 4.2
+- R >= 4.4
 - PDFlatex
   
 ### Multiple options
