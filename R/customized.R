@@ -2517,6 +2517,7 @@ get_df_wide <- function(se) {
   # Extract row data
   row_data <- rowData(se, use.names = FALSE) %>%
     data.frame()
+  row_data <- row_data[,!colnames(row_data) %in% c("name")]
   # Extract assay data
   assay_data <- assay(se) %>%
     data.frame() %>%
@@ -2524,7 +2525,7 @@ get_df_wide <- function(se) {
   colnames(assay_data)[1] <- "name"
   
   # Merge row and assay data into a wide data.frame
-  wide <- full_join(assay_data, row_data, by = "name")
+  wide <- full_join(assay_data, row_data, by = join_by(name==ID))
   
   return(wide)
 }
