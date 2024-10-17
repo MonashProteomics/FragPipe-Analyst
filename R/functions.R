@@ -642,7 +642,11 @@ get_results_proteins <- function(dep) {
       colnames(table)[1] <- c("Protein ID")
       colnames(table)[2] <- c("Gene Name")
     } else if (metadata(dep)$level == "peptide") {
-      ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene)
+      if ("SequenceWindow" %in% colnames(row_data)) {
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene, Peptide, SequenceWindow)
+      } else {
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene)
+      }
       table <- dplyr::left_join(ids, ratio, by=c("ID"="rowname"))
       table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
       table <- as.data.frame(row_data) %>%

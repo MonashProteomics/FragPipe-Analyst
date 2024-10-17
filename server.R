@@ -298,7 +298,9 @@ server <- function(input, output, session) {
         temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
         temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Peptide Sequence`)
       } else if (input$exp == "TMT-peptide") {
-        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide", "MaxPepProb", "ReferenceIntensity")]
+        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide",
+                                                                    "SequenceWindow", # for internally supporting single-site report DE
+                                                                    "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
         temp_data <- temp_data %>% select(.,-c("Proteotypic", "Precursor.Charge")) %>%
@@ -586,7 +588,9 @@ server <- function(input, output, session) {
        data_unique <- make_unique(filtered_data, "ProteinID", "Index")
        # handle unmatched columns
        overlapped_samples <- intersect(colnames(data_unique), temp_exp_design$label)
-       interest_cols <- c("Index", "Gene", "ProteinID", "Peptide", "MaxPepProb", "ReferenceIntensity", "name", "ID")
+       interest_cols <- c("Index", "Gene", "ProteinID", "Peptide",
+                          "SequenceWindow", # for internally support DE analysis of single site report
+                          "MaxPepProb", "ReferenceIntensity", "name", "ID")
        data_unique <- data_unique[, colnames(data_unique) %in% c(interest_cols, overlapped_samples)]
        temp_exp_design <- temp_exp_design[temp_exp_design$label %in% overlapped_samples, ]
        cols <- colnames(data_unique)
