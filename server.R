@@ -956,14 +956,18 @@ server <- function(input, output, session) {
                                                           proteinID = temp$`Protein ID`)
               if (input$show_gene) {
                 if ("SequenceWindow" %in% colnames(proteins_selected)) {
-                  df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", gsub(".*_", "", df_peptide_from_same_proteins$ID))
+                  if (nrow(df_peptide_from_same_proteins) > 0) {
+                    df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", gsub(".*_", "", df_peptide_from_same_proteins$ID))
+                  }
                 } else {
                   df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
                   df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
                 }
               }
-              p <- p +
-                geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
+              if (nrow(df_peptide_from_same_proteins) > 0) {
+                p <- p +
+                  geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
+              }
             }
             p <- p + geom_point(data = df_peptide, aes(x, y), color = "maroon", size= 3) +
               ggrepel::geom_text_repel(data = df_peptide,
