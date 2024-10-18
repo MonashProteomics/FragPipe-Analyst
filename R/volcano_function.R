@@ -138,10 +138,17 @@ plot_volcano_new <- function(dep, contrast, label_size = 3, name_col = NULL,
                              signif = signif,
                              name = row_data$ID)
       } else if (metadata(dep)$level == "peptide") {
-        df_tmp <- data.frame(diff = row_data[, diff],
-                             p_values = -log10(row_data[, p_values]),
-                             signif = signif,
-                             name = paste0(row_data$Gene, "_", row_data$Peptide))
+        if ("SequenceWindow" %in% colnames(row_data)) {
+          df_tmp <- data.frame(diff = row_data[, diff],
+                               p_values = -log10(row_data[, p_values]),
+                               signif = signif,
+                               name = paste0(row_data$Gene, "_", gsub(".*_", "", row_data$ID)))
+        } else {
+          df_tmp <- data.frame(diff = row_data[, diff],
+                               p_values = -log10(row_data[, p_values]),
+                               signif = signif,
+                               name = paste0(row_data$Gene, "_", row_data$Peptide))
+        }
       }
     } else if (metadata(dep)$exp == "DIA") {
       if (metadata(dep)$level != "peptide") {

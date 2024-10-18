@@ -930,8 +930,13 @@ server <- function(input, output, session) {
                                      proteinID = proteins_selected$`Protein ID`)
             if (input$show_gene) {
               df_peptide$Gene <- proteins_selected$`Gene Name`
-              df_peptide$Peptide <- gsub(".*_", "", df_peptide$ID)
-              df_peptide$ID <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
+              if ("SequenceWindow" %in% colnames(proteins_selected)) {
+                df_peptide$Peptide <- gsub(".*_", "", proteins_selected$Peptide)
+                df_peptide$ID <- paste0(df_peptide$Gene, "_", gsub(".*_", "", df_peptide$ID))
+              } else {
+                df_peptide$Peptide <- gsub(".*_", "", df_peptide$ID)
+                df_peptide$ID <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
+              }
             }
             p <- plot_volcano_new(dep(),
                                   input$volcano_cntrst,
@@ -950,8 +955,12 @@ server <- function(input, output, session) {
                                                           Gene = temp$`Gene Name`,
                                                           proteinID = temp$`Protein ID`)
               if (input$show_gene) {
-                df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
-                df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+                if ("SequenceWindow" %in% colnames(proteins_selected)) {
+                  df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", gsub(".*_", "", df_peptide_from_same_proteins$ID))
+                } else {
+                  df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
+                  df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+                }
               }
               p <- p +
                 geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
