@@ -1041,6 +1041,8 @@ server <- function(input, output, session) {
       }
       if (metadata(data)$exp == "TMT" & metadata(data)$level == "protein") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
+      } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "gene") {
+        protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
       } else if (metadata(data)$exp == "LFQ" & metadata(data)$level == "peptide") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "peptide") {
