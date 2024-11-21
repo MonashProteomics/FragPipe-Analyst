@@ -34,14 +34,14 @@ There are two server instances
 
 ## Install on your own machine
 
-### Prerequisite
+There are multiple options:
+
+### Local Installation
+
+#### Prerequisite
 - R >= 4.4
 - PDFlatex
-  
-### Multiple options
 Once all the prerequisites are installed, follow steps below to build and run the server locally.
-
-You can build it natively:
 
 ``` sh
 # Clone the repository
@@ -58,7 +58,7 @@ cd FragPipe-Analyst
 > shiny::runApp()
 ```
 
-Or run it through Docker:
+### Instllation through Docker:
 
 ``` sh
 # Clone the repository
