@@ -1,5 +1,5 @@
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-![R](https://img.shields.io/badge/R-%3E4.2-brightgreen)
+![R](https://img.shields.io/badge/R-%3E4.4-brightgreen)
 
 # FragPipe-Analyst
 
