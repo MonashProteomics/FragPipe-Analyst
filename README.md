@@ -34,13 +34,14 @@ There are two server instances
 
 ## Install on your own machine
 
-There are multiple options:
+Two options are available right now for FragPipe-Analyst: local installation or run through Docker.
 
 ### Local Installation
 
 #### Prerequisite
 - R >= 4.4
 - PDFlatex
+
 Once all the prerequisites are installed, follow steps below to build and run the server locally.
 
 ``` sh
