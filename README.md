@@ -5,7 +5,6 @@
 
 A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fragpipe.nesvilab.org/).
 
-
 ## Features
 
 - Differential expression analysis
@@ -31,6 +30,10 @@ A tool for analyzing quantitative proteomics datasets for [FragPipe](https://fra
 There are two server instances
 - Production server is hosted at [https://fragpipe-analyst.org/](https://fragpipe-analyst.org/).
 - Dev server is also hosted at [http://fragpipe-analyst.nesvilab.org/](http://fragpipe-analyst.nesvilab.org/).
+
+## Documentation
+
+Now documentation is all moved to [here](https://fragpipe-analyst-doc.nesvilab.org/).
 
 ## Install on your own machine
 
@@ -59,7 +62,7 @@ cd FragPipe-Analyst
 > shiny::runApp()
 ```
 
-### Instllation through Docker:
+### Installation through Docker:
 
 ``` sh
 # Clone the repository
