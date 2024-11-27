@@ -349,27 +349,40 @@ server <- function(input, output, session) {
       } 
       if (is.null(inFile))
         return(NULL)
-      if (input$exp == "TMT" | input$exp == "TMT-peptide") {
-        temp_df <- read.table(inFile$datapath,
-                              header = T,
-                              sep="\t",
-                              stringsAsFactors = FALSE)
-        # To support txt file
-        if (ncol(temp_df) == 1){
-          # submitting annotation.txt (not experiment_annotation.tsv) will crash here
-          tryCatch({
-            temp_df <- read.table(inFile$datapath,
-                                  header = T,
-                                  sep=" ",
-                                  stringsAsFactors = FALSE)
-          }, error=function(e){
-            validate(need(F,
-                     "Error: coudn't read the experiment_annotation.tsv. Note that experiment_annotation.tsv is not annotation.txt used to denote channel assignment in each plex set."))
-          })
-        }
+      temp_df <- read.table(inFile$datapath,
+                            header = T,
+                            sep="\t",
+                            stringsAsFactors = FALSE)
 
-        # change it to lower case
-        colnames(temp_df) <- tolower(colnames(temp_df))
+      # to support txt file
+      if (ncol(temp_df) == 1){
+        # submitting annotation.txt (not experiment_annotation.tsv) will crash here
+        tryCatch({
+          temp_df <- read.table(inFile$datapath,
+                                header = T,
+                                sep=" ",
+                                stringsAsFactors = FALSE)
+        }, error=function(e){
+          validate(need(F,
+                        "Error: coudn't read the experiment_annotation.tsv. Note that experiment_annotation.tsv is not annotation.txt used to denote channel assignment in each plex set."))
+        })
+      }
+
+      # change column names into lower cases
+      colnames(temp_df) <- tolower(colnames(temp_df))
+
+      validate(need("sample_name" %in% colnames(temp_df),
+                    "Error: No sample column provided. Please check your experiment_annotation.tsv again."))
+      validate(need("sample" %in% colnames(temp_df),
+                    "Error: No sample name column provided. Please check your experiment_annotation.tsv again."))
+
+      # make sure sample_name and sample columns are unique
+      validate(need(any(duplicated(temp_df$sample_name)) == 0,
+                      "Error: Duplicated sample_name detected. Please check your experiment_annotation.tsv again."))
+      validate(need(any(duplicated(temp_df$sample)) == 0,
+                    "Error: Duplicated sample detected. Please check your experiment_annotation.tsv again."))
+
+      if (input$exp == "TMT" | input$exp == "TMT-peptide") {
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
         validate(need(try(test_TMT_annotation(temp_df)),
@@ -387,10 +400,6 @@ server <- function(input, output, session) {
           temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
         }
       } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide"){
-        temp_df <- read.table(inFile$datapath,
-                              header = T,
-                              sep="\t",
-                              stringsAsFactors = FALSE)
         # exp_design_test(temp_df)
         # temp_df$label<-as.character(temp_df$label)
         # temp_df$condition<-trimws(temp_df$condition, which = "left")
@@ -412,12 +421,8 @@ server <- function(input, output, session) {
           }
         }
       } else if (input$exp == "DIA" | input$exp == "DIA-peptide") {
-        temp_df <- read.table(inFile$datapath,
-                              header = T,
-                              sep="\t",
-                              stringsAsFactors = FALSE)
-        # change it to lower case
-        colnames(temp_df) <- tolower(colnames(temp_df))
+        validate(need("file" %in% colnames(temp_df),
+                      "Error: No file column provided. Please check your experiment_annotation.tsv again."))
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
         # make sure replicate column is not empty
@@ -472,9 +477,6 @@ server <- function(input, output, session) {
      if(!is.null (exp_design_input() )){
        exp_design<-reactive({exp_design_input()})
      }
-     
-     validate(need(sum(duplicated(exp_design()$sample_name)) == 0,
-                   "Error: duplicated sample_name detected. Please check your experiment_annotation.tsv again."))
 
      filtered_data <- fragpipe_data()
      if (input$exp == "LFQ"){
@@ -488,7 +490,7 @@ server <- function(input, output, session) {
        } else if (input$lfq_type == "MaxLFQ") {
          lfq_columns<-grep("MaxLFQ", colnames(data_unique))
          if (length(lfq_columns) == 0) {
-           stop(safeError("No MaxLFQ column available. Please make sure your files have MaxLFQ intensity columns."))
+           stop(safeError("No MaxLFQ column available. Please make sure your combined_protein.tsv has MaxLFQ intensity columns."))
          }
        } else if (input$lfq_type == "Spectral Count") {
          lfq_columns<-grep("Spectral", colnames(data_unique))
@@ -564,7 +566,7 @@ server <- function(input, output, session) {
        } else if (input$lfq_pept_type == "MaxLFQ") {
          lfq_columns<-grep("MaxLFQ", colnames(data_unique))
          if (length(lfq_columns) == 0) {
-           stop(safeError("No MaxLFQ column available. Please make sure your files have MaxLFQ intensity columns."))
+           stop(safeError("No MaxLFQ column available. Please make sure your combined_peptide.tsv has MaxLFQ intensity columns."))
          }
        } else if (input$lfq_pept_type == "Spectral Count") {
          lfq_columns<-grep("Spectral", colnames(data_unique))
