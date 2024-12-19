@@ -2250,8 +2250,8 @@ make_unique <- function(proteins, names, ids, delim = ";") {
   # Take the first identifier per row and make unique names.
   # If there is no name, the ID will be taken.
   proteins_unique <- proteins %>%
-    mutate(name = gsub(paste0(delim, ".*"), "", get(names)),
-           ID = gsub(paste0(delim, ".*"), "", get(ids)),
+    mutate(name = get(names),
+           ID = get(ids),
            name = ifelse(name == "" | is.na(name), ID, name))
   return(proteins_unique)
 }
