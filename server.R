@@ -1726,11 +1726,15 @@ output$download_density_svg<-downloadHandler(
         }
       }
       df <- dplyr::relocate(df, "Protein", "Gene", "Description", "Combined.Total.Peptides")
-    } else if (exp == "DIA" & level == "protein") { # DIA doesn't work yet
+    } else if (exp == "DIA" & level == "protein") {
       # "Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description" "name"
       df$Gene <- rowData(processed_data())$Genes
       df$Description <- rowData(processed_data())$First.Protein.Description
-      df$Protein <- rowData(processed_data())$Protein.Ids
+      if ("Protein.Ids" %in% colnames(rowData(processed_data()))) { # for DIA-NN < 1.9
+        df$Protein <- rowData(processed_data())$Protein.Ids
+      } else {
+        df$Protein <- rowData(processed_data())$Protein.Group
+      }
       if ("" %in% df$Gene){
         df$Gene[df["Gene"]==""] <- "NoGeneNameAvailable"}
       if ("" %in% df$Description){
