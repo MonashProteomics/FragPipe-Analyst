@@ -877,7 +877,7 @@ server <- function(input, output, session) {
    ### Volcano Plot
     volcano_input <- reactive({
       if(!is.null(input$volcano_cntrst)) {
-        p <- plot_volcano_new(dep(),
+        p <- plot_volcano_customized(dep(),
                     input$volcano_cntrst,
                     label_size = input$fontsize,
                     add_names = input$check_names,
@@ -951,7 +951,7 @@ server <- function(input, output, session) {
                 df_peptide$ID <- paste0(df_peptide$Gene, "_", df_peptide$Peptide)
               }
             }
-            p <- plot_volcano_new(dep(),
+            p <- plot_volcano_customized(dep(),
                                   input$volcano_cntrst,
                                   label_size = input$fontsize,
                                   add_names = input$check_names,
@@ -995,7 +995,7 @@ server <- function(input, output, session) {
                             y = -log10(as.numeric(proteins_selected[, padj_proteins])),
                             name = proteins_selected$`Gene Name`,
                             proteinID = proteins_selected$`Protein ID`)
-            p <- plot_volcano_new(dep(),
+            p <- plot_volcano_customized(dep(),
                                   input$volcano_cntrst,
                                   label_size = input$fontsize,
                                   add_names = input$check_names,
@@ -1228,7 +1228,7 @@ server <- function(input, output, session) {
     }
     if (!input$exp %in% c("TMT-peptide", "DIA-peptide", "LFQ-peptide")) {
       if(is.null(input$contents_rows_selected)){
-        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+        protein_tmp<-brushedPoints(plot_volcano_customized(dep(),
                                                     input$volcano_cntrst,
                                                     label_size = input$fontsize,
                                                     add_names = input$check_names,
@@ -1240,7 +1240,7 @@ server <- function(input, output, session) {
                                    xvar = "log2_fold_change", yvar = yvar)
         return(protein_tmp$protein)
       } else {
-        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+        protein_tmp<-brushedPoints(plot_volcano_customized(dep(),
                                                     input$volcano_cntrst,
                                                     label_size = input$fontsize,
                                                     add_names = input$check_names,
@@ -1255,7 +1255,7 @@ server <- function(input, output, session) {
       }
     } else {
       if(is.null(input$contents_rows_selected)){
-        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+        protein_tmp<-brushedPoints(plot_volcano_customized(dep(),
                                                     input$volcano_cntrst,
                                                     label_size = input$fontsize,
                                                     add_names = input$check_names,
@@ -1267,7 +1267,7 @@ server <- function(input, output, session) {
                                    xvar = "log2_fold_change", yvar = yvar)
         brush_selected <- protein_tmp$protein
       } else {
-        protein_tmp<-brushedPoints(plot_volcano_new(dep(),
+        protein_tmp<-brushedPoints(plot_volcano_customized(dep(),
                                                     input$volcano_cntrst,
                                                     label_size = input$fontsize,
                                                     add_names = input$check_names,
@@ -2148,7 +2148,7 @@ output$download_density_svg<-downloadHandler(
  ### Volcano Plot for demo
  # volcano_input_dm <- reactive({
  #   if(!is.null(input$volcano_cntrst_dm)) {
- #     plot_volcano_new(dep_dm(),
+ #     plot_volcano_customized(dep_dm(),
  #                      input$volcano_cntrst_dm,
  #                      input$fontsize_dm,
  #                      input$check_names_dm,
@@ -2189,7 +2189,7 @@ output$download_density_svg<-downloadHandler(
  #                              y = -log10(as.numeric(proteins_selected[, padj_proteins])),#)#,
  #                              name = proteins_selected$`Gene Name`)
  #     #print(df_protein)
- #     p<-plot_volcano_new(dep_dm(),
+ #     p<-plot_volcano_customized(dep_dm(),
  #                         input$volcano_cntrst_dm,
  #                         input$fontsize_dm,
  #                         input$check_names_dm,
@@ -2427,7 +2427,7 @@ output$download_density_svg<-downloadHandler(
 #                             name = proteins_selected$`Gene Name`)
 #    #print(df_protein)
 #    
-#    p<-plot_volcano_new(dep_dm(),
+#    p<-plot_volcano_customized(dep_dm(),
 #                        input$volcano_cntrst_dm,
 #                        input$fontsize_dm,
 #                        input$check_names_dm,
