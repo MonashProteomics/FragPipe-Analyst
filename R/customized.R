@@ -2529,3 +2529,105 @@ get_df_wide <- function(se) {
   
   return(wide)
 }
+
+plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
+  assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
+                          is.character(protein),
+                          is.character(type))
+  
+  subset <- dep[protein]
+  
+  df_reps <- data.frame(cbind(assay(subset)), check.names = F) %>%
+    rownames_to_column() %>%
+    gather(ID, val, -rowname) %>%
+    left_join(., data.frame(colData(subset)), by = c("ID"=id))
+  
+  df_reps$rowname <- parse_factor(as.character(df_reps$rowname), levels = protein)
+  
+  df_CI <- df_reps %>%
+    group_by(condition, rowname) %>%
+    summarize(mean = mean(val, na.rm = TRUE),
+              sd = sd(val, na.rm = TRUE),
+              n = n()) %>%
+    mutate(error = qnorm(0.975) * sd / sqrt(n),
+           CI.L = mean - error,
+           CI.R = mean + error) %>%
+    as.data.frame()
+  df_CI$rowname <- parse_factor(as.character(df_CI$rowname), levels = protein)
+  
+  df_reps$condition <- as.factor(df_reps$condition)
+  df_reps <- df_reps[!is.na(df_reps$val),]
+  df_reps$replicate <- as.character(df_reps$replicate)
+  
+  if(show_gene) {
+    if (metadata(dep)$level != "peptide") {
+      df_reps$rowname <- rowData(subset)[df_reps$rowname, "name"]
+    } else {
+      if (metadata(dep)$exp == "DIA") {
+        df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
+      } else if (metadata(dep)$exp == "TMT") {
+        if ("SequenceWindow" %in% rowData(subset)) {
+          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "ID"]))
+        } else {
+          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "Peptide"]))
+        }
+      } else { # LFQ
+        df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", rowData(subset)[df_reps$rowname, "Peptide.Sequence"])
+      }
+    }
+  }
+  
+  if(type=="violin"){
+    if (max(df_reps$replicate) == 1){
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "violin") %>%
+        plotly::layout(violinmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'), showlegend=T)
+    } else {
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "violin") %>%
+        plotly::layout(violinmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'), showlegend=T)
+    }
+    return(p)
+  } else if(type=="boxplot"){
+    if (max(df_reps$replicate) == 1){
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "box",
+                   boxpoints = "all", jitter = 0.3, pointpos = 0) %>%
+        plotly::layout(boxmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'), showlegend=T)
+    } else {
+      p <- plot_ly(df_reps,
+                   x = ~rowname,
+                   y = ~val,
+                   color = ~condition,
+                   text = ~sample_name,
+                   hoverinfo = "text",
+                   type = "box",
+                   boxpoints = "all", jitter = 0.3, pointpos = 0) %>%
+        plotly::layout(boxmode = "group",
+                       xaxis = list(title = ''),
+                       yaxis = list(title = 'Abundance'), showlegend=T)
+    }
+    return(p)
+  }
+}

@@ -455,13 +455,17 @@ ui <- function(request){shinyUI(
                                                                           "Violin Plot"="violin"),
                                                               selected = "boxplot", 
                                                               inline = TRUE),
-                                                 width = 6
+                                                 width = 4
                                              ),
                                              box(checkboxInput("check_impute",
                                                                "Show imputed values",
                                                                value = F),
-                                                 width = 6
-                                             )
+                                                 width = 4
+                                             ),
+                                             box(checkboxInput("show_gene_feature",
+                                                           "Show gene names",
+                                                           value = T),
+                                                 width = 4)
                                            ),
                                            fluidRow(
                                              box(
@@ -471,7 +475,7 @@ ui <- function(request){shinyUI(
                                              )
                                            ),
                                            fluidRow(
-                                             shinycssloaders::withSpinner(plotlyOutput("protein_plot"), color = "#3c8dbc")
+                                             shinycssloaders::withSpinner(plotlyOutput("feature_plot"), color = "#3c8dbc")
                                              # downloadButton('downloadProtein', 'Download Plot')
                                              )
                                            )

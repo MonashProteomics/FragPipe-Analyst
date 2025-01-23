@@ -1046,7 +1046,7 @@ server <- function(input, output, session) {
        }
     })
     
-    protein_input<-reactive({
+    protein_input <-reactive({
       if (input$check_impute) {
         data <- imputed_data()
       } else {
@@ -1056,19 +1056,19 @@ server <- function(input, output, session) {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
       } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "gene") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
-      } else if (metadata(data)$exp == "LFQ" & metadata(data)$level == "peptide") {
-        protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "peptide") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "DIA" & metadata(data)$level == "peptide") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "DIA") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
+      } else if (metadata(data)$exp == "LFQ" & metadata(data)$level == "peptide") {
+        protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
       }
       protein_selected <- as.character(protein_selected)
-      return(plot_protein(data, protein_selected, as.character(input$type), id="label"))
+      return(plot_feature(data, protein_selected, as.character(input$type), id="label", show_gene = input$show_gene_feature))
     })
      
    ## QC plots inputs
@@ -1344,7 +1344,7 @@ server <- function(input, output, session) {
     #   }
   })
   
-  output$protein_plot<-renderPlotly({
+  output$feature_plot<-renderPlotly({
     if(!is.null(input$contents_rows_selected)){
       protein_input()
     }
@@ -2212,11 +2212,11 @@ output$download_density_svg<-downloadHandler(
  #  
  #   #protein<-row_selected$name
  #   if(length(levels(as.factor(colData(dep_dm())$replicate))) <= 8){
- #     plot_protein(dep_dm(), protein_selected, input$type_dm)
+ #     plot_feature(dep_dm(), protein_selected, input$type_dm)
  #   }
  #   else{
- #     protein_plot<-plot_protein(dep_dm(), protein_selected, input$type_dm)
- #     protein_plot + scale_color_brewer(palette = "Paired")
+ #     feature_plot<-plot_feature(dep_dm(), protein_selected, input$type_dm)
+ #     feature_plot + scale_color_brewer(palette = "Paired")
  #    }
  # })
  
@@ -2499,7 +2499,7 @@ output$download_density_svg<-downloadHandler(
 #    } # else close
 #  })
 #  
-#  output$protein_plot_dm<-renderPlot({
+#  output$feature_plot_dm<-renderPlot({
 #    if(!is.null(input$contents_dm_rows_selected)){
 #      protein_input_dm()
 #    }
