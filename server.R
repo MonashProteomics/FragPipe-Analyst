@@ -762,33 +762,44 @@ server <- function(input, output, session) {
        assay(data) <- log2(assay(data))
      }
      if(input$fdr_correction=="BH"){
-       diff_all <- test_limma_customized(data, type='all', paired = F)
+       if (input$DE_type == "all") {
+         diff_all <- test_limma_customized(data, type="all", paired = F)
+       } else if (input$DE_type == "control") {
+         diff_all <- test_limma_customized(data, type="control", control=input$control_condition, paired = F)
+       }
      } else { # t-statistics-based
-       diff_all <- test_diff_customized(data, type = "all")
+       if (input$DE_type == "all") {
+         diff_all <- test_diff_customized(data, type = "all")
+       } else if (input$DE_type == "control") {
+         diff_all <- test_diff_customized(data, type="control", control=input$control_condition)
+       }
      }
      result_se <- add_rejections_customized(diff_all, alpha = input$p, lfc= input$lfc)
      return(result_se)
    })
    
-   comparisons<-reactive ({
-    if (input$exp == "TMT"  | input$exp == "DIA" | input$exp == "TMT-peptide" | input$exp == "DIA-peptide") {
-       temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
-       # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
-       #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
-       #                      type = "message")
-       gsub(".*: ","",temp)
-       ## Split conditions into character vector
-       unlist(strsplit(temp,","))
-       ## Remove leading and trailing spaces
-       trimws(temp)
-     } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide") {
-       temp<-capture.output(test_diff(imputed_data(),type='all'),type = "message")
-       gsub(".*: ","",temp)
-       ## Split conditions into character vector
-       unlist(strsplit(temp,","))
-       ## Remove leading and trailing spaces
-       trimws(temp)
-     }
+   comparisons <- reactive ({
+    temp <- colnames(rowData(dep()))
+    temp <- gsub("_p.adj", "", temp[grepl("p.adj", temp)])
+    return(temp)
+    # if (input$exp == "TMT"  | input$exp == "DIA" | input$exp == "TMT-peptide" | input$exp == "DIA-peptide") {
+    #    temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
+    #    # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
+    #    #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
+    #    #                      type = "message")
+    #    gsub(".*: ","",temp)
+    #    ## Split conditions into character vector
+    #    unlist(strsplit(temp,","))
+    #    ## Remove leading and trailing spaces
+    #    trimws(temp)
+    #  } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide") {
+    #    temp<-capture.output(test_diff(imputed_data(),type='all'),type = "message")
+    #    gsub(".*: ","",temp)
+    #    ## Split conditions into character vector
+    #    unlist(strsplit(temp,","))
+    #    ## Remove leading and trailing spaces
+    #    trimws(temp)
+    #  }
    })
 
 

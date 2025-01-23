@@ -1392,7 +1392,7 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
   # Either make all possible combinations ("all"),
   # only the contrasts versus the control sample ("control") or
   # use manual contrasts
-  conditions <- as.character(unique(condition))
+  conditions <- as.character(unique(col_data$condition))
   if(type == "all") {
     # All possible combinations
     cntrst <- apply(utils::combn(conditions, 2), 2, paste, collapse = " - ")
