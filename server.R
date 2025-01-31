@@ -1081,7 +1081,7 @@ server <- function(input, output, session) {
       if (input$check_impute) {
         data <- imputed_data()
       } else {
-        data <- processed_data()
+        data <- normalised_data()
       }
       if (metadata(data)$exp == "TMT" & metadata(data)$level == "protein") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
