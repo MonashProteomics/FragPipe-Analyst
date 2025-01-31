@@ -779,27 +779,29 @@ server <- function(input, output, session) {
    })
    
    comparisons <- reactive ({
-    temp <- colnames(rowData(dep()))
-    temp <- gsub("_p.adj", "", temp[grepl("p.adj", temp)])
-    return(temp)
-    # if (input$exp == "TMT"  | input$exp == "DIA" | input$exp == "TMT-peptide" | input$exp == "DIA-peptide") {
-    #    temp<-capture.output(test_diff_customized(imputed_data(), type = "all"), type = "message")
-    #    # temp<-capture.output(test_diff_customized(imputed_data(), type = "manual", 
-    #    #                                           test = c("SampleTypeTumor"), design_formula = formula(~0+SampleType)),
-    #    #                      type = "message")
-    #    gsub(".*: ","",temp)
-    #    ## Split conditions into character vector
-    #    unlist(strsplit(temp,","))
-    #    ## Remove leading and trailing spaces
-    #    trimws(temp)
-    #  } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide") {
-    #    temp<-capture.output(test_diff(imputed_data(),type='all'),type = "message")
-    #    gsub(".*: ","",temp)
-    #    ## Split conditions into character vector
-    #    unlist(strsplit(temp,","))
-    #    ## Remove leading and trailing spaces
-    #    trimws(temp)
-    #  }
+     conditions <- as.character(unique(colData(processed_data())$condition))
+     if(input$DE_type == "all") {
+       # All possible combinations
+       cntrst <- apply(utils::combn(conditions, 2), 2, paste, collapse = " - ")
+     } else if(input$DE_type == "control") {
+       conditions_other_than_control <- conditions[!conditions %in% input$control_condition]
+       cntrst <- c()
+       for (i in 1:length(control)) {
+         cntrst <- c(cntrst,
+                     paste(conditions_other_than_control,
+                           control[i],sep = " - "))
+         }
+     } else if (input$DE_type == "others") {
+       conditions_other_than_control <- conditions[!conditions %in% input$control_condition]
+       cntrst <- c()
+       for (i in 1:length(control)) {
+         cntrst <- c(cntrst,
+                     paste(conditions_other_than_control,
+                           control[i],sep = " - "))
+       }
+     }
+     temp <- gsub(" - ", "_vs_", cntrst)
+     return(temp)
    })
 
 
