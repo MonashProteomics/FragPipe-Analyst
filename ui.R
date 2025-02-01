@@ -115,7 +115,7 @@ ui <- function(request){shinyUI(
                                        min = 0, max = 100, value = 0),
                           radioButtons("DE_type",
                                        "Type of DE analysis",
-                                       choices = c("all pairs"="all", "test vs control"="control")),
+                                       choices = c("all pairs"="all", "test vs control"="control", "one vs others"="others")),
                           textInput("control_condition",
                                     "Name of control condition",
                                     value=""),

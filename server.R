@@ -765,13 +765,20 @@ server <- function(input, output, session) {
        if (input$DE_type == "all") {
          diff_all <- test_limma_customized(data, type="all", paired = F)
        } else if (input$DE_type == "control") {
-         diff_all <- test_limma_customized(data, type="control", control=input$control_condition, paired = F)
+         if (!";" %in% input$control_condition) {
+           control <- input$control_condition
+         }
+         diff_all <- test_limma_customized(data, type="control", control=control, paired = F)
+       } else if (input$DE_type == "others") {
+         diff_all <- test_limma_customized(data, type="others", paired = F)
        }
      } else { # t-statistics-based
        if (input$DE_type == "all") {
          diff_all <- test_diff_customized(data, type = "all")
        } else if (input$DE_type == "control") {
          diff_all <- test_diff_customized(data, type="control", control=input$control_condition)
+       } else if (input$DE_type == "others") {
+         diff_all <- test_diff_customized(data, type="others")
        }
      }
      result_se <- add_rejections_customized(diff_all, alpha = input$p, lfc= input$lfc)
@@ -779,29 +786,28 @@ server <- function(input, output, session) {
    })
    
    comparisons <- reactive ({
-     conditions <- as.character(unique(colData(processed_data())$condition))
-     if(input$DE_type == "all") {
-       # All possible combinations
-       cntrst <- apply(utils::combn(conditions, 2), 2, paste, collapse = " - ")
-     } else if(input$DE_type == "control") {
-       conditions_other_than_control <- conditions[!conditions %in% input$control_condition]
-       cntrst <- c()
-       for (i in 1:length(control)) {
-         cntrst <- c(cntrst,
-                     paste(conditions_other_than_control,
-                           control[i],sep = " - "))
+     if (!is.null(dep())) {
+       conditions <- as.character(unique(colData(processed_data())$condition))
+       if(input$DE_type == "all") {
+         # All possible combinations
+         cntrst <- apply(utils::combn(conditions, 2), 2, paste, collapse = " - ")
+       } else if (input$DE_type == "control") {
+         if (!";" %in% input$control_condition) {
+           control <- input$control_condition
          }
-     } else if (input$DE_type == "others") {
-       conditions_other_than_control <- conditions[!conditions %in% input$control_condition]
-       cntrst <- c()
-       for (i in 1:length(control)) {
-         cntrst <- c(cntrst,
-                     paste(conditions_other_than_control,
-                           control[i],sep = " - "))
+         conditions_other_than_control <- conditions[!conditions %in% control]
+         cntrst <- c()
+         for (i in 1:length(control)) {
+           cntrst <- c(cntrst,
+                       paste(conditions_other_than_control,
+                             control[i],sep = " - "))
+         }
+       } else if (input$DE_type == "others") {
+         cntrst <- paste0(conditions, "_vs_others")
        }
+       temp <- gsub(" - ", "_vs_", cntrst)
+       return(temp)
      }
-     temp <- gsub(" - ", "_vs_", cntrst)
-     return(temp)
    })
 
 

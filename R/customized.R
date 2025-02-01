@@ -103,7 +103,7 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
 }
 
 # original: https://github.com/arnesmits/DEP/blob/master/R/functions.R
-test_diff_customized <- function(se, type = c("control", "all", "manual"),
+test_diff_customized <- function(se, type = c("control", "all", "others", "manual"),
                                  control = NULL, test = NULL,
                                  design_formula = formula(~ 0 + condition)) {
   # Show error if inputs are not the required classes
@@ -188,8 +188,7 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
       }
     }
     
-  }
-  if(type == "control") {
+  } else if(type == "control") {
     # Throw error if no control argument is present
     if(is.null(control))
       stop("run test_diff(type = 'control') with a 'control' argument")
@@ -198,8 +197,7 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
     cntrst <- paste(conditions[!conditions %in% control],
                     control,
                     sep = " - ")
-  }
-  if(type == "manual") {
+  } else if(type == "manual") {
     # Throw error if no test argument is present
     if(is.null(test)) {
       stop("run test_diff(type = 'manual') with a 'test' argument")
@@ -216,60 +214,92 @@ test_diff_customized <- function(se, type = c("control", "all", "manual"),
     
     cntrst <- gsub("_vs_", " - ", test)
     
-  }
-  # Print tested contrasts
-  message("Tested contrasts: ",
-          paste(gsub(" - ", "_vs_", cntrst), collapse = ", "))
-  
-  # Test for differential expression by empirical Bayes moderation
-  # of a linear model on the predefined contrasts
-  # print(design)
-  # print(cntrst)
-  fit <- lmFit(raw, design = design)
-  made_contrasts <- makeContrasts(contrasts = cntrst, levels = design)
-  # print(made_contrasts)
-  contrast_fit <- contrasts.fit(fit, made_contrasts)
-  
-  if (type != "manual") {
-    if(any(is.na(raw))) {
-      for(i in cntrst) {
-        covariates <- strsplit(i, " - ") %>% unlist
-        single_contrast <- makeContrasts(contrasts = i, levels = design[, covariates])
-        single_contrast_fit <- contrasts.fit(fit[, covariates], single_contrast)
-        contrast_fit$coefficients[, i] <- single_contrast_fit$coefficients[, 1]
-        contrast_fit$stdev.unscaled[, i] <- single_contrast_fit$stdev.unscaled[, 1]
-      }
+  }  else if (type == "others") {
+    for (i in 1:length(conditions)) {
+      design <- cbind(design, ifelse(design[, conditions[i]], 0, 1))
+      colnames(design)[ncol(design)] <- paste0("NOT_", conditions[i])
     }
   }
-  eB_fit <- eBayes(contrast_fit)
-  
-  # function to retrieve the results of
-  # the differential expression test using 'fdrtool'
-  retrieve_fun <- function(comp, fit = eB_fit){
-    res <- topTable(fit, sort.by = "t", coef = comp,
-                    number = Inf, confint = TRUE)
-    res <- res[!is.na(res$t),]
-    fdr_res <- fdrtool::fdrtool(res$t, plot = FALSE, verbose = FALSE)
-    res$qval <- fdr_res$qval
-    res$lfdr <- fdr_res$lfdr
-    res$comparison <- rep(comp, dim(res)[1])
-    res <- rownames_to_column(res)
-    return(res)
-  }
-  
-  # Retrieve the differential expression test results
-  limma_res <- map_df(cntrst, retrieve_fun)
 
-  # Select the logFC, CI and qval variables
-  table <- limma_res %>%
-    select(rowname, logFC, CI.L, CI.R, P.Value, qval, comparison) %>%
-    mutate(comparison = gsub(" - ", "_vs_", comparison)) %>%
-    gather(variable, value, -c(rowname,comparison)) %>%
-    mutate(variable = recode(variable, logFC = "diff", P.Value = "p.val", qval = "p.adj")) %>%
-    unite(temp, comparison, variable) %>%
-    spread(temp, value)
-  rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
-                                         by=c("ID"="rowname")))
+  # Print tested contrasts
+  if (type == "others") {
+    message("Tested contrasts: ",
+            paste(paste0(conditions, "_vs_others"), collapse = ", "))
+    limma_res <- data.frame()
+    for (c in conditions) {
+      sub_design <- design[,c(c, paste0("NOT_",c))]
+      fit <- lmFit(raw, design = sub_design)
+      made_contrasts <- makeContrasts(contrasts = paste0(c, "-", "NOT_", c), levels = sub_design)
+      contrast_fit <- contrasts.fit(fit, made_contrasts)
+      eB_fit <- eBayes(contrast_fit)
+      temp <- topTable(eB_fit, sort.by = 't', coef = paste0(c, "-", "NOT_", c), number = Inf, confint = T)
+      temp <- temp[!is.na(temp$t),]
+      fdr_res <- fdrtool::fdrtool(temp$t, plot = FALSE, verbose = FALSE)
+      temp$qval <- fdr_res$qval
+      temp <- temp[,c("logFC", "CI.L", "CI.R", "P.Value", "qval")]
+      colnames(temp) <- c("diff", "CI.L", "CI.R", "p.val", "p.adj")
+      colnames(temp) <- paste0(c, "_vs_others_", colnames(temp))
+      if (nrow(limma_res) == 0) {
+        limma_res <- temp
+      } else {
+        limma_res <- merge(limma_res, temp, by="row.names")
+      }
+    }
+    rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), limma_res, by=c("ID"="Row.names")))
+  } else {
+    message("Tested contrasts: ",
+            paste(gsub(" - ", "_vs_", cntrst), collapse = ", "))
+    # Test for differential expression by empirical Bayes moderation
+    # of a linear model on the predefined contrasts
+    # print(design)
+    # print(cntrst)
+    fit <- lmFit(raw, design = design)
+    made_contrasts <- makeContrasts(contrasts = cntrst, levels = design)
+    # print(made_contrasts)
+    contrast_fit <- contrasts.fit(fit, made_contrasts)
+    
+    if (type != "manual") {
+      if(any(is.na(raw))) {
+        for(i in cntrst) {
+          covariates <- strsplit(i, " - ") %>% unlist
+          single_contrast <- makeContrasts(contrasts = i, levels = design[, covariates])
+          single_contrast_fit <- contrasts.fit(fit[, covariates], single_contrast)
+          contrast_fit$coefficients[, i] <- single_contrast_fit$coefficients[, 1]
+          contrast_fit$stdev.unscaled[, i] <- single_contrast_fit$stdev.unscaled[, 1]
+        }
+      }
+    }
+    eB_fit <- eBayes(contrast_fit)
+    
+    # function to retrieve the results of
+    # the differential expression test using 'fdrtool'
+    retrieve_fun <- function(comp, fit = eB_fit){
+      res <- topTable(fit, sort.by = "t", coef = comp,
+                      number = Inf, confint = TRUE)
+      res <- res[!is.na(res$t),]
+      fdr_res <- fdrtool::fdrtool(res$t, plot = FALSE, verbose = FALSE)
+      res$qval <- fdr_res$qval
+      res$lfdr <- fdr_res$lfdr
+      res$comparison <- rep(comp, dim(res)[1])
+      res <- rownames_to_column(res)
+      return(res)
+    }
+    
+    # Retrieve the differential expression test results
+    limma_res <- map_df(cntrst, retrieve_fun)
+    
+    # Select the logFC, CI and qval variables
+    table <- limma_res %>%
+      select(rowname, logFC, CI.L, CI.R, P.Value, qval, comparison) %>%
+      mutate(comparison = gsub(" - ", "_vs_", comparison)) %>%
+      gather(variable, value, -c(rowname,comparison)) %>%
+      mutate(variable = recode(variable, logFC = "diff", P.Value = "p.val", qval = "p.adj")) %>%
+      unite(temp, comparison, variable) %>%
+      spread(temp, value)
+    rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
+                                           by=c("ID"="rowname")))
+  }
+
   return(se)
 }
 
@@ -1315,7 +1345,7 @@ plot_density_spectral_count <- function(ses) {
     theme_DEP1()
 }
 
-test_limma_customized <- function(se, type = c("control", "all", "manual"),
+test_limma_customized <- function(se, type = c("control", "all", "others", "manual"),
                        control = NULL, test = NULL,
                        design_formula = formula(~ 0 + condition),
                        paired = FALSE) {
@@ -1326,8 +1356,8 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
                           class(design_formula) == "formula")
   if (paired == FALSE){
     design_formula <- design_formula
-  }else{
-    design_formula<-formula(~ 0 + condition + replicate)
+  } else {
+    design_formula <- formula(~ 0 + condition + replicate)
   }
   
   
@@ -1355,8 +1385,7 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
   
   if(!is.null(control)) {
     # Show error if control input is not valid
-    assertthat::assert_that(is.character(control),
-                            length(control) == 1)
+    assertthat::assert_that(is.character(control), length(control) == 1)
     if(!control %in% unique(col_data$condition)) {
       stop("run test_diff() with a valid control.\nValid controls are: '",
            paste0(unique(col_data$condition), collapse = "', '"), "'",
@@ -1408,20 +1437,20 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
       }
     }
     
-  }
-  if(type == "control") {
-    # Throw error if no control argument is present
-    if(is.null(control))
-      stop("run test_diff(type = 'control') with a 'control' argument")
-    
-    # Make contrasts
-    cntrst <- paste(conditions[!conditions %in% control],
-                    control,
-                    sep = " - ")
-  }
-  if(type == "manual") {
-    # Throw error if no test argument is present
-    if(is.null(test)) {
+  } else if(type == "control") {
+    if(is.null(control)) { # Throw error if no control argument is present
+      stop("Please sepecify 'control' condition")
+    } else { # Make contrasts
+      conditions_other_than_control <- conditions[!conditions %in% control]
+      cntrst <- c()
+      for (i in 1:length(control)) {
+        cntrst <- c(cntrst,
+                    paste(conditions_other_than_control,
+                          control[i],sep = " - "))
+      }
+    }
+  } else if(type == "manual") {
+    if(is.null(test)) { # Throw error if no test argument is present
       stop("run test_diff(type = 'manual') with a 'test' argument")
     }
     assertthat::assert_that(is.character(test))
@@ -1433,62 +1462,97 @@ test_limma_customized <- function(se, type = c("control", "all", "manual"),
            "', for example '", paste0(conditions[1], "_vs_", conditions[2]),
            "'.", call. = FALSE)
     }
-    
     cntrst <- gsub("_vs_", " - ", test)
-    
+  } else if (type == "others") {
+      for (i in 1:length(conditions)) {
+        design <- cbind(design, ifelse(design[, conditions[i]], 0, 1))
+        colnames(design)[ncol(design)] <- paste0("NOT_", conditions[i])
+      }
   }
+  
   # Print tested contrasts
-  message("Tested contrasts: ",
-          paste(gsub(" - ", "_vs_", cntrst), collapse = ", "))
-  
-  # Test for differential expression by empirical Bayes moderation
-  # of a linear model on the predefined contrasts
-  fit <- lmFit(raw, design = design)
-  made_contrasts <- makeContrasts(contrasts = cntrst, levels = design)
-  contrast_fit <- contrasts.fit(fit, made_contrasts)
-  
-  if(any(is.na(raw))) {
-    for(i in cntrst) {
-      covariates <- strsplit(i, " - ") %>% unlist
-      single_contrast <- makeContrasts(contrasts = i, levels = design[, covariates])
-      single_contrast_fit <- contrasts.fit(fit[, covariates], single_contrast)
-      contrast_fit$coefficients[, i] <- single_contrast_fit$coefficients[, 1]
-      contrast_fit$stdev.unscaled[, i] <- single_contrast_fit$stdev.unscaled[, 1]
+  if (type == "others") {
+    message("Tested contrasts: ",
+            paste(paste0(conditions, "_vs_others"), collapse = ", "))
+    limma_res <- data.frame()
+    for (c in conditions) {
+      sub_design <- design[,c(c, paste0("NOT_",c))]
+      fit <- lmFit(raw, design = sub_design)
+      made_contrasts <- makeContrasts(contrasts = paste0(c, "-", "NOT_", c), levels = sub_design)
+      contrast_fit <- contrasts.fit(fit, made_contrasts)
+      eB_fit <- eBayes(contrast_fit)
+      temp <- topTable(eB_fit, sort.by = 't', adjust.method="BH", coef = paste0(c, "-", "NOT_", c), number = Inf, confint = T)
+      temp <- temp[,c("logFC", "CI.L", "CI.R", "P.Value", "adj.P.Val")]
+      colnames(temp) <- c("diff", "CI.L", "CI.R", "p.val", "p.adj")
+      colnames(temp) <- paste0(c, "_vs_others_", colnames(temp))
+      if (nrow(limma_res) == 0) {
+        limma_res <- temp
+      } else {
+        limma_res <- merge(limma_res, temp, by="row.names")
+      }
     }
+    rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), limma_res, by=c("ID"="Row.names")))
+  } else {
+    message("Tested contrasts: ",
+          paste(gsub(" - ", "_vs_", cntrst), collapse = ", "))
+    # Test for differential expression by empirical Bayes moderation
+    # of a linear model on the predefined contrasts
+    fit <- lmFit(raw, design = design)
+    made_contrasts <- makeContrasts(contrasts = cntrst, levels = design)
+    contrast_fit <- contrasts.fit(fit, made_contrasts)
+    
+    if (!type %in% c("others")) {
+      if(any(is.na(raw))) {
+        for(i in cntrst) {
+          covariates <- strsplit(i, " - ") %>% unlist
+          single_contrast <- makeContrasts(contrasts = i, levels = design[, covariates])
+          single_contrast_fit <- contrasts.fit(fit[, covariates], single_contrast)
+          contrast_fit$coefficients[, i] <- single_contrast_fit$coefficients[, 1]
+          contrast_fit$stdev.unscaled[, i] <- single_contrast_fit$stdev.unscaled[, 1]
+        }
+      }
+    } else {
+      if(any(is.na(raw))) {
+        for(i in cntrst) {
+          covariates <- cntrst
+          single_contrast <- makeContrasts(contrasts = i, levels = design[, covariates])
+          single_contrast_fit <- contrasts.fit(fit[, covariates], single_contrast)
+          contrast_fit$coefficients[, i] <- single_contrast_fit$coefficients[, 1]
+          contrast_fit$stdev.unscaled[, i] <- single_contrast_fit$stdev.unscaled[, 1]
+        }
+      }
+    }
+    
+    
+    eB_fit <- eBayes(contrast_fit)
+    
+    # function to retrieve the results of
+    # the differential expression test using 'fdrtool'
+    retrieve_fun <- function(comp, fit = eB_fit){
+      res <- topTable(fit, sort.by = "t", adjust.method="BH", coef = comp,
+                      number = Inf, confint = TRUE)
+      res$comparison <- rep(comp, dim(res)[1])
+      res <- tibble::rownames_to_column(res)
+      return(res)
+    }
+    
+    #limma_res<- topTable(eB_fit, sort.by = 'B', adjust.method="BH", coef = cntrst, number = Inf, confint = T )
+    # limma_res$comparison <- rep(cntrst, dim(limma_res)[1])
+    #limma_res <- rownames_to_column(limma_res)
+    # Retrieve the differential expression test results
+    limma_res <- purrr::map_df(cntrst, retrieve_fun)
+    
+    # Select the logFC, CI and qval variables
+    table <- limma_res %>%
+      dplyr::select(rowname, logFC, CI.L, CI.R, P.Value, adj.P.Val, comparison) %>%
+      dplyr::mutate(comparison = gsub(" - ", "_vs_", comparison)) %>%
+      tidyr::gather(variable, value, -c(rowname,comparison)) %>%
+      dplyr::mutate(variable = dplyr::recode(variable, logFC = "diff", P.Value = "p.val", adj.P.Val = "p.adj")) %>%
+      tidyr::unite(temp, comparison, variable) %>%
+      tidyr::spread(temp, value)
+    rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
+                                           by=c("ID"="rowname")))
   }
-  
-  eB_fit <- eBayes(contrast_fit)
-  
-  # function to retrieve the results of
-  # the differential expression test using 'fdrtool'
-  retrieve_fun <- function(comp, fit = eB_fit){
-    res <- topTable(fit, sort.by = "t", adjust.method="BH", coef = comp,
-                    number = Inf, confint = TRUE)
-    # res <- res[!is.na(res$t),]
-    #fdr_res <- fdrtool::fdrtool(res$t, plot = FALSE, verbose = FALSE)
-    # res$qval <- res$adj.P.Value
-    #res$lfdr <- fdr_res$lfdr
-    res$comparison <- rep(comp, dim(res)[1])
-    res <- tibble::rownames_to_column(res)
-    return(res)
-  }
-  
-  #limma_res<- topTable(eB_fit, sort.by = 'B', adjust.method="BH", coef = cntrst, number = Inf, confint = T )
-  # limma_res$comparison <- rep(cntrst, dim(limma_res)[1])
-  #limma_res <- rownames_to_column(limma_res)
-  # Retrieve the differential expression test results
-  limma_res <- purrr::map_df(cntrst, retrieve_fun)
-  
-  # Select the logFC, CI and qval variables
-  table <- limma_res %>%
-    dplyr::select(rowname, logFC, CI.L, CI.R, P.Value, adj.P.Val, comparison) %>%
-    dplyr::mutate(comparison = gsub(" - ", "_vs_", comparison)) %>%
-    tidyr::gather(variable, value, -c(rowname,comparison)) %>%
-    dplyr::mutate(variable = dplyr::recode(variable, logFC = "diff", P.Value = "p.val", adj.P.Val = "p.adj")) %>%
-    tidyr::unite(temp, comparison, variable) %>%
-    tidyr::spread(temp, value)
-  rowData(se) <- as.data.frame(left_join(as.data.frame(rowData(se)), table,
-                                         by=c("ID"="rowname")))
   return(se)
 }
 
@@ -2432,7 +2496,6 @@ test_diff <- function(se, type = c("control", "all", "manual"),
   
   # Retrieve the differential expression test results
   limma_res <- map_df(cntrst, retrieve_fun)
-  
   # Select the logFC, CI and qval variables
   table <- limma_res %>%
     select(rowname, logFC, CI.L, CI.R, P.Value, qval, comparison) %>%
@@ -2441,6 +2504,7 @@ test_diff <- function(se, type = c("control", "all", "manual"),
     mutate(variable = recode(variable, logFC = "diff", P.Value = "p.val", qval = "p.adj")) %>%
     unite(temp, comparison, variable) %>%
     spread(temp, value)
+  
   rowData(se) <- merge(rowData(se, use.names = FALSE), table,
                        by.x = "name", by.y = "rowname", all.x = TRUE, sort=FALSE)
   return(se)
@@ -2647,8 +2711,9 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
                           length(adjusted) == 1,
                           is.logical(plot),
                           length(plot) == 1)
-  
+
   row_data <- rowData(dep, use.names = FALSE)
+
   # Show error if inputs do not contain required columns
   if (is.null(name_col)) {
     name_col <- "ID"
