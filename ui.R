@@ -117,7 +117,7 @@ ui <- function(request){shinyUI(
                                        "Type of DE analysis",
                                        choices = c("all pairs"="all", "test vs control"="control", "one vs others"="others")),
                           textInput("control_condition",
-                                    "Name of control condition",
+                                    "Name(s) of control condition",
                                     value=""),
                           # checkboxInput("paired",
                           #               "Paired test", FALSE),

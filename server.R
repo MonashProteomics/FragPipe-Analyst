@@ -765,8 +765,10 @@ server <- function(input, output, session) {
        if (input$DE_type == "all") {
          diff_all <- test_limma_customized(data, type="all", paired = F)
        } else if (input$DE_type == "control") {
-         if (!";" %in% input$control_condition) {
+         if (!grepl(";", input$control_condition)) {
            control <- input$control_condition
+         } else {
+           control <- unlist(str_split(input$control_condition, ";"))
          }
          diff_all <- test_limma_customized(data, type="control", control=control, paired = F)
        } else if (input$DE_type == "others") {
@@ -776,7 +778,12 @@ server <- function(input, output, session) {
        if (input$DE_type == "all") {
          diff_all <- test_diff_customized(data, type = "all")
        } else if (input$DE_type == "control") {
-         diff_all <- test_diff_customized(data, type="control", control=input$control_condition)
+         if (!grepl(";", input$control_condition)) {
+           control <- input$control_condition
+         } else {
+           control <- unlist(str_split(input$control_condition, ";"))
+         }
+         diff_all <- test_diff_customized(data, type="control", control=control)
        } else if (input$DE_type == "others") {
          diff_all <- test_diff_customized(data, type="others")
        }
@@ -792,8 +799,14 @@ server <- function(input, output, session) {
          # All possible combinations
          cntrst <- apply(utils::combn(conditions, 2), 2, paste, collapse = " - ")
        } else if (input$DE_type == "control") {
-         if (!";" %in% input$control_condition) {
+         if (!grepl(";", input$control_condition)) {
            control <- input$control_condition
+         } else {
+           control <- unlist(str_split(input$control_condition, ";"))
+         }
+         if (any(!control %in% conditions)) {
+           stop("Some control conditions don't exist.",
+                call. = FALSE)
          }
          conditions_other_than_control <- conditions[!conditions %in% control]
          cntrst <- c()

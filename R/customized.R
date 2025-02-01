@@ -135,9 +135,7 @@ test_diff_customized <- function(se, type = c("control", "all", "others", "manua
   
   if(!is.null(control)) {
     # Show error if control input is not valid
-    assertthat::assert_that(is.character(control),
-                            length(control) == 1)
-    if(!control %in% unique(col_data$condition)) {
+    if(any(!control %in% unique(col_data$condition))) {
       stop("run test_diff() with a valid control.\nValid controls are: '",
            paste0(unique(col_data$condition), collapse = "', '"), "'",
            call. = FALSE)
@@ -1385,9 +1383,8 @@ test_limma_customized <- function(se, type = c("control", "all", "others", "manu
   
   if(!is.null(control)) {
     # Show error if control input is not valid
-    assertthat::assert_that(is.character(control), length(control) == 1)
-    if(!control %in% unique(col_data$condition)) {
-      stop("run test_diff() with a valid control.\nValid controls are: '",
+    if(any(!control %in% unique(col_data$condition))) {
+      stop("run test_limma() with a valid control.\nValid controls are: '",
            paste0(unique(col_data$condition), collapse = "', '"), "'",
            call. = FALSE)
     }
