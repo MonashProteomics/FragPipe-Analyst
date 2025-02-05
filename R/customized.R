@@ -2397,9 +2397,13 @@ plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
       df_reps$rowname <- rowData(subset)[df_reps$rowname, "name"]
     } else {
       if (metadata(dep)$exp == "DIA") {
-        df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
+        if ("SequenceWindow" %in% colnames(rowData(subset))) {
+          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", df_reps$rowname))
+        } else {
+          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
+        }
       } else if (metadata(dep)$exp == "TMT") {
-        if ("SequenceWindow" %in% rowData(subset)) {
+        if ("SequenceWindow" %in% colnames(rowData(subset))) {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "ID"]))
         } else {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "Peptide"]))
