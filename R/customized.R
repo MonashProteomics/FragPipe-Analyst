@@ -2696,7 +2696,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
 #' Generate a results table
 #'
-#' \code{get_results_customized} generates a results table from a proteomics dataset
+#' \code{get_results__proteins_customized} generates a results table from a proteomics dataset
 #' on which differential enrichment analysis was performed.
 #'
 #' @param dep SummarizedExperiment,
@@ -2875,7 +2875,7 @@ get_results_proteins_customized <- function(dep) {
         colnames(table)[2] <- c("Protein ID")
         colnames(table)[3] <- c("Gene Name")
       } else {
-        ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Gene)
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene, Peptide, SequenceWindow)
         table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
         table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
         table <- as.data.frame(row_data) %>%
