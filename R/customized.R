@@ -1719,131 +1719,6 @@ impute_customized <- function(se, fun = c("bpca", "knn", "QRILC", "MLE", "RF",
   return(se)
 }
 
-# modified from LFQ-Analyst's plot_volcano_new
-plot_volcano_customized <- function(dep, contrast, label_size = 3,
-                             add_names = TRUE, adjusted = FALSE, plot = TRUE) {
-  # Show error if inputs are not the required classes
-  if(is.integer(label_size)) label_size <- as.numeric(label_size)
-  assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
-                          is.character(contrast),
-                          length(contrast) == 1,
-                          is.numeric(label_size),
-                          length(label_size) == 1,
-                          is.logical(add_names),
-                          length(add_names) == 1,
-                          is.logical(adjusted),
-                          length(adjusted) == 1,
-                          is.logical(plot),
-                          length(plot) == 1)
-  
-  row_data <- rowData(dep, use.names = FALSE)
-  
-  # Show error if inputs do not contain required columns
-  # if(any(!c("name", "ID") %in% colnames(row_data))) {
-  #   stop(paste0("'name' and/or 'ID' columns are not present in '",
-  #               deparse(substitute(dep)),
-  #               "'.\nRun make_unique() to obtain required columns."),
-  #        call. = FALSE)
-  # }
-  if(length(grep("_p.adj|_diff", colnames(row_data))) < 1) {
-    stop(paste0("'[contrast]_diff' and '[contrast]_p.adj' columns are not present in '",
-                deparse(substitute(dep)),
-                "'.\nRun test_diff() to obtain the required columns."),
-         call. = FALSE)
-  }
-  if(length(grep("_significant", colnames(row_data))) < 1) {
-    stop(paste0("'[contrast]_significant' columns are not present in '",
-                deparse(substitute(dep)),
-                "'.\nRun add_rejections() to obtain the required columns."),
-         call. = FALSE)
-  }
-  
-  # Show error if an unvalid contrast is given
-  if (length(grep(paste("^",contrast,"_diff", sep = ""),
-                  colnames(row_data))) == 0) {
-    valid_cntrsts <- row_data %>%
-      data.frame() %>%
-      select(ends_with("_diff")) %>%
-      colnames(.) %>%
-      gsub("_diff", "", .)
-    valid_cntrsts_msg <- paste0("Valid contrasts are: '",
-                                paste0(valid_cntrsts, collapse = "', '"),
-                                "'")
-    stop("Not a valid contrast, please run `plot_volcano()` with a valid contrast as argument\n",
-         valid_cntrsts_msg,
-         call. = FALSE)
-  }
-  
-  # Generate a data.frame containing all info for the volcano plot
-  diff <- grep(paste("^",contrast,"_diff", sep = ""),
-               colnames(row_data))
-  if(adjusted) {
-    p_values <- grep(paste("^",contrast, "_p.adj", sep = ""),
-                     colnames(row_data))
-  } else {
-    p_values <- grep(paste("^",contrast, "_p.val", sep = ""),
-                     colnames(row_data))
-  }
-  signif <- grep(paste("^",contrast, "_significant", sep = ""),
-                 colnames(row_data))
-  df_tmp <- data.frame(diff = row_data[, diff],
-                       p_values = -log10(row_data[, p_values]),
-                       signif = row_data[, signif],
-                       name = row_data$name)
-  df<- df_tmp %>% data.frame() %>% filter(!is.na(signif)) %>%
-    arrange(signif)
-  
-  name1 <- gsub("_vs_.*", "", contrast)
-  name2 <- gsub(".*_vs_", "", contrast)
-  #return(df)
-  # Plot volcano with or without labels
-  p <- ggplot(df, aes(diff, p_values)) +
-    geom_vline(xintercept = 0) +
-    geom_point(aes(col = signif)) +
-    geom_text(data = data.frame(), aes(x = c(Inf, -Inf),
-                                       y = c(-Inf, -Inf),
-                                       hjust = c(1, 0),
-                                       vjust = c(-1, -1),
-                                       label = c(name1, name2),
-                                       size = 5,
-                                       fontface = "bold")) +
-    labs(title = contrast,
-         x = expression(log[2]~"Fold change")) +
-    theme_DEP1() +
-    theme(legend.position = "none") +
-    scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
-  if (add_names) {
-    p <- p + ggrepel::geom_text_repel(data = filter(df, signif),
-                                      aes(label = name),
-                                      size = label_size,
-                                      box.padding = unit(0.1, 'lines'),
-                                      point.padding = unit(0.1, 'lines'),
-                                      segment.size = 0.5)
-  }
-  if(adjusted) {
-    p <- p + labs(y = expression(-log[10]~"Adjusted p-value"))
-  } else {
-    p <- p + labs(y = expression(-log[10]~"P-value"))
-  }
-  if(plot) {
-    # return(list(p, df))
-    # return(df)
-    return(p)
-  } else {
-    df <- df %>%
-      select(name, diff, p_value, signif) %>%
-      arrange(desc(x))
-    colnames(df)[c(1,2)] <- c("protein", "log2_fold_change")
-    if(adjusted) {
-      colnames(df)[3] <- "adjusted_p_value_-log10"
-    } else {
-      colnames(df)[3] <- "p_value_-log10"
-    }
-    return(df)
-  }
-}
-
-
 # modified from DEP's plot_cor
 # https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/plot_functions_explore.R
 plot_cor_customized <- function(dep, significant = TRUE, lower = -1, upper = 1,
@@ -2852,10 +2727,17 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
                              signif = signif,
                              name = row_data$Genes)
       } else {
-        df_tmp <- data.frame(diff = row_data[, diff],
-                             p_values = -log10(row_data[, p_values]),
-                             signif = signif,
-                             name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
+        if (! "SequenceWindow" %in% colnames(row_data)) {
+          df_tmp <- data.frame(diff = row_data[, diff],
+                               p_values = -log10(row_data[, p_values]),
+                               signif = signif,
+                               name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
+        } else {
+          df_tmp <- data.frame(diff = row_data[, diff],
+                               p_values = -log10(row_data[, p_values]),
+                               signif = signif,
+                               name = paste0(row_data$Gene, "_", gsub(".*_", "", row_data$ID)))
+        }
       }
     }
   }

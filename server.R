@@ -303,12 +303,17 @@ server <- function(input, output, session) {
                                                                     "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
-        temp_data <- temp_data %>% select(.,-c("Proteotypic", "Precursor.Charge")) %>%
-          group_by(Protein.Group, Protein.Names, Protein.Ids, Genes, Stripped.Sequence) %>%
-          summarise_if(is.numeric, max, na.rm=T)
-        temp_data[sapply(temp_data, is.infinite)] <- NA
-        temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
-        temp_data <- temp_data %>% select(Index, everything())
+        if (!"SequenceWindow" %in% colnames(temp_data)) {
+          temp_data <- temp_data %>% select(.,-c("Proteotypic", "Precursor.Charge")) %>%
+            group_by(Protein.Group, Protein.Names, Protein.Ids, Genes, Stripped.Sequence) %>%
+            summarise_if(is.numeric, max, na.rm=T)
+          temp_data[sapply(temp_data, is.infinite)] <- NA
+          temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
+          temp_data <- temp_data %>% select(Index, everything())
+        } else {
+          mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "ProteinID",	"Gene", "Peptide", "SequenceWindow")]
+          temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
+        }
       }
 
       if (nrow(temp_data) > ENTRY_LIMIT) {
@@ -602,9 +607,14 @@ server <- function(input, output, session) {
        data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="peptide")
        return(data_se)
      } else if (input$exp == "DIA-peptide") {
-       data_unique <- make_unique(filtered_data, "Protein.Group", "Index")
+       if ("SequenceWindow" %in% colnames(filtered_data)) {
+         data_unique <- make_unique(filtered_data, "ProteinID", "Index")
+       } else {
+         data_unique <- make_unique(filtered_data, "Protein.Group", "Index")
+       }
        cols <- colnames(data_unique)
-       selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+       selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name",
+                                            "Gene", "ProteinID", "Peptide", "SequenceWindow")))
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="peptide")
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
