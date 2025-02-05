@@ -535,109 +535,6 @@ plot_coverage_customized <- function(se, plot = TRUE) {
   }
 }
 
-
-# original: get_results from 
-# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
-#' Generate a results table
-#'
-#' \code{get_results_customized} generates a results table from a proteomics dataset
-#' on which differential enrichment analysis was performed.
-#'
-#' @param dep SummarizedExperiment,
-#' Data object for which differentially enriched proteins are annotated
-#' (output from \code{\link{test_diff}()} and \code{\link{add_rejections}()}).
-#' @return A data.frame object
-#' containing all results variables from the performed analysis.
-#' @examples
-#' # Load example
-#' data <- UbiLength
-#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
-#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
-#'
-#' # Make SummarizedExperiment
-#' columns <- grep("LFQ.", colnames(data_unique))
-#' exp_design <- UbiLength_ExpDesign
-#' se <- make_se(data_unique, columns, exp_design)
-#'
-#' # Filter, normalize and impute missing values
-#' filt <- filter_missval(se, thr = 0)
-#' norm <- normalize_vsn(filt)
-#' imputed <- impute(norm, fun = "MinProb", q = 0.01)
-#'
-#' # Test for differentially expressed proteins
-#' diff <- test_diff(imputed, "control", "Ctrl")
-#' dep <- add_rejections(diff, alpha = 0.05, lfc = 1)
-#'
-#' # Get results
-#' results <- get_results(dep)
-#' colnames(results)
-#'
-#' significant_proteins <- results[results$significant,]
-#' nrow(significant_proteins)
-#' head(significant_proteins)
-#' @export
-get_results_customized <- function(dep) {
-  # Show error if inputs are not the required classes
-  assertthat::assert_that(inherits(dep, "SummarizedExperiment"))
-  
-  row_data <- rowData(dep, use.names = FALSE)
-  # Show error if inputs do not contain required columns
-  if(any(!c("name", "ID") %in% colnames(row_data))) {
-    stop("'name' and/or 'ID' columns are not present in '",
-         deparse(substitute(dep)),
-         "'\nRun make_unique() and make_se() to obtain the required columns",
-         call. = FALSE)
-  }
-  if(length(grep("_p.adj|_diff", colnames(row_data))) < 1) {
-    stop("'[contrast]_diff' and/or '[contrast]_p.adj' columns are not present in '",
-         deparse(substitute(dep)),
-         "'\nRun test_diff() to obtain the required columns",
-         call. = FALSE)
-  }
-  
-  # Obtain average protein-centered enrichment values per condition
-  row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
-  centered <- assay(dep) - row_data$mean
-  centered <- data.frame(centered) %>%
-    rownames_to_column() %>%
-    gather(ID, val, -rowname) %>%
-    left_join(., data.frame(colData(dep)), by = c("ID"="label"))
-  centered <- group_by(centered, rowname, condition) %>%
-    summarize(val = mean(val, na.rm = TRUE)) %>%
-    mutate(val = signif(val, digits = 3)) %>%
-    spread(condition, val)
-  colnames(centered)[2:ncol(centered)] <-
-    paste(colnames(centered)[2:ncol(centered)], "_centered", sep = "")
-  
-  # Obtain average enrichments of conditions versus the control condition
-  ratio <- as.data.frame(row_data) %>%
-    column_to_rownames("name") %>%
-    select(ends_with("diff")) %>%
-    signif(., digits = 3) %>%
-    rownames_to_column()
-  colnames(ratio)[2:ncol(ratio)] <-
-    gsub("_diff", "_ratio", colnames(ratio)[2:ncol(ratio)])
-  df <- left_join(ratio, centered, by = "rowname")
-  
-  # Select the adjusted p-values and significance columns
-  pval <- as.data.frame(row_data) %>%
-    column_to_rownames("name") %>%
-    select(ends_with("p.val"),
-           ends_with("p.adj"),
-           ends_with("significant")) %>%
-    rownames_to_column()
-  pval[, grep("p.adj", colnames(pval))] <-
-    pval[, grep("p.adj", colnames(pval))] %>%
-    signif(digits = 3)
-  
-  # Join into a results table
-  ids <- as.data.frame(row_data) %>% select(name, ID)
-  table <- left_join(ids, pval, by = c("name" = "rowname"))
-  table <- left_join(table, df, by = c("name" = "rowname")) %>%
-    arrange(desc(significant))
-  return(table)
-}
-
 plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replicate"),
                     label = FALSE, n = 500, point_size = 8, label_size = 3, plot = TRUE, ID_col="ID", exp="LFQ", scale=F) {
   if(is.integer(x)) x <- as.numeric(x)
@@ -2789,4 +2686,203 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
     }
     return(df)
   }
+}
+
+# original: get_results from 
+# https://github.com/arnesmits/DEP/blob/b425d8d0db67b15df4b8bcf87729ef0bf5800256/R/functions.R
+#' Generate a results table
+#'
+#' \code{get_results_customized} generates a results table from a proteomics dataset
+#' on which differential enrichment analysis was performed.
+#'
+#' @param dep SummarizedExperiment,
+#' Data object for which differentially enriched proteins are annotated
+#' (output from \code{\link{test_diff}()} and \code{\link{add_rejections}()}).
+#' @return A data.frame object
+#' containing all results variables from the performed analysis.
+#' @examples
+#' # Load example
+#' data <- UbiLength
+#' data <- data[data$Reverse != "+" & data$Potential.contaminant != "+",]
+#' data_unique <- make_unique(data, "Gene.names", "Protein.IDs", delim = ";")
+#'
+#' # Make SummarizedExperiment
+#' columns <- grep("LFQ.", colnames(data_unique))
+#' exp_design <- UbiLength_ExpDesign
+#' se <- make_se(data_unique, columns, exp_design)
+#'
+#' # Filter, normalize and impute missing values
+#' filt <- filter_missval(se, thr = 0)
+#' norm <- normalize_vsn(filt)
+#' imputed <- impute(norm, fun = "MinProb", q = 0.01)
+#'
+#' # Test for differentially expressed proteins
+#' diff <- test_diff(imputed, "control", "Ctrl")
+#' dep <- add_rejections(diff, alpha = 0.05, lfc = 1)
+#'
+#' # Get results
+#' results <- get_results(dep)
+#' colnames(results)
+#'
+#' significant_proteins <- results[results$significant,]
+#' nrow(significant_proteins)
+#' head(significant_proteins)
+#' @export
+get_results_proteins_customized <- function(dep) {
+  # Show error if inputs are not the required classes
+  assertthat::assert_that(inherits(dep, "SummarizedExperiment"))
+  
+  row_data <- rowData(dep)
+  # Show error if inputs do not contain required columns
+  if(any(!c("name", "ID") %in% colnames(row_data))) {
+    stop("'name' and/or 'ID' columns are not present in '",
+         deparse(substitute(dep)),
+         "'\nRun make_unique() and make_se() to obtain the required columns",
+         call. = FALSE)
+  }
+  if(length(grep("_p.adj|_diff", colnames(row_data))) < 1) {
+    stop("'[contrast]_diff' and/or '[contrast]_p.adj' columns are not present in '",
+         deparse(substitute(dep)),
+         "'\nRun test_diff() to obtain the required columns",
+         call. = FALSE)
+  }
+  
+  # Obtain average protein-centered enrichment values per condition
+  row_data$mean <- rowMeans(assay(dep), na.rm = TRUE)
+  centered <- assay(dep) - row_data$mean
+  centered <- data.frame(centered) %>%
+    tibble::rownames_to_column() %>%
+    tidyr::gather(ID, val, -rowname) %>%
+    dplyr::left_join(., data.frame(colData(dep)), by = c("ID"="label"))
+  
+  centered <- dplyr::group_by(centered, rowname, condition) %>%
+    dplyr::summarize(val = mean(val, na.rm = TRUE)) %>%
+    dplyr::mutate(val = signif(val, digits = 3)) %>%
+    tidyr::spread(condition, val)
+  colnames(centered)[2:ncol(centered)] <-
+    paste(colnames(centered)[2:ncol(centered)], "_centered", sep = "")
+  
+  # Obtain average enrichments of conditions versus the control condition
+  ratio <- as.data.frame(row_data) %>%
+    #tibble::column_to_rownames("name") %>%
+    dplyr::select(dplyr::ends_with("diff")) %>%
+    signif(., digits = 3) %>%
+    tibble::rownames_to_column()
+  colnames(ratio)[2:ncol(ratio)] <-
+    gsub("_diff", "_log2 fold change", colnames(ratio)[2:ncol(ratio)])
+  # df <- left_join(ratio, centered, by = "rowname")
+  
+  # Select the adjusted p-values and significance columns
+  pval <- as.data.frame(row_data) %>%
+    #tibble::column_to_rownames("name") %>%
+    dplyr::select(dplyr::ends_with("p.val"),
+                  dplyr::ends_with("p.adj"),
+                  dplyr::ends_with("significant")) %>%
+    tibble::rownames_to_column()
+  pval[, grep("p.adj", colnames(pval))] <-
+    pval[, grep("p.adj", colnames(pval))] %>%
+    signif(digits = 3)
+  pval[, grep("p.val", colnames(pval))] <-
+    pval[, grep("p.val", colnames(pval))] %>%
+    signif(digits = 3)
+  
+  # Join into a results table
+  if (metadata(dep)$exp == "LFQ") {
+    if(metadata(dep)$level == "protein") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(ID, name)
+      table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+      table <-as.data.frame(row_data) %>%
+        dplyr::select(ID, imputed, num_NAs, Description) %>%
+        dplyr::left_join(table, ., by = "ID")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Protein ID")
+      colnames(table)[2] <- c("Gene Name")
+    } else if(metadata(dep)$level == "peptide") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Gene)
+      table <- dplyr::left_join(ids, ratio, by=c("ID"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+      table <- as.data.frame(row_data) %>%
+        dplyr::select(ID, imputed, num_NAs, Description) %>%
+        dplyr::left_join(table, ., by = "ID")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Index")
+      colnames(table)[2] <- c("Protein ID")
+      colnames(table)[3] <- c("Gene Name")
+    }
+  } else if (metadata(dep)$exp == "TMT") {
+    if(metadata(dep)$level == "gene") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(ID, name)
+      table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+      table <- as.data.frame(row_data) %>%
+        dplyr::select(ID, imputed, num_NAs) %>%
+        dplyr::left_join(table, ., by = "ID")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Gene Name")
+      colnames(table)[2] <- c("Protein ID")
+    } else if (metadata(dep)$level == "protein") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(name, Gene)
+      table <- dplyr::left_join(ids, ratio, by=c("name"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("name" = "rowname"))
+      table <- as.data.frame(row_data) %>%
+        dplyr::select(name, imputed, num_NAs) %>%
+        dplyr::left_join(table, ., by = "name")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Protein ID")
+      colnames(table)[2] <- c("Gene Name")
+    } else if (metadata(dep)$level == "peptide") {
+      if ("SequenceWindow" %in% colnames(row_data)) {
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene, Peptide, SequenceWindow)
+      } else {
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene)
+      }
+      table <- dplyr::left_join(ids, ratio, by=c("ID"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+      table <- as.data.frame(row_data) %>%
+        dplyr::select(ID, imputed, num_NAs) %>%
+        dplyr::left_join(table, ., by = "ID")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Index")
+      colnames(table)[2] <- c("Protein ID")
+      colnames(table)[3] <- c("Gene Name")
+    }
+  } else if (metadata(dep)$exp == "DIA") {
+    if (metadata(dep)$level == "protein") {
+      ids <- as.data.frame(row_data) %>% dplyr::select(ID, name)
+      table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
+      table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+      table <- as.data.frame(row_data) %>%
+        dplyr::select(ID, imputed, num_NAs) %>%
+        dplyr::left_join(table, ., by = "ID")
+      table <- table %>% dplyr::arrange(desc(significant))
+      colnames(table)[1] <- c("Protein ID")
+      colnames(table)[2] <- c("Gene Name")
+    } else if (metadata(dep)$level == "peptide") {
+      if (! "SequenceWindow" %in% colnames(row_data)) {
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Genes)
+        table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
+        table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+        table <- as.data.frame(row_data) %>%
+          dplyr::select(ID, imputed, num_NAs) %>%
+          dplyr::left_join(table, ., by = "ID")
+        table <- table %>% dplyr::arrange(desc(significant))
+        colnames(table)[1] <- c("Index")
+        colnames(table)[2] <- c("Protein ID")
+        colnames(table)[3] <- c("Gene Name")
+      } else {
+        ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Gene)
+        table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
+        table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
+        table <- as.data.frame(row_data) %>%
+          dplyr::select(ID, imputed, num_NAs) %>%
+          dplyr::left_join(table, ., by = "ID")
+        table <- table %>% dplyr::arrange(desc(significant))
+        colnames(table)[1] <- c("Index")
+        colnames(table)[2] <- c("Protein ID")
+        colnames(table)[3] <- c("Gene Name")
+      }
+    }
+  }
+  return(table)
 }

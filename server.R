@@ -1220,7 +1220,7 @@ server <- function(input, output, session) {
 
   ##### Get results dataframe from Summarizedexperiment object
    data_result <- eventReactive(input$analyze, {
-      get_results_proteins(dep())
+      get_results_proteins_customized(dep())
     })
 
   #### Data table
@@ -1472,7 +1472,7 @@ server <- function(input, output, session) {
   
   datasetInput <- reactive({
     switch(input$dataset,
-           "DE_results" = get_results_proteins(dep()),
+           "DE_results" = get_results_proteins_customized(dep()),
            "Original_matrix"= unimputed_table(),
            "Filtered_matrix" = filtered_table(),
            "Normalized_matrix" = normalized_table(),
@@ -2389,7 +2389,7 @@ output$download_density_svg<-downloadHandler(
  
  ##### Get results dataframe from Summarizedexperiment object for demo
  # data_result_dm<-reactive({
- #   get_results_proteins(dep_dm())
+ #   get_results_proteins_customized(dep_dm())
  #   #get_results(dep())
  # })
  
@@ -2578,7 +2578,7 @@ output$download_density_svg<-downloadHandler(
  ##### Download Functions for demo
  # datasetInput_dm <- reactive({
  #   switch(input$dataset_dm,
- #          "Results" = get_results_proteins(dep_dm()),
+ #          "Results" = get_results_proteins_customized(dep_dm()),
  #          "Full dataset" = get_df_wide(dep_dm()))
  # })
  # 
