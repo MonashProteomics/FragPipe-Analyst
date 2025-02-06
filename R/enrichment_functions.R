@@ -97,7 +97,11 @@ test_ora_mod <- function(dep,
   } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
     background <- unique(row_data$Gene)
   } else if (metadata(dep)$exp == "DIA"  & metadata(dep)$level == "peptide") {
-    background <- unique(row_data$Genes)
+    if ("SequenceWindow" %in% colnames(row_data)) {
+      background <- unique(row_data$Gene)
+    } else {
+      background <- unique(row_data$Genes)
+    }
   }
   
   background_enriched <- enrichr_mod(background, databases)
@@ -151,13 +155,17 @@ test_ora_mod <- function(dep,
       } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
         genes <- unique(significant$Gene)
       } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "peptide") {
-        genes <- unique(significant$Genes)
+        if ("SequenceWindow" %in% colnames(row_data)) {
+          genes <- unique(significant$Gene)
+        } else {
+          genes <- unique(significant$Genes)
+        }
       }
       
       message(paste0(length(genes), " genes are submitted"))
       if (length(genes) != 0){
         enriched <- enrichr_mod(genes, databases)
-        # print(colnames(enriched[["KEGG_2021_Human"]]))
+ 
         # Tidy output
         contrast_enrich <- NULL
         for(database in databases) {
