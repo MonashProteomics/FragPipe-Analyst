@@ -365,7 +365,14 @@ ui <- function(request){shinyUI(
                               .dataTables_scrollBody {
                                 height: unset !important;
                                 max-height: none !important;
-                              }"),
+                              }
+                              #contents .dataTables_wrapper.no-footer .dataTables_scroll .dataTables_scrollBody {
+                                transform:rotateX(180deg);
+                              }
+                              #contents .dataTables_wrapper.no-footer .dataTables_scroll .dataTables_scrollBody table{
+                                transform:rotateX(180deg);
+                              }
+                                         "),
                               box(
                                 title = "Results Table",
                                 shinycssloaders::withSpinner(DTOutput("contents"),
@@ -388,26 +395,22 @@ ui <- function(request){shinyUI(
                                   width = 12,
                                   tabPanel(title = "Volcano plot",
                                            fluidRow(
-                                             box(uiOutput("volcano_cntrst"), width = 5),
+                                             box(uiOutput("volcano_cntrst"), width = 6),
                                              box(numericInput("fontsize",
                                                               "Font size",
-                                                              min = 0, max = 8, value = 4),
-                                                 width = 3),
+                                                              min = 0, max = 8, value = 4), width = 6),
                                              box(checkboxInput("check_names",
                                                                "Display names",
-                                                               value = T),
-                                                 checkboxInput("p_adj",
+                                                               value = T), width = 3),
+                                             box(checkboxInput("p_adj",
                                                                "Adjusted p values",
-                                                               value = T),
-                                                 checkboxInput("show_gene",
+                                                               value = T), width = 3),
+                                             box(checkboxInput("show_gene",
                                                                "Show gene names",
-                                                               value = T),
-                                                 checkboxInput("disable_peptides",
+                                                               value = T), width = 3),
+                                             box(checkboxInput("disable_peptides",
                                                                "Don't color peptides from the same protein",
-                                                               value = F),
-                                                 width = 4),
-                                           ),
-                                           fluidRow(
+                                                               value = F), width = 3),
                                              box(
                                                tags$p("Select features from Results Table to highlight them on the plot"),
                                                #  OR drag the mouse on plot to show expression of features in Table
