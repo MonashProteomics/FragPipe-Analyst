@@ -186,11 +186,7 @@ ui <- function(request){shinyUI(
         };')
       ))),
 
-      #  Add logo to the body
-      #  tags$img(src="mbpf_logo.jpg",height=50, align="right"),
-      
-      ## Add tabItems
-     # id="body",
+      ## Add side menu
       tabItems(
         tabItem(tabName = "home",
                 fluidRow(
@@ -372,6 +368,27 @@ ui <- function(request){shinyUI(
                               #contents .dataTables_wrapper.no-footer .dataTables_scroll .dataTables_scrollBody table{
                                 transform:rotateX(180deg);
                               }
+                              #volcano_dropdown_row .col-sm-6 .box{
+                                margin: 0;
+                              }
+                              #volcano_comparison {
+                                padding: 0;
+                              }
+                              #volcano_font_size {
+                                padding: 0;
+                              }
+                              #volcano_checkbox_row .col-sm-6 .box{
+                                margin: 0;
+                              }
+                              .volcano_option {
+                                padding: 0;
+                              }
+                              #volcano_help {
+                                padding: 0;
+                              }
+                              #volcano_help p{
+                                margin: 0;
+                              }
                                          "),
                               box(
                                 title = "Results Table",
@@ -395,28 +412,33 @@ ui <- function(request){shinyUI(
                                   width = 12,
                                   tabPanel(title = "Volcano plot",
                                            fluidRow(
-                                             box(uiOutput("volcano_cntrst"), width = 6),
-                                             box(numericInput("fontsize",
+                                             id="volcano_dropdown_row",
+                                             box(id="volcano_comparison", uiOutput("volcano_cntrst"), width = 6),
+                                             box(id="volcano_font_size", numericInput("fontsize",
                                                               "Font size",
-                                                              min = 0, max = 8, value = 4), width = 6),
-                                             box(checkboxInput("check_names",
+                                                              min = 0, max = 8, value = 4), width = 6)),
+                                           fluidRow(
+                                             id="volcano_checkbox_row",
+                                             box(class="volcano_option",
+                                                 checkboxInput("check_names",
                                                                "Display names",
-                                                               value = T), width = 3),
-                                             box(checkboxInput("p_adj",
+                                                               value = T),
+                                                 checkboxInput("p_adj",
                                                                "Adjusted p values",
-                                                               value = T), width = 3),
-                                             box(checkboxInput("show_gene",
+                                                               value = T), width = 6),
+                                             box(class="volcano_option",
+                                                 checkboxInput("show_gene",
                                                                "Show gene names",
-                                                               value = T), width = 3),
-                                             box(checkboxInput("disable_peptides",
+                                                               value = T),
+                                                 checkboxInput("disable_peptides",
                                                                "Don't color peptides from the same protein",
-                                                               value = F), width = 3),
+                                                               value = F), width = 6),
                                              box(
+                                               id="volcano_help",
                                                tags$p("Select features from Results Table to highlight them on the plot"),
-                                               #  OR drag the mouse on plot to show expression of features in Table
-                                               width = 12
-                                             )
-                                           ),
+                                                 #  OR drag the mouse on plot to show expression of features in Table
+                                                 width = 12)
+                                             ),
                                            fluidRow(
                                              shinycssloaders::withSpinner(
                                                plotOutput("volcano",
