@@ -1185,16 +1185,18 @@ server <- function(input, output, session) {
    ## Enrichment inputs
    go_results <-eventReactive(input$go_analysis,{
      progress_indicator('Gene ontology enrichment is running....')
-    if(!is.null(input$contrast)){
-      return(test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
-                                 direction = input$go_direction, log2_threshold = input$lfc_go, alpha = input$p_go))
-    }
+     if(!is.null(input$contrast)){
+       return(test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
+                           direction = input$go_direction, log2_threshold = input$lfc_go, alpha = input$p_go))
+       }
    })
 
    pathway_results <-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
-     return(test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
-                                     direction = input$pathway_direction, log2_threshold = input$lfc_path, alpha = input$p_path))
+     if(!is.null(input$contrast_1)){
+       return(test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
+                           direction = input$pathway_direction, log2_threshold = input$lfc_path, alpha = input$p_path))
+     }
    })
 
    #### Interactive UI
@@ -1227,7 +1229,9 @@ server <- function(input, output, session) {
    output$contents <- renderDT({
      df<- data_result()
      return(df)
-   }, options = list(scrollX = TRUE,
+   },
+   filter = "top",
+   options = list(scrollX = TRUE,
                      autoWidth=TRUE,
                      pageLength = 20,
                      lengthMenu = c(20, 40, 80, 100),
@@ -1245,6 +1249,7 @@ server <- function(input, output, session) {
       df<- data_result()
       return(df)
     },
+    filter = "top",
     options = list(scrollX = TRUE,
                    autoWidth=TRUE,
                    columnDefs= list(list(width = '400px', targets = c(-1))))
@@ -1447,7 +1452,7 @@ server <- function(input, output, session) {
     output$pathway_enrichment<-renderPlot({
       Sys.sleep(2)
       null_enrichment_test(pathway_results(), alpha = 0.05)
-      plot_pathway <- plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
+      plot_pathway <- plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts = input$contrast_1,
                                      databases = as.character(input$pathway_database), adjust = input$path_adjust,
                                      use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
       return(plot_pathway)
@@ -1863,6 +1868,7 @@ output$download_density_svg<-downloadHandler(
   output$contents_occ <- DT::renderDataTable({
     df<- data_attendance_filtered()
     return(df)},
+    filter = "top",
     options = list(scrollX = TRUE,
                    scroller = TRUE,
                    autoWidth=TRUE,
