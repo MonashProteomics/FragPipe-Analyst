@@ -685,7 +685,7 @@ server <- function(input, output, session) {
      return(as.data.frame(temp1))
    })
 
-   normalised_data<-reactive({
+   normalized_data <-reactive({
      if (input$normalization == "none"){
        return(filtered_data())
      } else {
@@ -710,7 +710,7 @@ server <- function(input, output, session) {
    })
    
    normalized_table<-reactive({
-     temp1 <-assay(normalised_data())
+     temp1 <-assay(normalized_data())
      if (input$exp == "LFQ" & input$lfq_type == "Spectral Count") {
        colnames(temp1) <- paste(colnames(temp1), "normalized_spectral_count", sep="_")
      } else if (input$exp == "LFQ-peptide" & input$lfq_pept_type == "Spectral Count") {
@@ -726,13 +726,13 @@ server <- function(input, output, session) {
 
    imputed_data<-eventReactive(input$analyze,{
      if (input$imputation == "none"){
-       imputed <- normalised_data()
+       imputed <- normalized_data()
        rowData(imputed)$imputed <- F
-       rowData(imputed)$num_NAs <- rowSums(is.na(assay(normalised_data())))
+       rowData(imputed)$num_NAs <- rowSums(is.na(assay(normalized_data())))
      } else {
        # need a customized function here since DIA data has several slashs in the column
        # TMT report might has same issue for earlier version of FragPipe (<= 18.0)
-      imputed <- impute_customized(normalised_data(),input$imputation)
+      imputed <- impute_customized(normalized_data(),input$imputation)
      } 
      return(imputed)
    })
@@ -849,7 +849,7 @@ server <- function(input, output, session) {
        data <- imputed_data()
        num_total <- num_total()
      } else {
-       data <- normalised_data()
+       data <- normalized_data()
        num_total <- num_total_origin()
      }
      if (num_total<=500){
@@ -1081,7 +1081,7 @@ server <- function(input, output, session) {
       if (input$check_impute) {
         data <- imputed_data()
       } else {
-        data <- normalised_data()
+        data <- normalized_data()
       }
       if (metadata(data)$exp == "TMT" & metadata(data)$level == "protein") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
@@ -1123,13 +1123,13 @@ server <- function(input, output, session) {
          if (input$normalization == "none") {
            plot_density(list("original data"=processed_data(), "filtered data"=filtered_data()))
          } else {
-           plot_density(list("original data"=processed_data(), "normalized data"=normalised_data(), "filtered data"=filtered_data()))
+           plot_density(list("original data"=processed_data(), "normalized data"=normalized_data(), "filtered data"=filtered_data()))
          }
        } else {
          if (input$normalization == "none") {
            plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(), "imputed data"=imputed_data()))
          } else {
-           plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(), "normalized data"=normalised_data(), "imputed data"=imputed_data()))
+           plot_density(list("original data"=processed_data(), "filtered data"=filtered_data(), "normalized data"=normalized_data(), "imputed data"=imputed_data()))
          }
        }
      }
@@ -1158,7 +1158,7 @@ server <- function(input, output, session) {
      if (input$cor_imputed) {
        data <- dep()
      } else {
-       data <- normalised_data()
+       data <- normalized_data()
      }
      return(plot_cor_customized(data, significant=FALSE, indicate="condition", exp=input$exp))
    })
@@ -1179,7 +1179,7 @@ server <- function(input, output, session) {
    })
 
    num_total_origin <- reactive({
-     normalised_data() %>% nrow()
+     normalized_data() %>% nrow()
    })
    
    ## Enrichment inputs
@@ -1480,7 +1480,7 @@ server <- function(input, output, session) {
            "Full_dataset" = get_df_wide(dep()),
            "Processed_SE" = processed_data(),
            "Filtered_SE" = filtered_data(),
-           "Normalized_SE" = normalised_data(),
+           "Normalized_SE" = normalized_data(),
            "Imputed_SE" = imputed_data()
            )
   })
@@ -2256,7 +2256,7 @@ output$download_density_svg<-downloadHandler(
  # processed_data_dm<-reactive({
  #   env_dm()[["data_filter"]]
  # })
- # normalised_data_dm<-reactive({
+ # normalized_data_dm<-reactive({
  #   DEP::normalize_vsn(processed_data_dm())
  # })
  # 
@@ -2293,14 +2293,14 @@ output$download_density_svg<-downloadHandler(
  # 
  # numbers_input_dm <- reactive({
  #   if (input$exp == "LFQ"){
- #     plot_numbers(normalised_data_dm())
+ #     plot_numbers(normalized_data_dm())
  #   } else if (input$exp == "TMT") {
- #     plot_numbers(normalised_data_dm())
+ #     plot_numbers(normalized_data_dm())
  #   }
  # })
  # 
  # coverage_input_dm <- reactive({
- #   plot_coverage(normalised_data_dm())
+ #   plot_coverage(normalized_data_dm())
  # })
  # 
  # correlation_input_dm<-reactive({
