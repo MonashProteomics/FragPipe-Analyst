@@ -381,6 +381,11 @@ server <- function(input, output, session) {
       validate(need("sample" %in% colnames(temp_df),
                     "Error: No sample name column provided. Please check your experiment_annotation.tsv again."))
 
+      # handle all-digital sample_name
+      if (!is.character(temp_df$sample_name)) {
+        temp_df$sample_name <- as.character(temp_df$sample_name)
+      }
+      
       # make sure sample_name and sample columns are unique
       validate(need(any(duplicated(temp_df$sample_name)) == 0,
                       "Error: Duplicated sample_name detected. Please check your experiment_annotation.tsv again."))
