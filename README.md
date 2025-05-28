@@ -58,6 +58,9 @@ cd FragPipe-Analyst
 > install.packages("renv")
 > renv::init(bioconductor = T)
 
+# Install shiny.info, it's removed at 2025-03-21 https://cran.r-project.org/web/packages/shiny.info/index.html, so needs to install their github version
+> renv::install("Appsilon/shiny.info")
+
 # Execute
 > shiny::runApp()
 ```
