@@ -4,7 +4,7 @@ server <- function(input, output, session) {
   ENTRY_LIMIT <- 180000
   
   observeEvent(input$exp, {
-    if(input$exp == "TMT" | input$exp == "TMT-peptide"){
+    if(input$exp %in% c("TMT", "TMT-peptide", "TMT-site")){
       updateRadioButtons(session, "imputation",
                          choices = c("No imputation"="none", "Perseus-type"="man", "knn"="knn", # "bpca"="bpca", "RF"="RF",
                                      "MLE"="MLE", "min"="min", "zero"="zero"),
@@ -64,13 +64,13 @@ server <- function(input, output, session) {
       showTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
-    } else if (input$exp %in%  c("DIA-peptide", "DIA-site")) {
+    } else if (input$exp %in% c("DIA-peptide", "DIA-site")) {
       hideTab(inputId = "tab_panels", target = "occ_panel")
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       hideTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
-    } else if (input$exp == "TMT-peptide") {
+    } else if (input$exp %in% c("TMT-peptide", "TMT-site")) {
       hideTab(inputId = "tab_panels", target = "occ_panel")
       hideTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       hideTab(inputId="qc_tabBox", target="sample_coverage_tab")
@@ -122,6 +122,9 @@ server <- function(input, output, session) {
        } else if (input$exp == "TMT-peptide") {
          inFile <- input$tmt_pept_expr
          exp_design_file <- input$tmt_pept_annot
+       } else if (input$exp == "TMT-site") {
+         inFile <- input$tmt_site_expr
+         exp_design_file <- input$tmt_site_annot
        } else if (input$exp == "DIA-peptide") {
          inFile <- input$dia_pept_expr
          exp_design_file <- input$dia_pept_annot
@@ -264,6 +267,8 @@ server <- function(input, output, session) {
         inFile <- input$lfq_pept_expr
       } else if (input$exp == "TMT-peptide") {
         inFile <- input$tmt_pept_expr
+      } else if (input$exp == "TMT-site") {
+        inFile <- input$tmt_site_expr
       } else if (input$exp == "DIA-peptide") {
         inFile <- input$dia_pept_expr
       } else if (input$exp == "DIA-site") {
@@ -306,9 +311,9 @@ server <- function(input, output, session) {
         } else {
           temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Modified Sequence`)
         }
-      } else if (input$exp == "TMT-peptide") {
+      } else if (input$exp %in% c("TMT-peptide", "TMT-site")) {
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide",
-                                                                    "SequenceWindow", # for internally supporting single-site report DE
+                                                                    "SequenceWindow", # for supporting single-site report DE
                                                                     "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
@@ -363,6 +368,8 @@ server <- function(input, output, session) {
         inFile <- input$lfq_pept_annot
       } else if (input$exp == "TMT-peptide") {
         inFile <- input$tmt_pept_annot
+      } else if (input$exp == "TMT-site") {
+        inFile <- input$tmt_site_annot
       } else if (input$exp == "DIA-peptide") {
         inFile <- input$dia_pept_annot
       } else if (input$exp == "DIA-site") {
@@ -408,7 +415,7 @@ server <- function(input, output, session) {
       validate(need(any(duplicated(temp_df$sample)) == 0,
                     "Error: Duplicated sample detected. Please check your experiment_annotation.tsv again."))
 
-      if (input$exp == "TMT" | input$exp == "TMT-peptide") {
+      if (input$exp %in% c("TMT", "TMT-peptide", "TMT-site")) {
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
         validate(need(try(test_TMT_annotation(temp_df)),
@@ -608,7 +615,7 @@ server <- function(input, output, session) {
          data_se <- make_se_customized(data_unique, lfq_columns, exp_design(), log2transform=T, exp="LFQ", lfq_type=input$lfq_pept_type, level="peptide")
        }
        return(data_se)
-     } else if (input$exp == "TMT-peptide") {
+     } else if (input$exp %in% c("TMT-peptide", "TMT-site")) {
        temp_exp_design <- exp_design()
        # sample without specified condition will be removed
        temp_exp_design <- temp_exp_design[!is.na(temp_exp_design$condition), ]
@@ -1281,7 +1288,8 @@ server <- function(input, output, session) {
     } else {
       yvar <- "p_value_-log10"
     }
-    if (!input$exp %in% c("TMT-peptide", "DIA-peptide", "LFQ-peptide", "DIA-site")) {
+    if (!input$exp %in% c("TMT-peptide", "DIA-peptide", "LFQ-peptide",
+                          "TMT-site", "DIA-site")) {
       if(is.null(input$contents_rows_selected)){
         protein_tmp<-brushedPoints(plot_volcano_customized(dep(),
                                                     input$volcano_cntrst,
@@ -1346,7 +1354,7 @@ server <- function(input, output, session) {
   # TODO: brush can manipulate data table content
   # observeEvent(input$protein_brush,{
   #   data <- data_result()
-  #   if (!input$exp %in% c("TMT-peptide", "DIA-ptpide")) {
+  #   if (!input$exp %in% c("TMT-peptide", "TMT-site", "DIA-peptide", "DIA-site)) {
   #     proxy %>% selectRows(which(data[["Gene Name"]] %in% protein_name_brush()))
   #   } else {
   #     proxy %>% selectRows(which(data[["Index"]] %in% protein_name_brush()))
@@ -1646,7 +1654,8 @@ output$download_hm_svg<-downloadHandler(
                               colnames(SummarizedExperiment::rowData(dep())))])
 
       # Set up parameters to pass to Rmd document
-      if (input$exp %in% c("LFQ-peptide", "DIA-peptide", "TMT-peptide", "DIA-site")) {
+      if (input$exp %in% c("LFQ-peptide", "DIA-peptide", "TMT-peptide",
+                           "DIA-site", "TMT-site")) {
         temp_missval_input <- NA
       } else {
         temp_missval_input <- missval_input

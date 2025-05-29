@@ -689,7 +689,7 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                   legendgrouptitle_text=indicate[1])
     }
   } else if(length(indicate) == 2) {
-    if (exp == "TMT" | exp == "TMT-peptide"){
+    if (exp %in% c("TMT", "TMT-peptide", "TMT-site")){
       pca_df$plex <- as.factor(pca_df$plex)
       p <- plot_ly() %>%
         #Overlay color for gears
@@ -2399,13 +2399,13 @@ plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
       if (metadata(dep)$exp == "DIA") {
         if (metadata(dep)$level == "site") {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", df_reps$rowname))
-        } else {
+        } else { # peptide
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
         }
       } else if (metadata(dep)$exp == "TMT") {
-        if ("SequenceWindow" %in% colnames(rowData(subset))) {
+        if (metadata(dep)$level == "site") {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "ID"]))
-        } else {
+        } else { # peptide
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "Peptide"]))
         }
       } else { # LFQ
@@ -2565,7 +2565,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
                              name = row_data$ID)
-      } else { # peptide
+      } else { # peptide, site
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
@@ -2608,13 +2608,13 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
                              name = row_data$ID)
-      } else if (metadata(dep)$level == "peptide") {
-        if ("SequenceWindow" %in% colnames(row_data)) {
+      } else {
+        if (metadata(dep)$level == "site") {
           df_tmp <- data.frame(diff = row_data[, diff],
                                p_values = -log10(row_data[, p_values]),
                                signif = signif,
                                name = paste0(row_data$Gene, "_", gsub(".*_", "", row_data$ID)))
-        } else {
+        } else { # peptide
           df_tmp <- data.frame(diff = row_data[, diff],
                                p_values = -log10(row_data[, p_values]),
                                signif = signif,
@@ -2833,11 +2833,13 @@ get_results_proteins_customized <- function(dep) {
       table <- table %>% dplyr::arrange(desc(significant))
       colnames(table)[1] <- c("Protein ID")
       colnames(table)[2] <- c("Gene Name")
-    } else if (metadata(dep)$level == "peptide") {
-      if ("SequenceWindow" %in% colnames(row_data)) {
-        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene, Peptide, SequenceWindow)
-      } else {
-        ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene)
+    } else {
+      if (metadata(dep)$level == "site") {
+        ids <- as.data.frame(row_data) %>%
+          dplyr::select(ID, ProteinID, Gene, Peptide, SequenceWindow)
+      } else { # peptide
+        ids <- as.data.frame(row_data) %>%
+          dplyr::select(ID, ProteinID, Gene)
       }
       table <- dplyr::left_join(ids, ratio, by=c("ID"="rowname"))
       table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
@@ -2860,7 +2862,7 @@ get_results_proteins_customized <- function(dep) {
       table <- table %>% dplyr::arrange(desc(significant))
       colnames(table)[1] <- c("Protein ID")
       colnames(table)[2] <- c("Gene Name")
-    } else if (metadata(dep)$level %in% c("site", "peptide")) {
+    } else {
       if (metadata(dep)$level == "peptide") {
         ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Genes)
         table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
