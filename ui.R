@@ -1,6 +1,6 @@
 # Define UI for data upload app ----
 VERSION <- "v1.11"
-DEBUG <- F
+DEBUG <- T
 ENABLE_PEPTIDE_ANALYSIS <- T
 if (ENABLE_PEPTIDE_ANALYSIS) {
   analysis_options <- c("LFQ"="LFQ", "TMT"="TMT", "DIA"="DIA",
