@@ -41,6 +41,7 @@ conflict_prefer("setdiff", "base")
 conflict_prefer("unite", "tidyr")
 conflict_prefer("intersect", "base")
 conflict_prefer("colMedians", "matrixStats")
+conflicts_prefer(base::as.factor)
 
 source("R/functions.R")
 source("R/volcano_function.R")
