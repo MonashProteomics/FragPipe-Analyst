@@ -308,7 +308,11 @@ server <- function(input, output, session) {
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
         if (!"SequenceWindow" %in% colnames(temp_data)) {
-          temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in% c("Proteotypic", "Precursor.Charge", "Precursor.Id", "Modified.Sequence", "First.Protein.Description")]),
+          temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in%
+                                                    c("Proteotypic", "Precursor.Charge",
+                                                      "Precursor.Id", "Modified.Sequence",
+                                                      "First.Protein.Description",
+                                                      "All Mapped Proteins", "All Mapped Genes")]),
                                   id.vars = c("Protein.Group", "Protein.Names", "Protein.Ids", "Genes", "Stripped.Sequence"),
                                   variable.name = "File.Name")
           temp_data <- as.data.frame(
