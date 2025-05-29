@@ -296,7 +296,11 @@ server <- function(input, output, session) {
         validate(fragpipe_input_test(temp_data))
         # remove contam
         temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
-        temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Peptide Sequence`)
+        if (!"Modified Sequence" %in% colnames(temp_data)) {
+          temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Peptide Sequence`)
+        } else {
+          temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Modified Sequence`)
+        }
       } else if (input$exp == "TMT-peptide") {
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID",	"Peptide",
                                                                     "SequenceWindow", # for internally supporting single-site report DE
