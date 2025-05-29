@@ -2409,7 +2409,11 @@ plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", rowData(subset)[df_reps$rowname, "Peptide"]))
         }
       } else { # LFQ
-        df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", rowData(subset)[df_reps$rowname, "Peptide.Sequence"])
+        if (!"Modified Sequence" %in% colnames(rowData(subset))) {
+          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", rowData(subset)[df_reps$rowname, "Peptide.Sequence"])
+        } else {  # customized logic for combined_modified_peptide.tsv
+          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", rowData(subset)[df_reps$rowname, "Modified Sequence"])
+        }
       }
     }
   }
@@ -2539,7 +2543,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
   signif <- abs(row_data[,diff]) >= lfc & row_data[, p_values] <= alpha
   if (!show_gene) {
     if (metadata(dep)$exp == "LFQ") {
-      if (metadata(dep)$level != "peptide") {
+      if (metadata(dep)$level != "peptide") { # protein or site
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
@@ -2550,9 +2554,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
-                             name = row_data$name,
-                             ID = row_data$ID,
-                             label = row_data[,name_col])
+                             name = row_data$Index)
       }
     } else if (metadata(dep)$exp == "TMT") {
       if (metadata(dep)$level == "protein") {
