@@ -496,12 +496,12 @@ ui <- function(request){shinyUI(
                                              #                  min=1, max=6, value = 3), width = 6),
                                              box(
                                                # downloadButton('downloadCluster',"Save Cluster"),
-                                                downloadButton('download_hm_svg', "Save svg"),
-                                                width = 5)
-                                           ),
-                                      # align save button
-                                      tags$style(type='text/css', "#downloadCluster {margin-top: 25px;}"),
-                                      tags$style(type='text/css', "#download_hm_svg {margin-top: 25px;}")
+                                                downloadButton('download_hm_svg', "Save svg"), width = 5),
+                                             box(downloadButton('download_heatmap_matrix', "Save clustered matrix"), width = 5)
+                                           )
+                                           # align save button
+                                           # tags$style(type='text/css', "#downloadCluster {margin-top: 25px;}"),
+                                           # tags$style(type='text/css', "#download_hm_svg {margin-top: 25px;}")
                                   ),
                                   tabPanel(title = "Feature Plot",
                                            fluidRow(

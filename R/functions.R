@@ -278,8 +278,8 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
   # return (row_order(ht1))
   # Return data.frame
   p <- draw(ht1, heatmap_legend_side = "top")
-  row_clusters<- row_order(ht1)
-  #mat<-as.matrix(df)
+  row_clusters <- row_order(ht1)
+  column_order <- column_order(ht1)
   
   # for (i in 1:length(row_clusters)){
   #   if (i==1){
@@ -293,7 +293,7 @@ get_cluster_heatmap <- function(dep, type = c("contrast", "centered"),
   #     out <- cbind(out, clu)
   #   }
   # }
-  heatmap_list <- list(p, row_clusters)
+  heatmap_list <- list(p, row_clusters, column_order)
   return(heatmap_list)
 }
 

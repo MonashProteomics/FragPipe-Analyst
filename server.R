@@ -1030,15 +1030,15 @@ server <- function(input, output, session) {
                                                           Gene = temp$`Gene Name`,
                                                           proteinID = temp$`Protein ID`)
               if (input$show_gene) {
-                if ("SequenceWindow" %in% colnames(proteins_selected)) {
+                if ("SequenceWindow" %in% colnames(proteins_selected)) { # site
                   if (nrow(df_peptide_from_same_proteins) > 0) {
                     df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", gsub(".*_", "", df_peptide_from_same_proteins$ID))
                   }
-                } else {
+                } else { # peptide
                   df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
                   df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
                 }
-              }
+              } #  for else, take original ID anyway
               if (nrow(df_peptide_from_same_proteins) > 0) {
                 p <- p +
                   geom_point(data = df_peptide_from_same_proteins, aes(x, y), color = "blue", size= 3)
@@ -1562,6 +1562,20 @@ server <- function(input, output, session) {
                   sep =",") }
   )
   
+  output$download_heatmap_matrix <- downloadHandler(
+    filename = function() { "cluster_matrix.tsv"},
+    content = function(file) {
+      heatmap_list <- heatmap_cluster()
+      temp <- assay(dep())[heatmap_list[[2]], heatmap_list[[3]]]
+      temp <- cbind(rownames(temp), temp)
+      colnames(temp)[1] <- "Feature"
+      write.table(temp, file,
+                  col.names = T,
+                  row.names = F,
+                  sep ="\t")
+      }
+  )
+
   output$downloadVolcano <- downloadHandler(
     filename = function() {
       paste0("Volcano_", input$volcano_cntrst, ".pdf")
