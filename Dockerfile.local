@@ -17,8 +17,9 @@ RUN apt-get update && apt-get install -yq \
 RUN Rscript -e 'install.packages(c("devtools", "BiocManager", "tidyverse", "ggrepel", "httr", "rjson", "mvtnorm", "tmvtnorm", \
 "imputeLCMD", "plotly", "DT", "testthat", "RColorBrewer", "shiny","shinyalert","shinydashboard", \
 "shinyjs", "svglite", "rhandsontable", "shinyBS", "shinyWidgets", "ggVennDiagram", "conflicted", "png", "vegan", "assertthat", "jsonlite", \
-"shinycssloaders","shiny.info", "factoextra", "UpSetR","fastcluster","fdrtool"), dependencies=TRUE)'
+"shinycssloaders","data.table", "factoextra", "UpSetR","fastcluster","fdrtool"), dependencies=TRUE)'
 ### #FROM bioconductor/bioconductor_docker:RELEASE_3_19
+RUN Rscript -e 'devtools::install_github("Appsilon/shiny.info")'
 RUN Rscript -e 'BiocManager::install(pkgs=c("ensembldb", "EnsDb.Hsapiens.v86", "SummarizedExperiment", "limma", "ComplexHeatmap", "MSnbase", "missForest", "impute", "pcaMethods"), ask=F, dependencies=TRUE)'
 
 ### RUN Rscript -e 'install.packages("renv")'
