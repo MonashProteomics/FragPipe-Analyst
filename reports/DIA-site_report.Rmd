@@ -14,11 +14,11 @@ params:
   coverage_input: NA
   pca_input: NA
   correlation_input: NA
-  missval_input: NA
   detect_input: NA
   density_input: NA
   p_hist_input: NA
   heatmap_input: NA
+  missval_input: NA
   dep: NA
   cvs_input: NA
   volcano_input: NA
@@ -34,8 +34,9 @@ knitr::opts_chunk$set(opts.label="kill_prefix") # Remove line number and Comment
 
 ## Method details
 
-The DIA raw data files were analyzed using FragPipe to obtain protein identifications and their respective label-free quantification values. Uploaded diann-output.pg_matrix.tsv was first filtered for contaminant proteins and then converted to log2 scale. Samples were grouped by conditions and missing values were imputed using `r params$imputation` method. Protein-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine differentially expressed  proteins in each pairwise comparison.
+The raw DIA data files were analyzed using workflow in FragPipe to obtain site-level quantification values.
 
+Uploaded site-level report was converted to log2 scale, samples were grouped by conditions and missing values were imputed using `r params$imputation` method. Feature-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed features for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine differentially expressed features in each pairwise comparison.
 
 ### Quick summary of parameters used:
 
@@ -49,7 +50,7 @@ The DIA raw data files were analyzed using FragPipe to obtain protein identifica
 
 #### Result output contains `r nrow(params$data)` features of which _`r nrow(params$dep())`_ features were reproducibly quantified.
 
-#### `r params$num_signif` proteins differ significantly between samples.
+#### `r params$num_signif` features differ significantly between samples.
 
 \pagebreak
 
@@ -81,15 +82,14 @@ print(params$cvs_input())
 
 ### Proteomics Experiment Summary
 
-Protein quantified per sample (after pre-processing).
+Features quantified per sample (after pre-processing).
 
 ```{r numbers, echo=FALSE, warning=FALSE, results='hide', message=FALSE }
 print(params$numbers_input())
 ```
 \pagebreak
 
-Protein overlap in all samples.
-
+Feature overlap in all samples.
 
 ```{r coverage, echo=FALSE, warning=FALSE}
 print(params$coverage_input())
@@ -99,17 +99,8 @@ print(params$coverage_input())
 
 ## Missing Value handling
 
-#### Missing value heatmap
-A heatmap for proteins with missing value in each dataset. Each row represent a protein with missing value in one or more replicate. Each replicate is clustered based on presence of missing values in the sample. 
-
-
-```{r missing_value_heatmap, echo=FALSE, message=FALSE, results='hide',warning=FALSE, fig.keep='first', tidy=TRUE}
-params$missval_input()
-```
-\pagebreak
-
 #### Missing value distribution
-Protein expression distribution before and after imputation. The plot showing the effect of imputation on protein expression distribution.
+Feature distribution before and after imputation. The plot showing the effect of imputation on features' expression distribution.
 
 ```{r imputation_effect, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 print(params$density_input())
@@ -119,7 +110,7 @@ print(params$density_input())
 ## Differential Expression Analysis (Results Plots) 
 
 #### Heatmap
-  A plot representing an overview of expression of all significant (differentially expressed) proteins (rows) in all samples (columns).
+  A plot representing an overview of expression of all significant (differentially expressed) features (rows) in all samples (columns).
 
  
 ```{r heatmap_2,  echo=F, warning=F, error=T, results='hide', fig.keep="first"}

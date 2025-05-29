@@ -34,7 +34,7 @@ knitr::opts_chunk$set(opts.label="kill_prefix", fig.pos = "!H", out.extra = "")
 
 ## Method details
 
-The raw data files were analyzed using FragPipe to obtain protein identifications and their respective label-free quantification values using IonQuant. Statistical analysis was performed based on the combined_peptide.tsv file. First, contaminants were filtered out. In addition, peptides that were not identified/quantified consistantly in same condition have been removed (). The quantification values were converted to log2 scale if intensities were used. A normalization was then applied (`params$normalizaition`).  Samples were grouped by conditions and missing values were imputed using the `params$imputation`. Peptide-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed proteins for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine differentially expressed  peptides in each pairwise comparison.
+The raw data files were analyzed using FragPipe to obtain peptide identifications and their respective label-free quantification values using IonQuant. Statistical analysis was performed based on the combined_peptide.tsv file. First, contaminants were filtered out. In addition, peptides that were not identified/quantified consistantly in same condition have been removed (). The quantification values were converted to log2 scale if intensities were used. A normalization was then applied (`params$normalizaition`).  Samples were grouped by conditions and missing values were imputed using the `params$imputation`. Peptide-wise linear models combined with empirical Bayes statistics were used for the differential expression analyses. The _limma_ package from R Bioconductor was used to generate a list of differentially expressed peptides for each pair-wise comparison. A cutoff of the _adjusted p-value_ of `r params$alpha` (`params$fdr_correction` method) along with a |log2 fold change| of `r params$lfc` has been applied to determine differentially expressed peptides in each pairwise comparison.
 
 
 ### Quick summary of parameters used:
@@ -47,9 +47,9 @@ The raw data files were analyzed using FragPipe to obtain protein identification
 
 ## Results
 
-### FragPipe result output contains `r nrow(params$data)` proteins groups of which _`r nrow(params$dep())`_ proteins were reproducibly quantified.
+### FragPipe result output contains `r nrow(params$data)` peptides of which _`r nrow(params$dep())`_ peptides were reproducibly quantified.
 
-### `r params$num_signif` proteins differ significantly between samples.
+### `r params$num_signif` peptides differ significantly between samples.
 
 \pagebreak
 
@@ -81,14 +81,14 @@ print(params$cvs_input())
 
 ### Proteomics Experiment Summary
 
-Protein quantified per sample (after pre-processing).
+Peptides quantified per sample (after pre-processing).
 
 ```{r numbers, echo=FALSE, warning=FALSE, results='hide', message=FALSE }
 print(params$numbers_input())
 ```
 \pagebreak
 
-Protein overlap in all samples.
+Peptide overlap in all samples.
 
 
 ```{r coverage, echo=FALSE, warning=FALSE}
@@ -101,7 +101,7 @@ print(params$coverage_input())
 ## Missing Value handling
 
 ### Missing value distribution
-Protein expression distribution before and after imputation. The plot showing the effect of imputation on protein expression distribution.
+Peptides' expression distribution before and after imputation. The plot showing the effect of imputation on peptide expression distribution.
 
 ```{r imputation_effect, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 print(params$density_input())
@@ -111,7 +111,7 @@ print(params$density_input())
 ## Differential Expression Analysis (Results Plots) 
 
 ### Heatmap
-  A plot representing an overview of expression of all significant (differentially expressed) proteins (rows) in all samples (columns).
+  A plot representing an overview of expression of all significant (differentially expressed) peptides (rows) in all samples (columns).
 
  
 ```{r heatmap_2,  echo=F, warning=F, error=T, results='hide', fig.keep="first"}
