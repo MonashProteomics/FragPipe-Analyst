@@ -2393,11 +2393,11 @@ plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
   df_reps$replicate <- as.character(df_reps$replicate)
   
   if(show_gene) {
-    if (metadata(dep)$level != "peptide") {
+    if (!metadata(dep)$level %in% c("site", "peptide")) {
       df_reps$rowname <- rowData(subset)[df_reps$rowname, "name"]
     } else {
       if (metadata(dep)$exp == "DIA") {
-        if ("SequenceWindow" %in% colnames(rowData(subset))) {
+        if (metadata(dep)$level == "site") {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", df_reps$rowname))
         } else {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
@@ -2572,7 +2572,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
                              name = row_data$Index)
       }
     } else if (metadata(dep)$exp == "DIA") {
-      if (metadata(dep)$level != "peptide") {
+      if (!metadata(dep)$level %in%  c("site","peptide")) {
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
@@ -2622,23 +2622,21 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
         }
       }
     } else if (metadata(dep)$exp == "DIA") {
-      if (metadata(dep)$level != "peptide") {
+      if (metadata(dep)$level == "peptide") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
+      } else if (metadata(dep)$level == "site") {
+        df_tmp <- data.frame(diff = row_data[, diff],
+                             p_values = -log10(row_data[, p_values]),
+                             signif = signif,
+                             name = paste0(row_data$Gene, "_", gsub(".*_", "", row_data$ID)))
+      } else {
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
                              name = row_data$Genes)
-      } else {
-        if (! "SequenceWindow" %in% colnames(row_data)) {
-          df_tmp <- data.frame(diff = row_data[, diff],
-                               p_values = -log10(row_data[, p_values]),
-                               signif = signif,
-                               name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
-        } else {
-          df_tmp <- data.frame(diff = row_data[, diff],
-                               p_values = -log10(row_data[, p_values]),
-                               signif = signif,
-                               name = paste0(row_data$Gene, "_", gsub(".*_", "", row_data$ID)))
-        }
       }
     }
   }
@@ -2862,8 +2860,8 @@ get_results_proteins_customized <- function(dep) {
       table <- table %>% dplyr::arrange(desc(significant))
       colnames(table)[1] <- c("Protein ID")
       colnames(table)[2] <- c("Gene Name")
-    } else if (metadata(dep)$level == "peptide") {
-      if (! "SequenceWindow" %in% colnames(row_data)) {
+    } else if (metadata(dep)$level %in% c("site", "peptide")) {
+      if (metadata(dep)$level == "peptide") {
         ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Genes)
         table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
         table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
@@ -2874,7 +2872,7 @@ get_results_proteins_customized <- function(dep) {
         colnames(table)[1] <- c("Index")
         colnames(table)[2] <- c("Protein ID")
         colnames(table)[3] <- c("Gene Name")
-      } else {
+      } else if (metadata(dep)$level == "site") {
         ids <- as.data.frame(row_data) %>% dplyr::select(ID, ProteinID, Gene, Peptide, SequenceWindow)
         table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
         table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))

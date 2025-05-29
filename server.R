@@ -64,7 +64,7 @@ server <- function(input, output, session) {
       showTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
       updateTabsetPanel(session, "tab_panels", selected = "quantification_panel")
       shinyjs::hide("venn_filter")
-    } else if (input$exp == "DIA-peptide") { # DIA-peptide
+    } else if (input$exp %in%  c("DIA-peptide", "DIA-site")) {
       hideTab(inputId = "tab_panels", target = "occ_panel")
       showTab(inputId="qc_tabBox", target="sample_coverage_tab")
       hideTab(inputId="qc_tabBox", target="missingval_heatmap_tab")
@@ -125,6 +125,9 @@ server <- function(input, output, session) {
        } else if (input$exp == "DIA-peptide") {
          inFile <- input$dia_pept_expr
          exp_design_file <- input$dia_pept_annot
+       } else if (input$exp == "DIA-site") {
+         inFile <- input$dia_site_expr
+         exp_design_file <- input$dia_site_annot
        }
        if (is.null(inFile) | is.null(exp_design_file)) {
          shinyalert("Input file missing!", "Please checkout your input files", type="info",
@@ -263,6 +266,8 @@ server <- function(input, output, session) {
         inFile <- input$tmt_pept_expr
       } else if (input$exp == "DIA-peptide") {
         inFile <- input$dia_pept_expr
+      } else if (input$exp == "DIA-site") {
+        inFile <- input$dia_site_expr
       }
       if(is.null(inFile))
         return(NULL)
@@ -307,24 +312,22 @@ server <- function(input, output, session) {
                                                                     "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
-        if (!"SequenceWindow" %in% colnames(temp_data)) {
-          temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in%
-                                                    c("Proteotypic", "Precursor.Charge",
-                                                      "Precursor.Id", "Modified.Sequence",
-                                                      "First.Protein.Description",
-                                                      "All Mapped Proteins", "All Mapped Genes")]),
-                                  id.vars = c("Protein.Group", "Protein.Names", "Protein.Ids", "Genes", "Stripped.Sequence"),
-                                  variable.name = "File.Name")
-          temp_data <- as.data.frame(
-            dcast.data.table(temp, Protein.Group+Protein.Names+Protein.Ids+Genes+Stripped.Sequence ~ File.Name,
-                             value.var = "value", fun.aggregate = function(x) max(x, na.rm=TRUE)))
-          temp_data[sapply(temp_data, is.infinite)] <- NA
-          temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
-          temp_data <- temp_data %>% select(Index, everything())
-        } else {
-          mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "ProteinID",	"Gene", "Peptide", "SequenceWindow")]
-          temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
-        }
+        temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in%
+                                                  c("Proteotypic", "Precursor.Charge",
+                                                    "Precursor.Id", "Modified.Sequence",
+                                                    "First.Protein.Description",
+                                                    "All Mapped Proteins", "All Mapped Genes")]),
+                                id.vars = c("Protein.Group", "Protein.Names", "Protein.Ids", "Genes", "Stripped.Sequence"),
+                                variable.name = "File.Name")
+        temp_data <- as.data.frame(
+          dcast.data.table(temp, Protein.Group+Protein.Names+Protein.Ids+Genes+Stripped.Sequence ~ File.Name,
+                           value.var = "value", fun.aggregate = function(x) max(x, na.rm=TRUE)))
+        temp_data[sapply(temp_data, is.infinite)] <- NA
+        temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
+        temp_data <- temp_data %>% select(Index, everything())
+      } else if (input$exp == "DIA-site") {
+        mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "ProteinID",	"Gene", "Peptide", "SequenceWindow")]
+        temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       }
 
       if (nrow(temp_data) > ENTRY_LIMIT) {
@@ -362,7 +365,9 @@ server <- function(input, output, session) {
         inFile <- input$tmt_pept_annot
       } else if (input$exp == "DIA-peptide") {
         inFile <- input$dia_pept_annot
-      } 
+      } else if (input$exp == "DIA-site") {
+        inFile <- input$dia_site_annot
+      }
       if (is.null(inFile))
         return(NULL)
       temp_df <- read.table(inFile$datapath,
@@ -441,7 +446,7 @@ server <- function(input, output, session) {
             temp_df$label <- paste(temp_df$label, "Spectral.Count", sep=" ")
           }
         }
-      } else if (input$exp == "DIA" | input$exp == "DIA-peptide") {
+      } else if (input$exp == "DIA" | input$exp == "DIA-peptide" | input$exp == "DIA-site") {
         validate(need("file" %in% colnames(temp_df),
                       "Error: No file column provided. Please check your experiment_annotation.tsv again."))
         # to support - (dash) or name starts with number in condition column
@@ -622,17 +627,20 @@ server <- function(input, output, session) {
        # TMT-I report is already log2 transformed
        data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="peptide")
        return(data_se)
-     } else if (input$exp == "DIA-peptide") {
-       if ("SequenceWindow" %in% colnames(filtered_data)) {
+     } else if (input$exp %in% c("DIA-peptide", "DIA-site")) {
+       if (input$exp == "DIA-site") {
          data_unique <- make_unique(filtered_data, "ProteinID", "Index")
-       } else {
+         level <- "site"
+       } else if (input$exp == "DIA-peptide"){
          data_unique <- make_unique(filtered_data, "Protein.Group", "Index")
+         level <- "peptide"
        }
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name",
                                             "Gene", "ProteinID", "Peptide", "SequenceWindow")))
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
-       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="peptide")
+       data_se <- make_se_customized(data_unique, selected_cols, exp_design(),
+                                     log2transform=T, exp="DIA", level=level)
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
@@ -712,7 +720,7 @@ server <- function(input, output, session) {
              } else {
                return(normalize_vsn(filtered_data()))
              }
-         } else if (input$exp %in% c("DIA", "DIA-peptide") ) {
+         } else if (input$exp %in% c("DIA", "DIA-peptide", "DIA-site") ) {
              return(normalize_vsn(filtered_data()))
          }
        } else if (input$normalization == "MD"){
@@ -949,7 +957,7 @@ server <- function(input, output, session) {
       if(!is.null(input$volcano_cntrst)){
         proteins_selected <- NULL
         if (!is.null(input$contents_rows_selected)){
-          if (metadata(dep())$level != "peptide") {
+          if (!metadata(dep())$level %in% c("site", "peptide")) {
             proteins_selected <- data_result()[c(input$contents_rows_selected),]
           } else {
             temp <- data_result()
@@ -982,7 +990,7 @@ server <- function(input, output, session) {
             padj_proteins <- grep(paste("^",input$volcano_cntrst, "_p.adj", sep = ""),
                                  colnames(proteins_selected))
           }
-          if (metadata(dep())$level == "peptide") {
+          if (metadata(dep())$level %in% c("site", "peptide")) {
             df_peptide <- data.frame(x = proteins_selected[, diff_proteins],
                                      y = -log10(as.numeric(proteins_selected[, padj_proteins])),
                                      name = proteins_selected$`Protein ID`,
@@ -1105,7 +1113,7 @@ server <- function(input, output, session) {
         protein_selected <- data_result()[input$contents_rows_selected, c("Gene Name")]
       } else if (metadata(data)$exp == "TMT" & metadata(data)$level == "peptide") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
-      } else if (metadata(data)$exp == "DIA" & metadata(data)$level == "peptide") {
+      } else if (metadata(data)$exp == "DIA" & metadata(data)$level %in%  c("site", "peptide")) {
         protein_selected <- data_result()[input$contents_rows_selected, c("Index")]
       } else if (metadata(data)$exp == "DIA") {
         protein_selected <- data_result()[input$contents_rows_selected, c("Protein ID")]
@@ -1273,7 +1281,7 @@ server <- function(input, output, session) {
     } else {
       yvar <- "p_value_-log10"
     }
-    if (!input$exp %in% c("TMT-peptide", "DIA-peptide", "LFQ-peptide")) {
+    if (!input$exp %in% c("TMT-peptide", "DIA-peptide", "LFQ-peptide", "DIA-site")) {
       if(is.null(input$contents_rows_selected)){
         protein_tmp<-brushedPoints(plot_volcano_customized(dep(),
                                                     input$volcano_cntrst,
@@ -1638,7 +1646,7 @@ output$download_hm_svg<-downloadHandler(
                               colnames(SummarizedExperiment::rowData(dep())))])
 
       # Set up parameters to pass to Rmd document
-      if (input$exp %in% c("LFQ-peptide", "DIA-peptide", "TMT-peptide")) {
+      if (input$exp %in% c("LFQ-peptide", "DIA-peptide", "TMT-peptide", "DIA-site")) {
         temp_missval_input <- NA
       } else {
         temp_missval_input <- missval_input

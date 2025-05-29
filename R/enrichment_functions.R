@@ -96,12 +96,10 @@ test_ora_mod <- function(dep,
     background <- unique(row_data$Gene)
   } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
     background <- unique(row_data$Gene)
-  } else if (metadata(dep)$exp == "DIA"  & metadata(dep)$level == "peptide") {
-    if ("SequenceWindow" %in% colnames(row_data)) {
-      background <- unique(row_data$Gene)
-    } else {
-      background <- unique(row_data$Genes)
-    }
+  } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "site") {
+    background <- unique(row_data$Gene)
+  } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "peptide") {
+    background <- unique(row_data$Genes)
   }
   
   background_enriched <- enrichr_mod(background, databases)
@@ -155,11 +153,9 @@ test_ora_mod <- function(dep,
       } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "peptide") {
         genes <- unique(significant$Gene)
       } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "peptide") {
-        if ("SequenceWindow" %in% colnames(row_data)) {
-          genes <- unique(significant$Gene)
-        } else {
-          genes <- unique(significant$Genes)
-        }
+        genes <- unique(significant$Genes)
+      } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "site") {
+        genes <- unique(significant$Gene)
       }
       
       message(paste0(length(genes), " genes are submitted"))
