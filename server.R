@@ -308,9 +308,12 @@ server <- function(input, output, session) {
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
         if (!"SequenceWindow" %in% colnames(temp_data)) {
-          temp_data <- temp_data %>% select(.,-c("Proteotypic", "Precursor.Charge")) %>%
-            group_by(Protein.Group, Protein.Names, Protein.Ids, Genes, Stripped.Sequence) %>%
-            summarise_if(is.numeric, max, na.rm=T)
+          temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in% c("Proteotypic", "Precursor.Charge", "Precursor.Id", "Modified.Sequence", "First.Protein.Description")]),
+                                  id.vars = c("Protein.Group", "Protein.Names", "Protein.Ids", "Genes", "Stripped.Sequence"),
+                                  variable.name = "File.Name")
+          temp_data <- as.data.frame(
+            dcast.data.table(temp, Protein.Group+Protein.Names+Protein.Ids+Genes+Stripped.Sequence ~ File.Name,
+                             value.var = "value", fun.aggregate = function(x) max(x, na.rm=TRUE)))
           temp_data[sapply(temp_data, is.infinite)] <- NA
           temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
           temp_data <- temp_data %>% select(Index, everything())

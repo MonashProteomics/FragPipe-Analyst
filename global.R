@@ -32,6 +32,7 @@ library(missForest) # for RF imputation
 library(vegan)
 library(assertthat)
 library(RColorBrewer)
+library(data.table)
 
 conflict_prefer("box", "shinydashboard")
 conflict_prefer("select", "dplyr")
