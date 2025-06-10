@@ -476,9 +476,9 @@ test_match_DIA_column_design <- function(unique_data, lfq_columns, exp_design){
   # TODO: give warning message to indicate which columns are not matched
   # if(any(is.na(matched))) {
   if(all(is.na(matched))) {
-    stop(safeError("The labels/'run names' in the experimental design DID NOT match
-         with column names in TMT-I report.
-         Please run FragPipe-Analyst with correct labels in the experimental design"))
+    stop(safeError("The sample/file in the experiment_annotation.tsv DID NOT match
+         with column names in your DIA report.
+         Please run FragPipe-Analyst with correct experimental annotation."))
   }
 }
 
