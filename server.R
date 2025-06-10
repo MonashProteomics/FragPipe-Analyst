@@ -317,6 +317,7 @@ server <- function(input, output, session) {
                                                                     "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
+        temp_data <- temp_data[,!grepl(":\\d+", colnames(temp_data))] # remove modification columns
         temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in%
                                                   c("Proteotypic", "Precursor.Charge",
                                                     "Precursor.Id", "Modified.Sequence",
