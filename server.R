@@ -457,6 +457,10 @@ server <- function(input, output, session) {
       } else if (input$exp == "DIA" | input$exp == "DIA-peptide" | input$exp == "DIA-site") {
         validate(need("file" %in% colnames(temp_df),
                       "Error: No file column provided. Please check your experiment_annotation.tsv again."))
+        # to support .d file write the column names with folder name removed and remove suffix 
+        if (any(grepl("\\.d$", temp_df$file))) {
+          temp_df$file <- gsub(".*\\\\", "", gsub("\\.d$", "", temp_df$file))
+        }
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
         # make sure replicate column is not empty
