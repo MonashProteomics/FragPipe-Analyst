@@ -2400,7 +2400,11 @@ plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
         if (metadata(dep)$level == "site") {
           df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", df_reps$rowname))
         } else { # peptide
-          df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
+          if ("Gene" %in% colnames(rowData(subset))) {
+            df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Gene"], "_", gsub(".*_", "", df_reps$rowname))
+          } else {
+            df_reps$rowname <- paste0(rowData(subset)[df_reps$rowname, "Genes"], "_", gsub(".*_", "", df_reps$rowname))
+          }
         }
       } else if (metadata(dep)$exp == "TMT") {
         if (metadata(dep)$level == "site") {
@@ -2625,10 +2629,17 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
       }
     } else if (metadata(dep)$exp == "DIA") {
       if (metadata(dep)$level == "peptide") {
-        df_tmp <- data.frame(diff = row_data[, diff],
-                             p_values = -log10(row_data[, p_values]),
-                             signif = signif,
-                             name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
+        if ("Gene" %in% colnames(row_data)) {
+          df_tmp <- data.frame(diff = row_data[, diff],
+                               p_values = -log10(row_data[, p_values]),
+                               signif = signif,
+                               name = paste0(row_data$Gene, "_", row_data$Peptide))
+        } else {
+          df_tmp <- data.frame(diff = row_data[, diff],
+                               p_values = -log10(row_data[, p_values]),
+                               signif = signif,
+                               name = paste0(row_data$Genes, "_", row_data$Stripped.Sequence))
+        }
       } else if (metadata(dep)$level == "site") {
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
@@ -2866,7 +2877,11 @@ get_results_proteins_customized <- function(dep) {
       colnames(table)[2] <- c("Gene Name")
     } else {
       if (metadata(dep)$level == "peptide") {
-        ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Genes)
+        if ("Gene" %in% colnames(row_data)) {
+          ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Gene)
+        } else { # For backward compatibility for peptide report generated from precursor report
+          ids <- as.data.frame(row_data) %>% dplyr::select(ID, name, Genes)
+        }
         table <- dplyr::left_join(ids,ratio, by=c("ID"="rowname"))
         table <- dplyr::left_join(table, pval, by = c("ID" = "rowname"))
         table <- as.data.frame(row_data) %>%

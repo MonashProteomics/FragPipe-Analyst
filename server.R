@@ -317,20 +317,27 @@ server <- function(input, output, session) {
                                                                     "MaxPepProb", "ReferenceIntensity")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
       } else if (input$exp == "DIA-peptide") {
-        temp_data <- temp_data[,!grepl(":\\d+", colnames(temp_data))] # remove modification columns
-        temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in%
-                                                  c("Proteotypic", "Precursor.Charge",
-                                                    "Precursor.Id", "Modified.Sequence",
-                                                    "First.Protein.Description",
-                                                    "All Mapped Proteins", "All Mapped Genes")]),
-                                id.vars = c("Protein.Group", "Protein.Names", "Protein.Ids", "Genes", "Stripped.Sequence"),
-                                variable.name = "File.Name")
-        temp_data <- as.data.frame(
-          dcast.data.table(temp, Protein.Group+Protein.Names+Protein.Ids+Genes+Stripped.Sequence ~ File.Name,
-                           value.var = "value", fun.aggregate = function(x) max(x, na.rm=TRUE)))
-        temp_data[sapply(temp_data, is.infinite)] <- NA
-        temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
-        temp_data <- temp_data %>% select(Index, everything())
+        if ("Best Precursor for Quant" %in% colnames(temp_data)) {
+          mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "Gene", "ProteinID", "Peptide",
+                                                                      "SequenceWindow",	"Multiplicity", "Best Localization",
+                                                                      "Best Scan for Localization", "Best Precursor for Quant")]
+          temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
+        } else { # precusor matrix for backward compatibility
+          temp_data <- temp_data[,!grepl(":\\d+", colnames(temp_data))] # remove modification columns
+          temp <- melt.data.table(setDT(temp_data[,!colnames(temp_data) %in%
+                                                    c("Proteotypic", "Precursor.Charge",
+                                                      "Precursor.Id", "Modified.Sequence",
+                                                      "First.Protein.Description",
+                                                      "All Mapped Proteins", "All Mapped Genes")]),
+                                  id.vars = c("Protein.Group", "Protein.Names", "Protein.Ids", "Genes", "Stripped.Sequence"),
+                                  variable.name = "File.Name")
+          temp_data <- as.data.frame(
+            dcast.data.table(temp, Protein.Group+Protein.Names+Protein.Ids+Genes+Stripped.Sequence ~ File.Name,
+                             value.var = "value", fun.aggregate = function(x) max(x, na.rm=TRUE)))
+          temp_data[sapply(temp_data, is.infinite)] <- NA
+          temp_data$Index <- paste0(temp_data$Protein.Ids, "_", temp_data$Stripped.Sequence)
+          temp_data <- temp_data %>% select(Index, everything())
+        }
       } else if (input$exp == "DIA-site") {
         mut.cols <- colnames(temp_data)[!colnames(temp_data) %in% c("Index", "ProteinID",	"Gene", "Peptide", "SequenceWindow")]
         temp_data[mut.cols] <- sapply(temp_data[mut.cols], as.numeric)
@@ -644,12 +651,18 @@ server <- function(input, output, session) {
          data_unique <- make_unique(filtered_data, "ProteinID", "Index")
          level <- "site"
        } else if (input$exp == "DIA-peptide"){
-         data_unique <- make_unique(filtered_data, "Protein.Group", "Index")
+         if ("Best Precursor for Quant" %in% colnames(filtered_data)) {
+           data_unique <- make_unique(filtered_data, "ProteinID", "Index") 
+         } else {
+           data_unique <- make_unique(filtered_data, "Protein.Group", "Index") 
+         }
          level <- "peptide"
        }
        cols <- colnames(data_unique)
        selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name",
-                                            "Gene", "ProteinID", "Peptide", "SequenceWindow")))
+                                            "Gene", "ProteinID", "Peptide", "SequenceWindow",
+                                            "Multiplicity", "Best Localization", "Best Scan for Localization", "Best Precursor for Quant"
+       )))
        test_match_DIA_column_design(data_unique, selected_cols, exp_design())
        data_se <- make_se_customized(data_unique, selected_cols, exp_design(),
                                      log2transform=T, exp="DIA", level=level)
