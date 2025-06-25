@@ -464,16 +464,9 @@ server <- function(input, output, session) {
       } else if (input$exp == "DIA" | input$exp == "DIA-peptide" | input$exp == "DIA-site") {
         validate(need("file" %in% colnames(temp_df),
                       "Error: No file column provided. Please check your experiment_annotation.tsv again."))
-        # to support .d file write the column names with folder name removed and remove suffix 
-        if (any(grepl("\\.d$", temp_df$file))) {
-          temp_df$file <- gsub(".*\\\\", "", gsub("\\.d$", "", temp_df$file))
-        }
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
-        # make sure replicate column is not empty
-        if (!all(is.na(temp_df$replicate))) {
-          temp_df$label <- temp_df$file
-        }
+        # other logics were moved to the processed_data function
       }
       return(temp_df)
     })
@@ -591,12 +584,43 @@ server <- function(input, output, session) {
          data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="gene")
        }
        return(data_se)
-     } else if (input$exp == "DIA") {
-       data_unique <- make_unique(filtered_data, "Genes", "Protein.Group")
-       cols <- colnames(data_unique)
-       selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
-       test_match_DIA_column_design(data_unique, selected_cols, exp_design())
-       data_se <- make_se_customized(data_unique, selected_cols, exp_design(), log2transform=T, exp="DIA", level="protein")
+     } else if (input$exp %in% c("DIA", "DIA-peptide", "DIA-site")) {
+       if (input$exp %in% c("DIA")) {
+         data_unique <- make_unique(filtered_data, "Genes", "Protein.Group")
+         level <- "protein"
+         cols <- colnames(data_unique)
+         selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+       } else if (input$exp %in% c("DIA-peptide", "DIA-site")) {
+         if (input$exp == "DIA-site") {
+           data_unique <- make_unique(filtered_data, "ProteinID", "Index")
+           level <- "site"
+         } else if (input$exp == "DIA-peptide"){
+           if ("Best Precursor for Quant" %in% colnames(filtered_data)) {
+             data_unique <- make_unique(filtered_data, "ProteinID", "Index") 
+           } else {
+             data_unique <- make_unique(filtered_data, "Protein.Group", "Index") 
+           }
+           level <- "peptide"
+         }
+         cols <- colnames(data_unique)
+         selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name",
+                                              "Gene", "ProteinID", "Peptide", "SequenceWindow",
+                                              "Multiplicity", "Best Localization", "Best Scan for Localization", "Best Precursor for Quant"
+         )))
+       }
+       exp_anno <- exp_design()
+       # for older version files, full file names of .d files and path will be in the column names of matrix
+       # but in the newer of DIA-NN, .d file write the column names with folder name removed and remove suffix 
+       if ((!any(grepl("\\.d$", colnames(data_unique)))) & any(grepl("\\.d$", exp_anno$file))) {
+           exp_anno$file <- gsub(".*\\\\", "", gsub("\\.d$", "", exp_anno$file))
+       }
+       # make sure replicate column is not empty
+       if (!all(is.na(exp_anno$replicate))) {
+         exp_anno$label <- exp_anno$file
+       }
+       test_match_DIA_column_design(data_unique, selected_cols, exp_anno)
+       data_se <- make_se_customized(data_unique, selected_cols, exp_anno,
+                                     log2transform=T, exp="DIA", level=level)
        dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
        colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
@@ -645,29 +669,6 @@ server <- function(input, output, session) {
        test_match_tmt_column_design(data_unique, selected_cols, temp_exp_design)
        # TMT-I report is already log2 transformed
        data_se <- make_se_customized(data_unique, selected_cols, temp_exp_design, exp="TMT", level="peptide")
-       return(data_se)
-     } else if (input$exp %in% c("DIA-peptide", "DIA-site")) {
-       if (input$exp == "DIA-site") {
-         data_unique <- make_unique(filtered_data, "ProteinID", "Index")
-         level <- "site"
-       } else if (input$exp == "DIA-peptide"){
-         if ("Best Precursor for Quant" %in% colnames(filtered_data)) {
-           data_unique <- make_unique(filtered_data, "ProteinID", "Index") 
-         } else {
-           data_unique <- make_unique(filtered_data, "Protein.Group", "Index") 
-         }
-         level <- "peptide"
-       }
-       cols <- colnames(data_unique)
-       selected_cols <- which(!(cols %in% c("Index", "Protein.Group", "Protein.Ids", "Stripped.Sequence", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name",
-                                            "Gene", "ProteinID", "Peptide", "SequenceWindow",
-                                            "Multiplicity", "Best Localization", "Best Scan for Localization", "Best Precursor for Quant"
-       )))
-       test_match_DIA_column_design(data_unique, selected_cols, exp_design())
-       data_se <- make_se_customized(data_unique, selected_cols, exp_design(),
-                                     log2transform=T, exp="DIA", level=level)
-       dimnames(data_se) <- list(dimnames(data_se)[[1]], colData(data_se)$sample_name)
-       colData(data_se)$label <- colData(data_se)$sample_name
        return(data_se)
      }
    })
