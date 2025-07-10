@@ -2478,7 +2478,8 @@ plot_feature <- function(dep, protein, type, id="ID", show_gene = F){
 }
 
 plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NULL,
-                             add_names = TRUE, adjusted = T, lfc = 1, alpha = 0.05, plot = TRUE, show_gene = F) {
+                             add_names = TRUE, adjusted = T, lfc = 1, alpha = 0.05, 
+                             plot = TRUE, show_gene = F, selected = NULL) {
   # Show error if inputs are not the required classes
   if(is.integer(label_size)) label_size <- as.numeric(label_size)
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
@@ -2676,7 +2677,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
     theme(legend.position = "none") +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
   if (add_names) {
-    p <- p + ggrepel::geom_text_repel(data = filter(df, signif),
+    p <- p + ggrepel::geom_text_repel(data = filter(df, signif, !name %in% selected),
                                       aes(label = name),
                                       size = label_size,
                                       box.padding = unit(0.1, 'lines'),
