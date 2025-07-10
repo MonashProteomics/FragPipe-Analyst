@@ -474,6 +474,8 @@ server <- function(input, output, session) {
         temp_df$condition <- make.names(temp_df$condition)
         # other logics were moved to the processed_data function
       }
+      validate(need(try(test_empty_column(temp_df), silent = T), 
+                    conditionMessage(attr(try(test_empty_column(temp_df), silent = T), "condition"))))
       return(temp_df)
     })
    
