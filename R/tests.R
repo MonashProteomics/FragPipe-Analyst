@@ -172,3 +172,15 @@ test_TMT_annotation <- function(df) {
   return(TRUE)
 }
 
+test_empty_column <- function(df) {
+  is_empty <- function(x) {
+    is.na(x) | x == ""
+  }
+  if (!any(is_empty(df))) {
+    return(TRUE)
+  }
+  empty_cols <- sapply(df, function(col) any(is_empty(col)))
+  empty_cols_names <- colnames(df)[empty_cols]
+  stop(paste0("The following columns in experiment annotation contain empty entries: ", 
+              paste(empty_cols_names, collapse = ", ")))
+}

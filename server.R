@@ -475,6 +475,8 @@ server <- function(input, output, session) {
           temp_df$label <- temp_df$file
         }
       }
+      validate(need(try(test_empty_column(temp_df), silent = T), 
+                    conditionMessage(attr(try(test_empty_column(temp_df), silent = T), "condition"))))
       return(temp_df)
     })
    
