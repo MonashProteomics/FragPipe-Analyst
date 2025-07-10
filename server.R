@@ -1038,7 +1038,8 @@ server <- function(input, output, session) {
                                   adjusted = input$p_adj,
                                   lfc = input$lfc,
                                   alpha = input$p,
-                                  show_gene = input$show_gene
+                                  show_gene = input$show_gene,
+                                  selected = df_peptide$ID
             )
             # label peptides from the same protein
             if (!input$disable_peptides) {
@@ -1082,12 +1083,15 @@ server <- function(input, output, session) {
                                   adjusted = input$p_adj,
                                   lfc = input$lfc,
                                   alpha = input$p,
-                                  show_gene = input$show_gene)
+                                  show_gene = input$show_gene,
+                                  selected = c(df_protein$name, df_protein$proteinID),
+                                  )
             if (metadata(dep())$exp == "TMT") {
               if (input$show_gene) {
                 p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
                   ggrepel::geom_text_repel(data = df_protein,
                                            aes(x, y, label = name),
+                                           color = "maroon",
                                            size = 4,
                                            box.padding = unit(0.1, 'lines'),
                                            point.padding = unit(0.1, 'lines'),
@@ -1096,6 +1100,7 @@ server <- function(input, output, session) {
                 p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
                   ggrepel::geom_text_repel(data = df_protein,
                                            aes(x, y, label = proteinID),
+                                           color = "maroon",
                                            size = 4,
                                            box.padding = unit(0.1, 'lines'),
                                            point.padding = unit(0.1, 'lines'),
@@ -1106,6 +1111,7 @@ server <- function(input, output, session) {
                 p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
                   ggrepel::geom_text_repel(data = df_protein,
                                            aes(x, y, label = name),
+                                           color = "maroon",
                                            size = 4,
                                            box.padding = unit(0.1, 'lines'),
                                            point.padding = unit(0.1, 'lines'),
@@ -1114,6 +1120,7 @@ server <- function(input, output, session) {
                 p <- p + geom_point(data = df_protein, aes(x, y), color = "maroon", size= 3) +
                   ggrepel::geom_text_repel(data = df_protein,
                                            aes(x, y, label = proteinID),
+                                           color = "maroon",
                                            size = 4,
                                            box.padding = unit(0.1, 'lines'),
                                            point.padding = unit(0.1, 'lines'),
