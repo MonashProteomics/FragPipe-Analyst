@@ -440,6 +440,8 @@ server <- function(input, output, session) {
           samples_with_replicate <- unique(gsub("_\\d+$", "", samples_with_replicate))
           temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
         }
+        validate(need(try(test_empty_column(temp_df), silent = T), 
+                      conditionMessage(attr(try(test_empty_column(temp_df), silent = T), "condition"))))
       } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide"){
         # exp_design_test(temp_df)
         # temp_df$label<-as.character(temp_df$label)
@@ -475,8 +477,6 @@ server <- function(input, output, session) {
           temp_df$label <- temp_df$file
         }
       }
-      validate(need(try(test_empty_column(temp_df), silent = T), 
-                    conditionMessage(attr(try(test_empty_column(temp_df), silent = T), "condition"))))
       return(temp_df)
     })
    
