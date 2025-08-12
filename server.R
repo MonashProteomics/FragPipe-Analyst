@@ -424,6 +424,7 @@ server <- function(input, output, session) {
                     "Error: Duplicated sample detected. Please check your experiment_annotation.tsv again."))
 
       if (input$exp %in% c("TMT", "TMT-peptide", "TMT-site")) {
+        required_columns <- c("plex", "channel", "sample", "sample_name", "condition", "replicate")
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
         validate(need(try(test_TMT_annotation(temp_df)),
@@ -440,12 +441,12 @@ server <- function(input, output, session) {
           samples_with_replicate <- unique(gsub("_\\d+$", "", samples_with_replicate))
           temp_df[temp_df$label %in% samples_with_replicate, "label"] <- paste0(temp_df[temp_df$label %in% samples_with_replicate, "label"], "_1")
         }
-        validate(need(try(test_empty_column(temp_df), silent = T), 
-                      conditionMessage(attr(try(test_empty_column(temp_df), silent = T), "condition"))))
+        
       } else if (input$exp == "LFQ" | input$exp == "LFQ-peptide"){
         # exp_design_test(temp_df)
         # temp_df$label<-as.character(temp_df$label)
         # temp_df$condition<-trimws(temp_df$condition, which = "left")
+        required_columns <- c("file", "sample", "sample_name", "condition", "replicate")
 
         # to support - (dash) or name starts with number in condition column
         temp_df$condition <- make.names(temp_df$condition)
@@ -464,6 +465,7 @@ server <- function(input, output, session) {
           }
         }
       } else if (input$exp == "DIA" | input$exp == "DIA-peptide" | input$exp == "DIA-site") {
+        required_columns <- c("file", "sample", "sample_name", "condition", "replicate")
         validate(need("file" %in% colnames(temp_df),
                       "Error: No file column provided. Please check your experiment_annotation.tsv again."))
         # to support .d file write the column names with folder name removed and remove suffix 
@@ -477,6 +479,8 @@ server <- function(input, output, session) {
           temp_df$label <- temp_df$file
         }
       }
+      validate(test_empty_column(temp_df, required_columns))
+      
       return(temp_df)
     })
    
