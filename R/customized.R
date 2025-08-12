@@ -78,8 +78,8 @@ make_se_customized <- function(proteins_unique, columns, expdesign, log2transfor
   # print(matched)
   if(any(is.na(matched))) {
     stop("Some of the samples in the experiment_annotation.tsv don't match ",
-         "with column names in the quantification table",
-         "make sure every sample in the experiment_annotation.tsv",
+         "with column names in the quantification table ",
+         "make sure every sample in the experiment_annotation.tsv ",
          "exists in the quantification table you uploaded")
   }
   

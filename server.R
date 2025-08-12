@@ -609,10 +609,14 @@ server <- function(input, output, session) {
          )))
        }
        exp_anno <- exp_design()
-       # for older version files, full file names of .d files and path will be in the column names of matrix
-       # but in the newer of DIA-NN, .d file write the column names with folder name removed and remove suffix 
-       if ((!any(grepl("\\.d$", colnames(data_unique)))) & any(grepl("\\.d$", exp_anno$file))) {
-           exp_anno$file <- gsub(".*\\\\", "", gsub("\\.d$", "", exp_anno$file))
+       # for older version files, file names with file extension (such as .d) and full path will be in the column names of matrix
+       # but in the newer version of DIA-NN (newer than 1.8.2 beta 8), it writes the column names with folder name removed and suffix were removed as well 
+       if ((!any(grepl("\\.mzML$", colnames(data_unique)))) & any(grepl("\\.mzML$", exp_anno$file))) {
+         exp_anno$file <- gsub(".*\\\\", "", gsub("\\.mzML$", "", exp_anno$file))
+       } else if ((!any(grepl("\\.raw$", colnames(data_unique)))) & any(grepl("\\.raw$", exp_anno$file))) {
+         exp_anno$file <- gsub(".*\\\\", "", gsub("\\.raw$", "", exp_anno$file))
+       } else if ((!any(grepl("\\.d$", colnames(data_unique)))) & any(grepl("\\.d$", exp_anno$file))) {
+         exp_anno$file <- gsub(".*\\\\", "", gsub("\\.d$", "", exp_anno$file))
        }
        # make sure replicate column is not empty
        if (!all(is.na(exp_anno$replicate))) {
