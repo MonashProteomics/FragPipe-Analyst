@@ -613,7 +613,7 @@ server <- function(input, output, session) {
        # but in the newer version of DIA-NN (newer than 1.8.2 beta 8), it writes the column names with folder name removed and suffix were removed as well 
        if (any(grepl("(?:_calibrated|_uncalibrated)?\\.[^.]+$", colnames(data_unique)))) {
          exp_anno$file <- gsub("\\.[^.]+$", "", exp_anno$file)
-         colnames(data_unique) <- gsub("(?:_calibrated|_uncalibrated)?\\.[^.]+$", "", colnames(data_unique))
+         colnames(data_unique)[selected_cols] <- gsub("(?:_calibrated|_uncalibrated)?\\.[^.]+$", "", colnames(data_unique)[selected_cols])
        } else if ((!any(grepl("\\.mzML$", colnames(data_unique)))) & any(grepl("\\.mzML$", exp_anno$file))) {
          exp_anno$file <- gsub(".*\\\\", "", gsub("\\.mzML$", "", exp_anno$file))
        } else if ((!any(grepl("\\.raw$", colnames(data_unique)))) & any(grepl("\\.raw$", exp_anno$file))) {
