@@ -76,7 +76,7 @@ fragpipe_input_test<-function(fragpipe_input){
 
 fragpipe_DIA_input_test<-function(fragpipe_input){
   col_names<-colnames(fragpipe_input)
-  if(!"Genes" %in% col_names){
+  if((!"Genes" %in% col_names) & (!"Gene" %in% col_names)){
     stop(safeError("The column 'Genes' is not found in the uploaded PG matrix file"))
   }
   # else if (!"Description" %in% col_names){

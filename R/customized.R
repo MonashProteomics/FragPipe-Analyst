@@ -2650,7 +2650,7 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
-                             name = row_data$Genes)
+                             name = ifelse("Genes" %in% colnames(row_data), row_data$Genes, row_data$Gene))
       }
     }
   }
