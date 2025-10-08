@@ -586,10 +586,23 @@ server <- function(input, output, session) {
        return(data_se)
      } else if (input$exp %in% c("DIA", "DIA-peptide", "DIA-site")) {
        if (input$exp %in% c("DIA")) {
-         data_unique <- make_unique(filtered_data, "Genes", "Protein.Group")
-         level <- "protein"
+         if (startsWith(input$dia_expr$name, "abundance_protein")) { 
+           # FragPipe unified protein report
+           data_unique <- make_unique(filtered_data, "Gene", "Protein ID")
+           info_cols <- c("Protein", "Protein ID", "Entry Name", "Gene", "Organism", 
+                          "Description", "Protein Existence", "Protein Coverage", "Protein Length", 
+                          "Protein Probability", "Top Peptide Probability", "Indistinguishable Proteins", 
+                          "NumberPSM", "Best Precursor ID", "ID", "name")
+         } else { 
+           # DIA-NN protein group report
+           data_unique <- make_unique(filtered_data, "Genes", "Protein.Group")
+           info_cols <- c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")
+         }
+         
          cols <- colnames(data_unique)
-         selected_cols <- which(!(cols %in% c("Protein.Group", "Protein.Ids", "Protein.Names", "Genes", "First.Protein.Description", "ID", "name")))
+         level <- "protein"
+         selected_cols <- which(!(cols %in% info_cols))
+         
        } else if (input$exp %in% c("DIA-peptide", "DIA-site")) {
          if (input$exp == "DIA-site") {
            data_unique <- make_unique(filtered_data, "ProteinID", "Index")
