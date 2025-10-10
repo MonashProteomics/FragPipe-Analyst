@@ -2647,10 +2647,11 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
                              signif = signif,
                              name = paste0(row_data$Gene, "_", gsub(".*_", "", row_data$ID)))
       } else {
+        gene_col <- ifelse("Genes" %in% colnames(row_data), "Genes", "Gene") 
         df_tmp <- data.frame(diff = row_data[, diff],
                              p_values = -log10(row_data[, p_values]),
                              signif = signif,
-                             name = ifelse("Genes" %in% colnames(row_data), row_data$Genes, row_data$Gene))
+                             name = row_data[, gene_col])
       }
     }
   }
