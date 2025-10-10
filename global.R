@@ -27,6 +27,10 @@ library("fastcluster")
 library("factoextra")
 library("UpSetR")
 library("MSnbase")
+library("clusterProfiler")
+library("org.Hs.eg.db")
+library("org.Mm.eg.db")
+library("ReactomePA")
 library(pcaMethods) # for bpca imputation
 library(missForest) # for RF imputation
 library(vegan)
