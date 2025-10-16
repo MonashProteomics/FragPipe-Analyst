@@ -214,14 +214,14 @@ test_ora_mod <- function(dep,
         } else if (databases %in% c("MF", "BP", "CC")) {
           result <- enrichGO(gene = genes,
                              OrgDb = organism_db_map,
-                             ont = database_mappings[database],
+                             ont = databases,
                              keyType = "SYMBOL",
                              pAdjustMethod = "BH",
                              pvalueCutoff  = 1,
                              qvalueCutoff  = 1)
           bg_result <- enrichGO(gene = background,
                                 OrgDb = organism_db_map,
-                                ont = database_mappings[database],
+                                ont = databases,
                                 keyType = "SYMBOL",
                                 pAdjustMethod = "BH",
                                 pvalueCutoff  = 1,
@@ -243,8 +243,8 @@ test_ora_mod <- function(dep,
         df_enrich <- rbind(df_enrich, temp)
       }
       lookup <- c("Term"="Description", "P.value"="pvalue", "Adjusted.P.value"="p.adjust", "IN"="Count")
-      df_enrich <- rename(df_enrich, all_of(lookup))
-      df_enrich$var <- database
+      df_enrich <- dplyr::rename(df_enrich, all_of(lookup))
+      df_enrich$var <- databases
       df_enrich$Overlap <- paste0(df_enrich$IN, "/", as.numeric(gsub("/.*", "", df_enrich$BgRatio)))
       # df_enrich$Odds.Ratio <- (df_enrich$IN * (as.numeric(gsub(".*/", "", df_enrich$BgRatio)) - as.numeric(gsub("/.*", "", df_enrich$BgRatio)))) / (df_enrich$OUT * as.numeric(gsub("/.*", "", df_enrich$BgRatio)))
       # inspired from enrichr https://github.com/MaayanLab/enrichr_issues/issues/3#issuecomment-780078054
@@ -253,6 +253,7 @@ test_ora_mod <- function(dep,
       df_enrich$p_hyper = phyper(q=(df_enrich$IN-1), m = df_enrich$bg_IN, n = df_enrich$bg_OUT, k = (df_enrich$IN+df_enrich$OUT),
                                    lower.tail = F)
       df_enrich$p.adjust_hyper = p.adjust(df_enrich$p_hyper, method = "BH")
+      
       return(df_enrich)
     } else {
       return(NULL)
@@ -269,6 +270,7 @@ test_ora_mod <- function(dep,
                          "MF"="GO_Molecular_Function_2021",
                          "CC"="GO_Cellular_Component_2021",
                          "BP"="GO_Biological_Process_2021")
+    databases <- db_name_mapping[databases] %>% as.character()
     background_enriched <- enrichr_mod(background, databases)
     df_background <- NULL
     for(database in databases) {
@@ -431,7 +433,7 @@ test_ora_mod <- function(dep,
 ## Plot Enrichment Results
 #######################################################
 
-plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
+plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05, backend = "clusterProfiler",
                             contrasts = NULL, databases = NULL,  adjust=F, use_whole_proteome=F,
                             nrow = 1, term_size = 8) {
   assertthat::assert_that(is.data.frame(gsea_results),
@@ -481,6 +483,19 @@ plot_enrichment <- function(gsea_results, number = 10, alpha = 0.05,
   }
   if(!is.null(databases)) {
     assertthat::assert_that(is.character(databases))
+    
+    if (backend == 'enrichr') {
+      db_name_mapping <- c("Hallmark"="MSigDB_Hallmark_2020",
+                           "KEGG"="KEGG_2021_Human",
+                           "Reactome"="Reactome_2022",
+                           "WikiPathways"="WikiPathway_2023_Human",
+                           "KEGG (Mouse)"="KEGG_2019_Mouse",
+                           "WikiPathways (Mouse)"="WikiPathways_2019_Mouse",
+                           "MF"="GO_Molecular_Function_2021",
+                           "CC"="GO_Cellular_Component_2021",
+                           "BP"="GO_Biological_Process_2021")
+      databases <- db_name_mapping[databases] %>% as.character()
+    }
     
     valid_databases <- unique(gsea_results$var)
     
