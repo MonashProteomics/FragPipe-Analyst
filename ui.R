@@ -605,12 +605,12 @@ ui <- function(request){shinyUI(
                               fluidRow(
                                 column(4,uiOutput("contrast_1")),
                                 column(4, selectInput("pathway_database", "Pathway database:",
-                                                      c("Hallmark"="MSigDB_Hallmark_2020",
-                                                        "KEGG"="KEGG_2021_Human",
-                                                        "Reactome"="Reactome_2022",
-                                                        "WikiPathways"="WikiPathway_2023_Human",
-                                                        "KEGG (Mouse)"="KEGG_2019_Mouse",
-                                                        "WikiPathways (Mouse)"="WikiPathways_2019_Mouse"))),
+                                                      c("Hallmark"="Hallmark",
+                                                        "KEGG"="KEGG",
+                                                        "Reactome"="Reactome",
+                                                        "WikiPathways"="WikiPathways",
+                                                        "KEGG (Mouse)"="KEGG (Mouse)",
+                                                        "WikiPathways (Mouse)"="WikiPathways (Mouse)"))),
                                 column(3, radioButtons("pathway_direction",
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
@@ -637,7 +637,13 @@ ui <- function(request){shinyUI(
                               ),
                               fluidRow(
                                 column(4, actionButton("pathway_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human (default) and mouse data are supported."))
+                                column(6, tags$p("Note: Currently, only human (default) and mouse data are supported.")),
+                                column(2, radioButtons("pathway_backend",
+                                                       "Backend",
+                                                       choices = c("clusterProfiler"="clusterProfiler",
+                                                                   "enrichr"="enrichr"),
+                                                       inline = F,
+                                                       selected = "clusterProfiler"))
                               ),
                               fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadPA', 'Download Table')))
@@ -646,9 +652,9 @@ ui <- function(request){shinyUI(
                               fluidRow(
                                 column(4, uiOutput("contrast")),
                                 column(4, selectInput("go_database", "GO database:",
-                                                      c("Molecular Function"="GO_Molecular_Function_2021",
-                                                        "Cellular Component"="GO_Cellular_Component_2021",
-                                                        "Biological Process"="GO_Biological_Process_2021"))),
+                                                      c("Molecular Function"="MF",
+                                                        "Cellular Component"="CC",
+                                                        "Biological Process"="BP"))),
                                 column(3, radioButtons("go_direction",
                                                        "Direction",
                                                        choices = c("Up"="UP", "Down"="DOWN"),
@@ -675,7 +681,13 @@ ui <- function(request){shinyUI(
                                 ),
                               fluidRow(
                                 column(4, actionButton("go_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human data is supported"))
+                                column(6, tags$p("Note: Currently, only human data is supported")),
+                                column(2, radioButtons("go_backend",
+                                                       "Backend",
+                                                       choices = c("clusterProfiler"="clusterProfiler",
+                                                                   "enrichr"="enrichr"),
+                                                       inline = F,
+                                                       selected = "clusterProfiler"))
                               ),
                               fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
