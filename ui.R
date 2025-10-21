@@ -1,5 +1,5 @@
 # Define UI for data upload app ----
-VERSION <- "v1.19"
+VERSION <- "v1.20"
 DEBUG <- T
 ENABLE_PEPTIDE_ANALYSIS <- T
 if (ENABLE_PEPTIDE_ANALYSIS) {
@@ -60,7 +60,7 @@ ui <- function(request){shinyUI(
                      ),
                    conditionalPanel(
                      condition = "input.exp == 'DIA'",
-                     fileInput('dia_expr', 'Upload protein group (PG) matrix *.tsv',
+                     fileInput('dia_expr', 'Upload protein group (PG) matrix *.tsv or abundance_protein_*.tsv',
                                accept=c('text/tsv',
                                         'text/tab-separated-values,text/plain',
                                         '.tsv')),
