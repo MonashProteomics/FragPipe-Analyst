@@ -2678,12 +2678,22 @@ plot_volcano_customized <- function(dep, contrast, label_size = 3, name_col = NU
     theme(legend.position = "none") +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "grey"))
   if (add_names) {
-    p <- p + ggrepel::geom_text_repel(data = filter(df, signif, !name %in% selected),
-                                      aes(label = name),
-                                      size = label_size,
-                                      box.padding = unit(0.1, 'lines'),
-                                      point.padding = unit(0.1, 'lines'),
-                                      segment.size = 0.5)
+    if (!is.null(selected)) {
+      p <- p + ggrepel::geom_text_repel(data = filter(df, signif, !name %in% selected),
+                                        aes(label = name),
+                                        size = label_size,
+                                        box.padding = unit(0.1, 'lines'),
+                                        point.padding = unit(0.1, 'lines'),
+                                        segment.size = 0.5)
+    } else {
+      p <- p + ggrepel::geom_text_repel(data = filter(df, signif),
+                                        aes(label = name),
+                                        size = label_size,
+                                        box.padding = unit(0.1, 'lines'),
+                                        point.padding = unit(0.1, 'lines'),
+                                        segment.size = 0.5)
+    }
+
   }
   if(adjusted) {
     p <- p + labs(y = expression(-log[10]~"Adjusted p-value"))

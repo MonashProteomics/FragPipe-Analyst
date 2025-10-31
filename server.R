@@ -1075,8 +1075,10 @@ server <- function(input, output, session) {
                     df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", gsub(".*_", "", df_peptide_from_same_proteins$ID))
                   }
                 } else { # peptide
-                  df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
-                  df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+                  if (nrow(df_peptide_from_same_proteins) > 0) {
+                    df_peptide_from_same_proteins$Peptide <- gsub(".*_", "", df_peptide_from_same_proteins$ID)
+                    df_peptide_from_same_proteins$ID <- paste0(df_peptide_from_same_proteins$Gene, "_", df_peptide_from_same_proteins$Peptide)
+                  }
                 }
               } #  for else, take original ID anyway
               if (nrow(df_peptide_from_same_proteins) > 0) {
