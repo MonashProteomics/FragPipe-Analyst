@@ -640,13 +640,7 @@ ui <- function(request){shinyUI(
                               ),
                               fluidRow(
                                 column(4, actionButton("pathway_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human (default) and mouse data are supported.")),
-                                column(2, radioButtons("pathway_backend",
-                                                       "Backend",
-                                                       choices = c("clusterProfiler"="clusterProfiler",
-                                                                   "enrichr"="enrichr"),
-                                                       inline = F,
-                                                       selected = "clusterProfiler"))
+                                column(6, tags$p("Note: Currently, only human (default) and mouse data are supported."))
                               ),
                               fluidRow(box(width = 12, uiOutput("spinner_pa"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadPA', 'Download Table')))
@@ -687,13 +681,7 @@ ui <- function(request){shinyUI(
                                 ),
                               fluidRow(
                                 column(4, actionButton("go_analysis", "Run Enrichment")),
-                                column(6, tags$p("Note: Currently, only human data is supported")),
-                                column(2, radioButtons("go_backend",
-                                                       "Backend",
-                                                       choices = c("clusterProfiler"="clusterProfiler",
-                                                                   "enrichr"="enrichr"),
-                                                       inline = F,
-                                                       selected = "clusterProfiler"))
+                                column(6, tags$p("Note: Currently, only human data is supported"))
                               ),
                               fluidRow(box(width = 12, uiOutput("spinner_go"), height = 500)),
                               fluidRow(column(12, downloadButton('downloadGO', 'Download Table')))
