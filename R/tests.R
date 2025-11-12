@@ -172,3 +172,19 @@ test_TMT_annotation <- function(df) {
   return(TRUE)
 }
 
+# check required columns are not empty for experiment annotation file
+test_empty_column <- function(df, req_col) {
+  is_empty <- function(x) {
+    is.na(x) | x == ""
+  }
+
+  empty_cols <- sapply(df[, req_col], function(col) any(is_empty(col)))
+  if (any(empty_cols)) {
+    empty_cols_names <- req_col[empty_cols]
+    return(paste0("The following required columns in experiment annotation contain empty entries: ", 
+                  paste(empty_cols_names, collapse = ", ")))
+  } else {
+    return(NULL)
+  }
+  
+}
