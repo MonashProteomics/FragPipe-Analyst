@@ -1266,14 +1266,16 @@ server <- function(input, output, session) {
      progress_indicator('Gene ontology enrichment is running....')
     if(!is.null(input$contrast)){
       return(test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
-                                 direction = input$go_direction, log2_threshold = input$lfc_go, alpha = input$p_go))
+                          direction = input$go_direction, log2_threshold = input$lfc_go,
+                          alpha = input$p_go, adjust_alpha = input$go_adjust_DE))
     }
    })
 
    pathway_results <-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
      return(test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
-                                     direction = input$pathway_direction, log2_threshold = input$lfc_path, alpha = input$p_path))
+                         direction = input$pathway_direction, log2_threshold = input$lfc_path,
+                         alpha = input$p_path, adjust_alpha = input$path_adjust_DE))
    })
 
    #### Interactive UI
