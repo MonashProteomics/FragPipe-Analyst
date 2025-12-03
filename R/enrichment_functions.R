@@ -53,13 +53,10 @@ enrichr_mod <- function(genes, databases = NULL) {
   return(result)
 }
 
-
-###### ========= Test_gsea new
-
-
 test_ora_mod <- function(dep,
                          databases,
-                         contrasts = TRUE, direction="UP", log2_threshold=0.7, alpha=0.05) {
+                         contrasts = TRUE, direction="UP", log2_threshold=0.7,
+                         alpha=0.05, adjust_alpha=T) {
   # Show error if inputs are not the required classes
   assertthat::assert_that(inherits(dep, "SummarizedExperiment"),
                           is.character(databases),
@@ -144,7 +141,11 @@ test_ora_mod <- function(dep,
       } else if (direction == "DOWN") {
         significant <- significant[significant[gsub("_significant", "_diff", contrast)] < -log2_threshold,]
       }
-      significant <- significant[significant[gsub("_significant", "_p.adj", contrast)] < alpha,]
+      if (adjust_alpha) {
+        significant <- significant[significant[gsub("_significant", "_p.adj", contrast)] < alpha,]
+      } else {
+        significant <- significant[significant[gsub("_significant", "_p.val", contrast)] < alpha,]
+      }
       
       if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "protein") {
         genes <- unique(significant$Gene)
