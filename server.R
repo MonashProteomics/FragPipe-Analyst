@@ -1,5 +1,6 @@
 #Define server logic to read selected file ----
 server <- function(input, output, session) {
+  USE_LOCAL_ENRICHMENT <- T
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   ENTRY_LIMIT <- 180000
   
@@ -1264,18 +1265,33 @@ server <- function(input, output, session) {
    ## Enrichment inputs
    go_results <-eventReactive(input$go_analysis,{
      progress_indicator('Gene ontology enrichment is running....')
-    if(!is.null(input$contrast)){
-      return(test_ora_mod(dep(), databases = as.character(input$go_database), contrasts = TRUE,
-                                 direction = input$go_direction, log2_threshold = input$lfc_go, alpha = input$p_go))
+     if(!is.null(input$contrast)){
+       if (USE_LOCAL_ENRICHMENT) {
+         df_go <- test_ora_mod(dep(), backend = "clusterProfiler", databases = as.character(input$go_database), contrasts = TRUE,
+                               direction = input$go_direction, log2_threshold = input$lfc_go, 
+                               alpha = input$p_go, adjust_alpha = input$go_adjust_DE)
+       } else {
+         df_go <- test_ora_mod(dep(), backend = "enrichr", databases = as.character(input$go_database), contrasts = TRUE,
+                               direction = input$go_direction, log2_threshold = input$lfc_go, 
+                               alpha = input$p_go, adjust_alpha = input$go_adjust_DE)
+       }
+       return(df_go)
     }
    })
 
    pathway_results <-eventReactive(input$pathway_analysis,{
      progress_indicator("Pathway Analysis is running....")
-     return(test_ora_mod(dep(), databases=as.character(input$pathway_database), contrasts = TRUE,
-                                     direction = input$pathway_direction, log2_threshold = input$lfc_path, alpha = input$p_path))
+     if (USE_LOCAL_ENRICHMENT) {
+       df_pathway <- test_ora_mod(dep(), backend = "clusterProfiler", databases = as.character(input$pathway_database), contrasts = TRUE,
+                                  direction = input$pathway_direction, log2_threshold = input$lfc_path, 
+                                  alpha = input$p_path, adjust_alpha = input$path_adjust_DE)
+     } else {
+       df_pathway <- test_ora_mod(dep(), backend = "enrichr", databases = as.character(input$pathway_database), contrasts = TRUE,
+                                  direction = input$pathway_direction, log2_threshold = input$lfc_path, 
+                                  alpha = input$p_path, adjust_alpha = input$path_adjust_DE)
+     }
+     return(df_pathway)
    })
-
    #### Interactive UI
    output$significantBox <- renderUI({
      num_total <- assay(processed_data()) %>%
@@ -1510,9 +1526,15 @@ server <- function(input, output, session) {
       Sys.sleep(2)
       null_enrichment_test(go_results(), alpha = 0.05)
       # TODO: if user changes the go_database, it might cause error here
-      plot_go <- plot_enrichment(go_results(), number = 10, alpha = 0.05, contrasts = input$contrast,
-                                 databases = as.character(input$go_database), adjust = input$go_adjust,
-                                 use_whole_proteome = input$go_whole_proteome, nrow = 2, term_size = 8)
+      if (USE_LOCAL_ENRICHMENT) {
+        plot_go <- plot_enrichment(go_results(), backend = "clusterProfiler", number = 10, alpha = 0.05, contrasts = input$contrast,
+                                   databases = as.character(input$go_database), adjust = input$go_adjust,
+                                   use_whole_proteome = input$go_whole_proteome, nrow = 2, term_size = 8)
+      } else {
+        plot_go <- plot_enrichment(go_results(), backend = "enrichr", number = 10, alpha = 0.05, contrasts = input$contrast,
+                                   databases = as.character(input$go_database), adjust = input$go_adjust,
+                                   use_whole_proteome = input$go_whole_proteome, nrow = 2, term_size = 8)
+      }
       return(plot_go)
     })
   })
@@ -1527,9 +1549,15 @@ server <- function(input, output, session) {
     output$pathway_enrichment<-renderPlot({
       Sys.sleep(2)
       null_enrichment_test(pathway_results(), alpha = 0.05)
-      plot_pathway <- plot_enrichment(pathway_results(), number = 10, alpha = 0.05, contrasts =input$contrast_1,
-                                     databases = as.character(input$pathway_database), adjust = input$path_adjust,
-                                     use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
+      if (USE_LOCAL_ENRICHMENT) {
+        plot_pathway <- plot_enrichment(pathway_results(), backend = "clusterProfiler", number = 10, alpha = 0.05, contrasts =input$contrast_1,
+                                        databases = as.character(input$pathway_database), adjust = input$path_adjust,
+                                        use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
+      } else {
+        plot_pathway <- plot_enrichment(pathway_results(), backend = "enrichr", number = 10, alpha = 0.05, contrasts =input$contrast_1,
+                                        databases = as.character(input$pathway_database), adjust = input$path_adjust,
+                                        use_whole_proteome = input$pathway_whole_proteome, nrow = 2, term_size = 8)
+      }
       return(plot_pathway)
     })
   })
