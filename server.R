@@ -296,16 +296,22 @@ server <- function(input, output, session) {
         colnames(temp_data) <- gsub("-", ".", colnames(temp_data))
         validate(fragpipe_input_test(temp_data))
         # remove contam
-        temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        if (isTRUE(input$contam_rm)) {
+          temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        }
       } else if (input$exp == "DIA"){ # DIA
         validate(fragpipe_DIA_input_test(temp_data))
-        # temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        if (isTRUE(input$contam_rm) & "Protein.Group" %in% colnames(temp_data)) {
+          temp_data <- temp_data[!grepl("contam", temp_data$Protein.Group),]
+        }
       } else if (input$exp == "LFQ-peptide") {
         colnames(temp_data) <- gsub("-", ".", colnames(temp_data))
         colnames(temp_data)[colnames(temp_data) == "Protein Description"] <- "Description"
         validate(fragpipe_input_test(temp_data))
         # remove contam
-        temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        if (isTRUE(input$contam_rm)) {
+          temp_data <- temp_data[!grepl("contam", temp_data$Protein),]
+        }
         if (!"Modified Sequence" %in% colnames(temp_data)) {
           temp_data$Index <- paste0(temp_data$`Protein ID`, "_", temp_data$`Peptide Sequence`)
         } else {
