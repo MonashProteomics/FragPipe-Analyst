@@ -131,6 +131,7 @@ ui <- function(request){shinyUI(
                    ),
                  tags$hr(),
                  menuItem("Advanced Options",tabName="advanced", icon = icon("cogs"),
+                          checkboxInput("contam_rm", "Remove contaminant proteins", value = TRUE),
                           numericInput("min_global_appearance",
                                        "Min percentage of non-missing values globally",
                                        min = 0, max = 100, value = 0),
