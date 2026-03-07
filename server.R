@@ -192,7 +192,26 @@ server <- function(input, output, session) {
                       choices = gsub("_significant", "", colnames(df)[cols]))
      }
    })
-   
+
+   output$dual_cntrst_1 <- renderUI({
+     if (!is.null(comparisons())) {
+       df <- SummarizedExperiment::rowData(dep())
+       cols <- grep("_significant$", colnames(df))
+       choices <- gsub("_significant", "", colnames(df)[cols])
+       selectizeInput("dual_cntrst_1", "Comparison 1", choices = choices)
+     }
+   })
+
+   output$dual_cntrst_2 <- renderUI({
+     if (!is.null(comparisons())) {
+       df <- SummarizedExperiment::rowData(dep())
+       cols <- grep("_significant$", colnames(df))
+       choices <- gsub("_significant", "", colnames(df)[cols])
+       selected <- if (length(choices) >= 2) choices[2] else choices[1]
+       selectizeInput("dual_cntrst_2", "Comparison 2", choices = choices, selected = selected)
+     }
+   })
+
    output$downloadTable <- renderUI({
      if(!is.null(dep())){
      selectizeInput("dataset",
@@ -1006,11 +1025,91 @@ server <- function(input, output, session) {
       if(!is.null(input$volcano_cntrst)) {
         get_volcano_df(dep(),
                          input$volcano_cntrst)
-        
+
       }
     })
 
-    
+    ### Dual Comparison
+    dual_comparison_data <- reactive({
+      req(input$dual_cntrst_1, input$dual_cntrst_2, dep())
+      row_data <- as.data.frame(SummarizedExperiment::rowData(dep()))
+      c1 <- input$dual_cntrst_1
+      c2 <- input$dual_cntrst_2
+      lfc_col1 <- paste0(c1, "_diff")
+      lfc_col2 <- paste0(c2, "_diff")
+      p_col1 <- if (isTRUE(input$dual_p_adj)) paste0(c1, "_p.adj") else paste0(c1, "_p.val")
+      p_col2 <- if (isTRUE(input$dual_p_adj)) paste0(c2, "_p.adj") else paste0(c2, "_p.val")
+      req(all(c(lfc_col1, lfc_col2, p_col1, p_col2) %in% colnames(row_data)))
+      alpha <- input$dual_alpha
+      lfc_cut <- input$dual_lfc
+      sig1 <- !is.na(row_data[[p_col1]]) & abs(row_data[[lfc_col1]]) >= lfc_cut & row_data[[p_col1]] <= alpha
+      sig2 <- !is.na(row_data[[p_col2]]) & abs(row_data[[lfc_col2]]) >= lfc_cut & row_data[[p_col2]] <= alpha
+      status <- dplyr::case_when(
+        sig1 & sig2  ~ "Both significant",
+        sig1 & !sig2 ~ paste0("Only ", c1),
+        !sig1 & sig2 ~ paste0("Only ", c2),
+        TRUE         ~ "Not significant"
+      )
+      label_col <- if ("Gene" %in% colnames(row_data)) "Gene" else "name"
+      data.frame(
+        lfc1   = row_data[[lfc_col1]],
+        lfc2   = row_data[[lfc_col2]],
+        status = status,
+        name   = row_data[[label_col]],
+        stringsAsFactors = FALSE
+      )
+    })
+
+    output$dual_comparison_plot <- renderPlot({
+      req(dual_comparison_data())
+      df <- dual_comparison_data()
+      c1 <- input$dual_cntrst_1
+      c2 <- input$dual_cntrst_2
+      status_levels <- c("Both significant",
+                         paste0("Only ", c1),
+                         paste0("Only ", c2),
+                         "Not significant")
+      status_levels <- status_levels[status_levels %in% unique(df$status)]
+      colors <- c("Both significant"      = "#C0392B",
+                  "Not significant"       = "grey70")
+      colors[paste0("Only ", c1)] <- "#E67E22"
+      colors[paste0("Only ", c2)] <- "#2980B9"
+      df$status <- factor(df$status, levels = status_levels)
+      df_labeled <- df[df$status == "Both significant" & !is.na(df$lfc1) & !is.na(df$lfc2), ]
+      p <- ggplot(df[!is.na(df$lfc1) & !is.na(df$lfc2), ],
+                  aes(x = lfc1, y = lfc2, color = status)) +
+        geom_point(alpha = 0.6, size = 2) +
+        scale_color_manual(values = colors, name = "Significance") +
+        geom_hline(yintercept = c(-input$dual_lfc, input$dual_lfc),
+                   linetype = "dashed", color = "grey40") +
+        geom_vline(xintercept = c(-input$dual_lfc, input$dual_lfc),
+                   linetype = "dashed", color = "grey40") +
+        labs(x = paste0("log2FC (", c1, ")"),
+             y = paste0("log2FC (", c2, ")"),
+             title = "Marker Nomination: Dual Comparison") +
+        theme_bw() +
+        theme(legend.position = "right")
+      if (nrow(df_labeled) > 0 && nrow(df_labeled) <= 40) {
+        p <- p + ggrepel::geom_text_repel(data = df_labeled,
+                                           aes(x = lfc1, y = lfc2, label = name),
+                                           color = "#C0392B", size = 3,
+                                           box.padding = unit(0.2, "lines"),
+                                           max.overlaps = 20)
+      }
+      p
+    })
+
+    output$download_dual_comparison <- downloadHandler(
+      filename = function() {
+        paste0("dual_comparison_", input$dual_cntrst_1, "_and_", input$dual_cntrst_2, ".tsv")
+      },
+      content = function(file) {
+        df <- dual_comparison_data()
+        nominated <- df[df$status == "Both significant", ]
+        write.table(nominated, file, col.names = TRUE, row.names = FALSE, sep = "\t")
+      }
+    )
+
     volcano_input_selected <- reactive({
       if(!is.null(input$volcano_cntrst)){
         proteins_selected <- NULL
