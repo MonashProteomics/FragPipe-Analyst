@@ -534,6 +534,46 @@ ui <- function(request){shinyUI(
                                              shinycssloaders::withSpinner(plotlyOutput("feature_plot"), color = "#3c8dbc")
                                              # downloadButton('downloadProtein', 'Download Plot')
                                              )
+                                           ),
+                                  tabPanel(title = "Dual Comparison",
+                                           fluidRow(
+                                             box(uiOutput("dual_cntrst_1"), width = 5),
+                                             box(uiOutput("dual_cntrst_2"), width = 5),
+                                             box(
+                                               shinyWidgets::dropdownButton(
+                                                 circle = TRUE, status = "default", right = TRUE,
+                                                 icon = icon("gear"), width = "300px",
+                                                 numericInput("dual_alpha",
+                                                              "p-value cutoff",
+                                                              min = 0, max = 1, value = 0.05),
+                                                 numericInput("dual_lfc",
+                                                              "Log2 fold change cutoff",
+                                                              min = 0, max = 10, value = 1),
+                                                 checkboxInput("dual_p_adj",
+                                                               "Use adjusted p-values",
+                                                               value = TRUE),
+                                                 tooltip = tooltipOptions(placement = "left",
+                                                                          title = "customize settings")
+                                               ),
+                                               width = 2
+                                             )
+                                           ),
+                                           fluidRow(
+                                             box(
+                                               tags$p("Points colored red are significant in both, orange in comparison 1 only,
+                                                      blue in comparison 2 only, and grey in neither."),
+                                               width = 12
+                                             )
+                                           ),
+                                           fluidRow(
+                                             shinycssloaders::withSpinner(
+                                               plotOutput("dual_comparison_plot", height = 500),
+                                               color = "#3c8dbc")
+                                           ),
+                                           fluidRow(
+                                             downloadButton("download_dual_comparison",
+                                                            "Download dual comparison")
+                                           )
                                            )
                               ) # tabBox end
                             ) # box or column end
