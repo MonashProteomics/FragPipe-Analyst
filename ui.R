@@ -269,7 +269,7 @@ ui <- function(request){shinyUI(
                       column(width = 8,
                         h4("Support"),
                         tags$ul(
-                          tags$li(tags$b("Questions/Suggestions/Bug reports: "), "Ask us in ", tags$a(href="https://github.com/Nesvilab/FragPipe-Analyst", target="_blank", "our GitHub forum"), "."),
+                          tags$li(tags$b("Questions/Suggestions/Bug reports: "), "Ask us in ", tags$a(href="https://github.com/Nesvilab/FragPipe-Analyst-doc", target="_blank", "our GitHub forum"), "."),
                           tags$li(tags$b("Documentation/Tutorials: "), "Learn more ", tags$a(href="https://fragpipe-analyst-doc.nesvilab.org/", target="_blank", "here"), "."),
                           tags$li(tags$b("Servers:"), "Our production (stable) server is at ", tags$a(href="https://fragpipe-analyst.org/", target="_blank", "https://fragpipe-analyst.org/"), "but we also provide our latest dev server ", tags$a(href="http://fragpipe-analyst.nesvilab.org/", target="_blank", "http://fragpipe-analyst.nesvilab.org/"), "with most recent updates and bug fixes."),
                         )
@@ -785,7 +785,7 @@ ui <- function(request){shinyUI(
                    h3("Need help?"),
                    tags$ul(
                      tags$li("Read our documentation and tutorial ", a(href = 'https://fragpipe-analyst-doc.nesvilab.org/', target='_blank', tags$b('here')), "."), 
-                     tags$li("Report issues and ask questions ", a(href = 'https://github.com/Nesvilab/FragPipe-Analyst', target='_blank', tags$b('here')), "."), 
+                     tags$li("Report issues and ask questions ", a(href = 'https://github.com/Nesvilab/FragPipe-Analyst-doc', target='_blank', tags$b('here')), "."), 
                      tags$li("FragPipe-Analyst is open-source! You are more than welcome to ",a(href = 'https://github.com/MonashProteomics/FragPipe-Analyst', target='_blank', tags$b('contribute')), "."),
                      tags$li('Learn more about our FragPipe', a(href = 'https://fragpipe.nesvilab.org/', target='_blank', tags$b('here')), "."),
                      tags$li("The user manual of original LFQ-Analyst can be accessed",
