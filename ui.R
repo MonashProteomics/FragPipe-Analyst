@@ -372,6 +372,7 @@ ui <- function(request){shinyUI(
                               ),
                               box(
                                 column(5,uiOutput("downloadreport")), # offset for dist between buttons
+                                column(5,uiOutput("downloadLog")),
                                 #tags$br(),
                                 #column(5,uiOutput('downloadPlots')),
                                 width = 4),
