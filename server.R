@@ -2,6 +2,14 @@
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=100*1024^2)## Set maximum upload size to 100MB
   ENTRY_LIMIT <- 180000
+
+  ## Logging
+  log_messages <- reactiveVal(character(0))
+  log_msg <- function(...) {
+    msg <- paste0("[", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "] ", paste(...))
+    log_messages(c(log_messages(), msg))
+    message(msg)
+  }
   
   observeEvent(input$exp, {
     if(input$exp %in% c("TMT", "TMT-peptide", "TMT-site")){
@@ -146,6 +154,8 @@ server <- function(input, output, session) {
                 closeOnClickOutside = TRUE,
                 closeOnEsc = TRUE,
                 timer = 10000) # timer in miliseconds (10 sec)
+    log_messages(character(0)) # reset log on new analysis
+    log_msg("Analysis started. Data type:", input$exp)
      return(T)
    })
    
@@ -1713,6 +1723,64 @@ server <- function(input, output, session) {
     })
   })
   
+  ##### Logging observers
+  observeEvent(processed_data(), {
+    se <- processed_data()
+    log_msg(sprintf("Data loaded: %d features x %d samples", nrow(se), ncol(se)))
+    conditions <- unique(colData(se)$condition)
+    log_msg(sprintf("Conditions: %s", paste(conditions, collapse=", ")))
+  })
+
+  observeEvent(filtered_data(), {
+    se_in <- processed_data()
+    se_out <- filtered_data()
+    removed <- nrow(se_in) - nrow(se_out)
+    log_msg(sprintf("Filtering: %d features retained, %d removed (global >= %g%%, per-condition >= %g%%)",
+                    nrow(se_out), removed,
+                    input$min_global_appearance, input$min_appearance_each_condition))
+  })
+
+  observeEvent(normalized_data(), {
+    norm_label <- switch(input$normalization,
+      "none" = "none",
+      "vsn"  = "VSN",
+      "MD"   = "Median-centered",
+      input$normalization)
+    log_msg(sprintf("Normalization: %s", norm_label))
+  })
+
+  observeEvent(imputed_data(), {
+    imp_label <- if (input$imputation == "none") "none" else input$imputation
+    log_msg(sprintf("Imputation: %s", imp_label))
+  })
+
+  observeEvent(dep(), {
+    se <- dep()
+    sig_cols <- grep("_significant$", colnames(rowData(se)), value=TRUE)
+    n_sig <- if (length(sig_cols) > 0) sum(rowSums(as.data.frame(rowData(se)[, sig_cols, drop=FALSE]), na.rm=TRUE) > 0) else 0
+    log_msg(sprintf("DE analysis complete (FDR method: %s, p <= %g, |LFC| >= %g): %d significant feature(s) across all contrasts",
+                    input$fdr_correction, input$p, input$lfc, n_sig))
+    comparisons_done <- comparisons()
+    if (!is.null(comparisons_done)) {
+      log_msg(sprintf("Contrasts tested: %s", paste(comparisons_done, collapse=", ")))
+    }
+  })
+
+  output$downloadLog <- renderUI({
+    if (length(log_messages()) > 0) {
+      downloadButton("downloadLogFile", "Download Log")
+    }
+  })
+
+  output$downloadLogFile <- downloadHandler(
+    filename = function() {
+      paste0("FragPipe-Analyst_log_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".txt")
+    },
+    content = function(file) {
+      writeLines(log_messages(), file)
+    }
+  )
+
   ##### Download Functions
   # example data
   output$lfq_example <- downloadHandler(
