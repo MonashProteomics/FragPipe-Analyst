@@ -68,7 +68,7 @@ plot_cvs <- function(se, id="ID", scale=T, check.names=T) {
   }
   
 
-  p <- p1 + geom_text(aes(x=0.9,
+  p <- p1 + geom_text(aes(x=0.5,
                           y=max(ggplot_build(p1)$data[[1]]$ymax*1.1), 
                      label=paste0("Median =",round(condition_median,2)*100,"%",by="")),
                  show.legend = FALSE, size=4)
