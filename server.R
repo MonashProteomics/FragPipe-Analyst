@@ -1025,8 +1025,12 @@ server <- function(input, output, session) {
       c2 <- input$dual_cntrst_2
       lfc_col1 <- paste0(c1, "_diff")
       lfc_col2 <- paste0(c2, "_diff")
-      p_col1 <- if (isTRUE(input$dual_p_adj)) paste0(c1, "_p.adj") else paste0(c1, "_p.val")
-      p_col2 <- if (isTRUE(input$dual_p_adj)) paste0(c2, "_p.adj") else paste0(c2, "_p.val")
+      pval_col1 <- paste0(c1, "_p.val")
+      pval_col2 <- paste0(c2, "_p.val")
+      padj_col1 <- paste0(c1, "_p.adj")
+      padj_col2 <- paste0(c2, "_p.adj")
+      p_col1 <- if (isTRUE(input$dual_p_adj)) padj_col1 else pval_col1
+      p_col2 <- if (isTRUE(input$dual_p_adj)) padj_col2 else pval_col2
       req(all(c(lfc_col1, lfc_col2, p_col1, p_col2) %in% colnames(row_data)))
       alpha <- input$dual_alpha
       lfc_cut <- input$dual_lfc
@@ -1039,13 +1043,19 @@ server <- function(input, output, session) {
         TRUE         ~ "Not significant"
       )
       label_col <- if ("Gene" %in% colnames(row_data)) "Gene" else "name"
-      data.frame(
+      df <- data.frame(
         lfc1   = row_data[[lfc_col1]],
         lfc2   = row_data[[lfc_col2]],
         status = status,
         name   = row_data[[label_col]],
         stringsAsFactors = FALSE
       )
+      colnames(df)[1:2] <- c(paste0("log2FC_", c1), paste0("log2FC_", c2))
+      df[[paste0("p.val_", c1)]] <- if (pval_col1 %in% colnames(row_data)) row_data[[pval_col1]] else NA
+      df[[paste0("p.val_", c2)]] <- if (pval_col2 %in% colnames(row_data)) row_data[[pval_col2]] else NA
+      df[[paste0("p.adj_", c1)]] <- if (padj_col1 %in% colnames(row_data)) row_data[[padj_col1]] else NA
+      df[[paste0("p.adj_", c2)]] <- if (padj_col2 %in% colnames(row_data)) row_data[[padj_col2]] else NA
+      df
     })
 
     output$dual_comparison_plot <- renderPlot({
@@ -1053,6 +1063,8 @@ server <- function(input, output, session) {
       df <- dual_comparison_data()
       c1 <- input$dual_cntrst_1
       c2 <- input$dual_cntrst_2
+      lfc_col1 <- paste0("log2FC_", c1)
+      lfc_col2 <- paste0("log2FC_", c2)
       status_levels <- c("Both significant",
                          paste0("Only ", c1),
                          paste0("Only ", c2),
@@ -1063,15 +1075,18 @@ server <- function(input, output, session) {
       colors[paste0("Only ", c1)] <- "#E67E22"
       colors[paste0("Only ", c2)] <- "#2980B9"
       df$status <- factor(df$status, levels = status_levels)
-      df_labeled <- df[df$status == "Both significant" & !is.na(df$lfc1) & !is.na(df$lfc2), ]
-      p <- ggplot(df[!is.na(df$lfc1) & !is.na(df$lfc2), ],
-                  aes(x = lfc1, y = lfc2, color = status)) +
+      df_filtered <- df[!is.na(df[[lfc_col1]]) & !is.na(df[[lfc_col2]]), ]
+      axis_lim <- max(abs(c(df_filtered[[lfc_col1]], df_filtered[[lfc_col2]])), na.rm = TRUE) * 1.05
+      df_labeled <- df_filtered[df_filtered$status == "Both significant", ]
+      p <- ggplot(df_filtered,
+                  aes(x = .data[[lfc_col1]], y = .data[[lfc_col2]], color = status)) +
         geom_point(alpha = 0.6, size = 2) +
         scale_color_manual(values = colors, name = "Significance") +
         geom_hline(yintercept = c(-input$dual_lfc, input$dual_lfc),
                    linetype = "dashed", color = "grey40") +
         geom_vline(xintercept = c(-input$dual_lfc, input$dual_lfc),
                    linetype = "dashed", color = "grey40") +
+        coord_equal(xlim = c(-axis_lim, axis_lim), ylim = c(-axis_lim, axis_lim)) +
         labs(x = paste0("log2FC (", c1, ")"),
              y = paste0("log2FC (", c2, ")"),
              title = "Marker Nomination: Dual Comparison") +
@@ -1079,7 +1094,7 @@ server <- function(input, output, session) {
         theme(legend.position = "right")
       if (nrow(df_labeled) > 0 && nrow(df_labeled) <= 40) {
         p <- p + ggrepel::geom_text_repel(data = df_labeled,
-                                           aes(x = lfc1, y = lfc2, label = name),
+                                           aes(x = .data[[lfc_col1]], y = .data[[lfc_col2]], label = name),
                                            color = "#C0392B", size = 3,
                                            box.padding = unit(0.2, "lines"),
                                            max.overlaps = 20)
@@ -1093,8 +1108,57 @@ server <- function(input, output, session) {
       },
       content = function(file) {
         df <- dual_comparison_data()
-        nominated <- df[df$status == "Both significant", ]
-        write.table(nominated, file, col.names = TRUE, row.names = FALSE, sep = "\t")
+        write.table(df, file, col.names = TRUE, row.names = FALSE, sep = "\t")
+      }
+    )
+
+    output$download_dual_comparison_plot <- downloadHandler(
+      filename = function() {
+        paste0("dual_comparison_scatter_", input$dual_cntrst_1, "_and_", input$dual_cntrst_2, ".pdf")
+      },
+      content = function(file) {
+        df <- dual_comparison_data()
+        c1 <- input$dual_cntrst_1
+        c2 <- input$dual_cntrst_2
+        lfc_col1 <- paste0("log2FC_", c1)
+        lfc_col2 <- paste0("log2FC_", c2)
+        status_levels <- c("Both significant",
+                           paste0("Only ", c1),
+                           paste0("Only ", c2),
+                           "Not significant")
+        status_levels <- status_levels[status_levels %in% unique(df$status)]
+        colors <- c("Both significant"      = "#C0392B",
+                    "Not significant"       = "grey70")
+        colors[paste0("Only ", c1)] <- "#E67E22"
+        colors[paste0("Only ", c2)] <- "#2980B9"
+        df$status <- factor(df$status, levels = status_levels)
+        df_filtered <- df[!is.na(df[[lfc_col1]]) & !is.na(df[[lfc_col2]]), ]
+        axis_lim <- max(abs(c(df_filtered[[lfc_col1]], df_filtered[[lfc_col2]])), na.rm = TRUE) * 1.05
+        df_labeled <- df_filtered[df_filtered$status == "Both significant", ]
+        p <- ggplot(df_filtered,
+                    aes(x = .data[[lfc_col1]], y = .data[[lfc_col2]], color = status)) +
+          geom_point(alpha = 0.6, size = 2) +
+          scale_color_manual(values = colors, name = "Significance") +
+          geom_hline(yintercept = c(-input$dual_lfc, input$dual_lfc),
+                     linetype = "dashed", color = "grey40") +
+          geom_vline(xintercept = c(-input$dual_lfc, input$dual_lfc),
+                     linetype = "dashed", color = "grey40") +
+          coord_equal(xlim = c(-axis_lim, axis_lim), ylim = c(-axis_lim, axis_lim)) +
+          labs(x = paste0("log2FC (", c1, ")"),
+               y = paste0("log2FC (", c2, ")"),
+               title = "Marker Nomination: Dual Comparison") +
+          theme_bw() +
+          theme(legend.position = "right")
+        if (nrow(df_labeled) > 0 && nrow(df_labeled) <= 40) {
+          p <- p + ggrepel::geom_text_repel(data = df_labeled,
+                                             aes(x = .data[[lfc_col1]], y = .data[[lfc_col2]], label = name),
+                                             color = "#C0392B", size = 3,
+                                             box.padding = unit(0.2, "lines"),
+                                             max.overlaps = 20)
+        }
+        pdf(file)
+        print(p)
+        dev.off()
       }
     )
 
