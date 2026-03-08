@@ -379,8 +379,8 @@ ui <- function(request){shinyUI(
                           ), #close first fluidrow
                           # align save button
                           tags$style(type='text/css', "#downloadButton { width:100%; margin-top: 25px;}"), 
-                          tags$style(type='text/css', "#downloadreport { width:100%; vertical-align- middle; margin-top: 25px; 
-                                     margin-bottom: 25px;}"),
+                          tags$style(type='text/css', "#downloadreport { width:100%; margin-top: 25px; margin-bottom: 25px;}"),
+                          tags$style(type='text/css', "#downloadLog { width:100%; margin-top: 25px; margin-bottom: 25px;}"),
                           #tags$style(type='text/css', "#downloadPlots { width:100%; margin-top: 25px;}"),
                           tags$br(), # Blank lines
                           
