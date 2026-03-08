@@ -596,7 +596,13 @@ ui <- function(request){shinyUI(
                                                         "Show scaled version",
                                                         value = T))
                               ),
-                              fluidRow(shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc"))
+                              fluidRow(shinycssloaders::withSpinner(plotlyOutput("pca_plot", height = 600), color = "#3c8dbc")),
+                              conditionalPanel(
+                                condition = "input.exp == 'TMT'",
+                                fluidRow(column(12, radioButtons("pca_color_by", "Color by:",
+                                                                 choices = c("Condition" = "condition", "Plex" = "plex"),
+                                                                 selected = "condition", inline = TRUE)))
+                              )
                               ),
                      tabPanel(title="Sample Correlation",
                               fluidRow(box(checkboxInput("cor_imputed",

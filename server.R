@@ -941,6 +941,7 @@ server <- function(input, output, session) {
      input$analyze
      input$pca_imputed
      input$pca_scale
+    input$pca_color_by
      },{
      if(input$analyze==0 | !start_analysis()){
        return()
@@ -953,12 +954,13 @@ server <- function(input, output, session) {
        data <- normalized_data()
        num_total <- num_total_origin()
      }
+     indicate <- if (input$exp == "TMT" && !is.null(input$pca_color_by)) input$pca_color_by else "condition"
      if (num_total<=500){
        if(length(levels(as.factor(colData(data)$replicate))) <= 6){
-         pca_plot<- plot_pca_plotly(data, n=num_total, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
+         pca_plot<- plot_pca_plotly(data, n=num_total, indicate = indicate, ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
        }
      } else {
-       pca_plot<-plot_pca_plotly(data, indicate = "condition", ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
+       pca_plot<-plot_pca_plotly(data, indicate = indicate, ID_col=ID_col, exp=input$exp, scale=input$pca_scale)
      }
      return(pca_plot)
    })

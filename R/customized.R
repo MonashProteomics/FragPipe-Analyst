@@ -619,61 +619,17 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
   
   if(length(indicate) == 1) {
     if (exp == "TMT") {
-    pca_df$plex <- as.factor(pca_df$plex)
-    p <- plot_ly() %>%
-      add_trace(data=pca_df, type = 'scatter', marker = list(size = point_size),
-                mode = 'markers',
-                x = ~PC1,
-                y = ~PC2,
-                color = as.formula(paste0('~', indicate[1])),
-                text = pca_df$sample_name,
-                xaxis="x",
-                yaxis="y",
-                legendgroup=indicate[1],
-                legendgrouptitle_text=indicate[1]) %>%
-      add_trace(data=pca_df, type = "scatter", marker = list(size = point_size),
-                mode = 'markers',
-                x = ~PC1,
-                y = ~PC2,
-                text = pca_df$sample_name,
-                color = as.formula(paste0('~', "plex")),
-                legendgroup="plex",
-                legendgrouptitle_text="plex",
-                xaxis="x2",
-                yaxis="y2", visible = FALSE, inherit = FALSE) %>%
-      plotly::layout(title = paste0('PCA plot (', n, " features used)"),
-                     xaxis = list(title = paste0("PC", x, ": ", percent[x], "%")),
-                     xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"), overlaying="x", visible=F),
-                     yaxis = list(title = paste0("PC", y, ": ", percent[y], "%")),
-                     yaxis2 = list(title = paste0("PC", y, ": ", percent[y], "%"), overlaying="y", visible=F),
-                     updatemenus = list(
-                       list(
-                         y = 0.8,
-                         buttons = list(
-                           list(method = "update",
-                                args = list(list(visible=unlist(Map(rep, x = c(T, F), each = c(length(unique(pca_df$condition)),
-                                                                                               length(unique(pca_df$plex)))))),
-                                            list(xaxis = list(title = paste0("PC", x, ": ", percent[x], "%"),
-                                                              visible = TRUE),
-                                                 xaxis2 = list(overlaying = "x", visible = FALSE),
-                                                 yaxis = list(title = paste0("PC", y, ": ", percent[y], "%"),
-                                                              visible = TRUE),
-                                                 yaxis2 = list(overlaying = "y", visible = FALSE))),
-                                label = "by condition"),
-                           list(method = "update",
-                                args = list(list(visible=unlist(Map(rep, x = c(F, T), each = c(length(unique(pca_df$condition)),
-                                                                                               length(unique(pca_df$plex)))))),
-                                            list(xaxis = list(visible = F),
-                                                 xaxis2 = list(title = paste0("PC", x, ": ", percent[x], "%"),
-                                                               overlaying = "x", visible = T),
-                                                 yaxis = list(visible = F),
-                                                 yaxis2 = list(title = paste0("PC", y, ": ", percent[y], "%"),
-                                                               overlaying = "y", visible = T))),
-                                label = "by plex")
-                         )
-                       )
-                     )
-                  )
+      pca_df[[indicate[1]]] <- as.factor(pca_df[[indicate[1]]])
+      p <- plot_ly(data=pca_df, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
+        add_trace(x = ~PC1,
+                  y = ~PC2,
+                  color = as.formula(paste0('~', indicate[1])),
+                  text = pca_df$sample_name,
+                  legendgroup=indicate[1],
+                  legendgrouptitle_text=indicate[1]) %>%
+        plotly::layout(title = paste0('PCA plot (', n, ' features used)'),
+                       xaxis = list(title = paste0('PC', x, ': ', percent[x], '%')),
+                       yaxis = list(title = paste0('PC', y, ': ', percent[y], '%')))
     } else {
       p <- plot_ly(data=pca_df, type = 'scatter', mode = 'markers', marker = list(size = point_size)) %>%
         plotly::layout(title = paste0('PCA plot (', n, " features used)"),
@@ -734,7 +690,11 @@ plot_pca_plotly <- function(dep, x = 1, y = 2, indicate = c("condition", "replic
                                    groupclick = FALSE),
                        updatemenus = list(
                          list(
-                           y = 0.8,
+                           x = 0.5,
+                           y = 0.02,
+                           xanchor = "center",
+                           yanchor = "bottom",
+                           direction = "up",
                            buttons = list(
                              list(method = "update",
                                   args = list(list(visible=unlist(Map(rep, x = c(T, T, F), each = c(length(unique(pca_df$condition)),
