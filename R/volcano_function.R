@@ -175,9 +175,9 @@ plot_volcano_new <- function(dep, contrast, label_size = 3, name_col = NULL,
     geom_vline(xintercept = 0) +
     geom_point(aes(col = signif)) +
     geom_text(data = data.frame(), aes(x = c(Inf, -Inf),
-                                       y = c(-Inf, -Inf),
-                                       hjust = c(1, 0),
-                                       vjust = c(-1, -1),
+                                       y = c(Inf, Inf),
+                                       hjust = c(1.1, -0.1),
+                                       vjust = c(1.5, 1.5),
                                        label = c(name1, name2),
                                        size = 5,
                                        fontface = "bold")) +
@@ -454,9 +454,9 @@ plot_volcano_mod <- function(dep, contrast, label_size = 3, name_col = NULL,
     geom_vline(xintercept = 0) +
     geom_point(aes(col = significant)) +
     geom_text(data = data.frame(), aes(x = c(Inf, -Inf),
-                                       y = c(-Inf, -Inf),
-                                       hjust = c(1, 0),
-                                       vjust = c(-1, -1),
+                                       y = c(Inf, Inf),
+                                       hjust = c(1.1, -0.1),
+                                       vjust = c(1.5, 1.5),
                                        label = c(name1, name2),
                                        size = 5,
                                        fontface = "bold")) +
