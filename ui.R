@@ -572,8 +572,10 @@ ui <- function(request){shinyUI(
                                                color = "#3c8dbc")
                                            ),
                                            fluidRow(
-                                             downloadButton("download_dual_comparison",
-                                                            "Download dual comparison")
+                                             column(6, downloadButton("download_dual_comparison",
+                                                            "Download results table")),
+                                             column(6, downloadButton("download_dual_comparison_plot",
+                                                            "Download scatter plot"))
                                            )
                                            )
                               ) # tabBox end
