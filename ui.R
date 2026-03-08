@@ -362,9 +362,9 @@ ui <- function(request){shinyUI(
                         tabPanel("Quantification",
                                  value = "quantification_panel",
                                  br(),
-                          fluidRow(
+                          fluidRow(id = "top_action_row",
                               box(
-                                column(6,uiOutput("downloadTable"),offset = 1), 
+                                column(6,uiOutput("downloadTable"),offset = 1),
                                 column(4,uiOutput("downloadButton")), # make the button on same line
                                 width = 4),
                               box(

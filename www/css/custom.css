@@ -48,6 +48,23 @@ border-top-color:#6AB187;
   height: auto;
 }
 
+/* Equal-height boxes in the top action row */
+#top_action_row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+#top_action_row > div[class*="col-"] {
+  display: flex;
+  flex-direction: column;
+}
+
+#top_action_row > div[class*="col-"] > .box {
+  flex: 1;
+  margin-bottom: 0;
+}
+
 .footer {
 position:absolute;
 bottom:10;
