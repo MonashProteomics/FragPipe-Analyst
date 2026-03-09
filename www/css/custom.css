@@ -58,10 +58,14 @@ border-top-color:#6AB187;
 #top_action_row > div[class*="col-"] {
   display: flex;
   flex-direction: column;
+  float: none !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 #top_action_row > div[class*="col-"] > .box {
   flex: 1;
+  margin-top: 0 !important;
   margin-bottom: 0;
 }
 
