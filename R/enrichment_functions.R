@@ -124,7 +124,29 @@ test_ora_mod <- function(dep,
                               geneID=character(),
                               Count=character(),
                               stringsAsFactors=FALSE)
-      
+
+      # --- Pre-compute background ID mappings & db-specific setup ONCE ---
+      organism_db_map <- ifelse(endsWith(databases, "(Mouse)"), "org.Mm.eg.db", "org.Hs.eg.db")
+      bg_entrez    <- NULL
+      hallmark     <- NULL
+      organism_map <- NULL
+      if (startsWith(databases, "KEGG") || startsWith(databases, "WikiPathways") ||
+          databases == "Reactome") {
+        bg_entrez <- bitr(background, fromType = "SYMBOL",
+                          toType = c("ENTREZID"), OrgDb = organism_db_map)$ENTREZID
+      }
+      if (startsWith(databases, "KEGG")) {
+        organism_map <- ifelse(endsWith(databases, "(Mouse)"), "mmu", "hsa")
+      } else if (startsWith(databases, "WikiPathways")) {
+        organism_map <- ifelse(endsWith(databases, "(Mouse)"), "Mus musculus", "Homo sapiens")
+      } else if (databases == "Hallmark") {
+        hallmark <- msigdbr::msigdbr(species = "Homo sapiens", category = "H") %>%
+          select(gs_name, gene_symbol)
+      } else if (!databases %in% c("Reactome", "MF", "BP", "CC")) {
+        stop("Not a valid database, please choose from 'KEGG', 'WikiPathways', 'Hallmark', 'Reactome', 'MF', 'BP', 'CC'",
+             call. = FALSE)
+      }
+
       for(contrast in constrast_columns) {
         df[is.na(df[[contrast]]),contrast] <- F
         significant <- df
@@ -138,7 +160,7 @@ test_ora_mod <- function(dep,
         } else {
           significant <- significant[significant[gsub("_significant", "_p.val", contrast)] < alpha,]
         }
-        
+
         if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "protein") {
           genes <- unique(significant$Gene)
         } else if (metadata(dep)$exp == "TMT" & metadata(dep)$level == "gene") {
@@ -158,86 +180,50 @@ test_ora_mod <- function(dep,
         } else if (metadata(dep)$exp == "DIA" & metadata(dep)$level == "site") {
           genes <- unique(significant$Gene)
         }
-        
-        organism_db_map <- ifelse(endsWith(databases, "(Mouse)"), "org.Mm.eg.db", "org.Hs.eg.db")
+
         if (startsWith(databases, "KEGG")) {
-          organism_map <- ifelse(endsWith(databases, "(Mouse)"), "mmu", "hsa")
-          mappings <- bitr(genes, fromType="SYMBOL", 
+          mappings <- bitr(genes, fromType="SYMBOL",
                            toType=c("ENTREZID"), OrgDb=organism_db_map)
           result <- enrichKEGG(gene = mappings$ENTREZID,
+                               universe = bg_entrez,
                                keyType = "ncbi-geneid",
                                organism = organism_map,
                                pvalueCutoff = 1,
                                qvalueCutoff = 1)
-          bg_mappings <- bitr(background, fromType="SYMBOL", 
-                              toType=c("ENTREZID"), OrgDb=organism_db_map)
-          bg_result <- enrichKEGG(gene = bg_mappings$ENTREZID,
-                                  keyType = "ncbi-geneid",
-                                  organism = organism_map,
-                                  pvalueCutoff = 1,
-                                  qvalueCutoff = 1)
           result <- setReadable(result, OrgDb = organism_db_map, keyType = "ENTREZID")
         } else if (startsWith(databases, "WikiPathways")) {
-          organism_map <- ifelse(endsWith(databases, "(Mouse)"), "Mus musculus", "Homo sapiens")
-          mappings <- bitr(genes, fromType="SYMBOL", 
+          mappings <- bitr(genes, fromType="SYMBOL",
                            toType=c("ENTREZID"), OrgDb=organism_db_map)
           result <- enrichWP(gene = mappings$ENTREZID,
+                             universe = bg_entrez,
                              organism = organism_map,
                              pvalueCutoff = 1,
                              qvalueCutoff = 1)
-          bg_mappings <- bitr(background, fromType="SYMBOL", 
-                              toType=c("ENTREZID"), OrgDb=organism_db_map)
-          bg_result <- enrichWP(gene = bg_mappings$ENTREZID,
-                                organism = organism_map,
-                                pvalueCutoff = 1,
-                                qvalueCutoff = 1)
           result <- setReadable(result, OrgDb = organism_db_map, keyType = "ENTREZID")
         } else if (databases == "Hallmark") {
-          hallmark <- msigdbr::msigdbr(species = "Homo sapiens", category = "H") %>%
-            select(gs_name, gene_symbol)
-          result <- enricher(genes, TERM2GENE = hallmark, pvalueCutoff = 1, qvalueCutoff = 1)
-          bg_result <- enricher(background, TERM2GENE = hallmark, pvalueCutoff = 1, qvalueCutoff = 1)
+          result <- enricher(genes, universe = background,
+                             TERM2GENE = hallmark, pvalueCutoff = 1, qvalueCutoff = 1)
         } else if (databases == "Reactome") {
-          mappings <- bitr(genes, fromType="SYMBOL", 
+          mappings <- bitr(genes, fromType="SYMBOL",
                            toType=c("ENTREZID"), OrgDb=organism_db_map)
           result <- enrichPathway(gene = mappings$ENTREZID,
+                                  universe = bg_entrez,
                                   organism = "human",
                                   pvalueCutoff = 1,
                                   qvalueCutoff = 1)
-          bg_mappings <- bitr(background, fromType="SYMBOL", 
-                              toType=c("ENTREZID"), OrgDb=organism_db_map)
-          bg_result <- enrichPathway(gene = bg_mappings$ENTREZID,
-                                     organism = "human",
-                                     pvalueCutoff = 1,
-                                     qvalueCutoff = 1)
           result <- setReadable(result, OrgDb = organism_db_map, keyType = "ENTREZID")
         } else if (databases %in% c("MF", "BP", "CC")) {
           result <- enrichGO(gene = genes,
+                             universe = background,
                              OrgDb = organism_db_map,
                              ont = databases,
                              keyType = "SYMBOL",
                              pAdjustMethod = "BH",
                              pvalueCutoff  = 1,
                              qvalueCutoff  = 1)
-          bg_result <- enrichGO(gene = background,
-                                OrgDb = organism_db_map,
-                                ont = databases,
-                                keyType = "SYMBOL",
-                                pAdjustMethod = "BH",
-                                pvalueCutoff  = 1,
-                                qvalueCutoff  = 1)
-        } else {
-          stop("Not a valid database, please choose from 'KEGG', 'WikiPathways', 'Hallmark', 'Reactome', 'MF', 'BP', 'CC'",
-               call. = FALSE)
         }
         temp <- as.data.frame(result)
-        bg_temp <- as.data.frame(bg_result)
-        bg_temp <- bg_temp %>%
-          mutate(bg_IN = Count,
-                 bg_OUT = length(background) - Count) %>%
-          select(ID, bg_IN, bg_OUT)
-        temp <- temp %>% left_join(bg_temp, by = "ID")
-        
+
         temp$contrast <- gsub("_significant", "", contrast)
         temp$OUT <- dim(significant)[1] - temp$Count
         df_enrich <- rbind(df_enrich, temp)
@@ -246,13 +232,14 @@ test_ora_mod <- function(dep,
       df_enrich <- dplyr::rename(df_enrich, all_of(lookup))
       df_enrich$var <- databases
       df_enrich$Overlap <- paste0(df_enrich$IN, "/", as.numeric(gsub("/.*", "", df_enrich$BgRatio)))
-      # df_enrich$Odds.Ratio <- (df_enrich$IN * (as.numeric(gsub(".*/", "", df_enrich$BgRatio)) - as.numeric(gsub("/.*", "", df_enrich$BgRatio)))) / (df_enrich$OUT * as.numeric(gsub("/.*", "", df_enrich$BgRatio)))
-      # inspired from enrichr https://github.com/MaayanLab/enrichr_issues/issues/3#issuecomment-780078054
-      df_enrich$Odds.Ratio <- (df_enrich$IN * (20000 - as.numeric(gsub("/.*", "", df_enrich$BgRatio)))) / (df_enrich$OUT * as.numeric(gsub("/.*", "", df_enrich$BgRatio)))
-      df_enrich$log_odds <- log2((df_enrich$IN * df_enrich$bg_OUT) / (df_enrich$OUT * df_enrich$bg_IN))
-      df_enrich$p_hyper = phyper(q=(df_enrich$IN-1), m = df_enrich$bg_IN, n = df_enrich$bg_OUT, k = (df_enrich$IN+df_enrich$OUT),
-                                   lower.tail = F)
-      df_enrich$p.adjust_hyper = p.adjust(df_enrich$p_hyper, method = "BH")
+      # Compute log odds from GeneRatio and BgRatio
+      bg_IN  <- as.numeric(gsub("/.*", "", df_enrich$BgRatio))
+      bg_OUT <- as.numeric(gsub(".*/", "", df_enrich$BgRatio)) - bg_IN
+      df_enrich$Odds.Ratio <- (df_enrich$IN * bg_OUT) / (df_enrich$OUT * bg_IN)
+      df_enrich$log_odds   <- log2(df_enrich$Odds.Ratio)
+      # Use clusterProfiler's p-values directly (already corrected for universe = background)
+      df_enrich$p_hyper        <- df_enrich$P.value
+      df_enrich$p.adjust_hyper <- df_enrich$Adjusted.P.value
       
       return(df_enrich)
     } else {
