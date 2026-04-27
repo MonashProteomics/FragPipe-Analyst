@@ -1,54 +1,75 @@
 enrichr_mod <- function(genes, databases = NULL) {
-  # check gene type
-  if (length(genes) != 0){
+  if (length(genes) != 0) {
     if (all(startsWith(genes, "ENSG"))) {
       genes_map <- ensembldb::select(EnsDb.Hsapiens.v86,
-                                 keys= genes, keytype = "GENEID", columns = c("SYMBOL","GENEID"))
+                                     keys = genes, keytype = "GENEID", columns = c("SYMBOL", "GENEID"))
       genes <- genes_map$SYMBOL
     }
     httr::set_config(httr::config(ssl_verifypeer = 0L))
     cat("Uploading data to Enrichr... ")
-    if (is.vector(genes) & ! all(genes == "") & length(genes) != 0) {
-      temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
-                   body=list(list=paste(genes, collapse="\n")))
+    if (is.vector(genes) & !all(genes == "") & length(genes) != 0) {
+      gene_str <- paste(genes, collapse = "\n")
     } else if (is.data.frame(genes)) {
-      temp <- POST(url="http://maayanlab.cloud/Enrichr/enrich",
-                   body=list(list=paste(paste(genes[,1], genes[,2], sep=","),
-                                        collapse="\n")))
+      gene_str <- paste(paste(genes[,1], genes[,2], sep = ","), collapse = "\n")
     } else {
       warning("genes must be a non-empty vector of gene names or a dataframe with genes and score.")
+      return(NULL)
     }
-    GET(url="http://maayanlab.cloud/Enrichr/share")
+    temp <- POST(url = "https://maayanlab.cloud/Enrichr/addList",
+                 body = list(list = gene_str, description = ""),
+                 encode = "multipart", timeout(15))
+    Sys.sleep(1)
+    user_list_id <- httr::content(temp, as = "parsed", type = "application/json")$userListId
     cat("Done.\n")
     dbs <- as.list(databases)
     dfSAF <- options()$stringsAsFactors
     options(stringsAsFactors = FALSE)
     result <- lapply(dbs, function(x) {
-      cat("  Querying ", x, "... ", sep="")
-      r <- GET(url="http://maayanlab.cloud/Enrichr/export",
-               query=list(file="API", backgroundType=x))
-      r <- gsub("&#39;", "'", intToUtf8(r$content))
-      tc <- textConnection(r)
-      r <- read.table(tc, sep = "\t", header = TRUE, quote = "", comment.char="")
-      close(tc)
+      cat("  Querying ", x, "... ", sep = "")
+      r <- GET(url = "https://maayanlab.cloud/Enrichr/enrich",
+               query = list(userListId = user_list_id, backgroundType = x), timeout(15))
+      data <- httr::content(r, as = "parsed", type = "application/json")[[x]]
+      if (is.null(data) || length(data) == 0) {
+        cat("Done.\n")
+        return(data.frame(Term = character(), Overlap = character(),
+                          P.value = double(), Adjusted.P.value = double(),
+                          Old.P.value = double(), Old.Adjusted.P.value = double(),
+                          Odds.Ratio = double(), Combined.Score = double(),
+                          Genes = character()))
+      }
+      # JSON entry: [rank, term, p_value, Odds ratio, combined_score, [genes], adj_p_value, old_p_value, old_adj_p_value]
+      Sys.sleep(1)
+      df <- do.call(rbind, lapply(data, function(entry) {
+        data.frame(
+          Term                 = entry[[2]],
+          Overlap              = as.character(length(entry[[6]])),
+          P.value              = entry[[3]],
+          Adjusted.P.value     = entry[[7]],
+          Old.P.value          = if (length(entry) >= 8) entry[[8]] else NA_real_,
+          Old.Adjusted.P.value = if (length(entry) >= 9) entry[[9]] else NA_real_,
+          Odds.Ratio           = entry[[4]],
+          Combined.Score       = entry[[5]],
+          Genes                = paste(entry[[6]], collapse = ";"),
+          stringsAsFactors     = FALSE
+        )
+      }))
       cat("Done.\n")
-      return(r)
+      return(df)
     })
     options(stringsAsFactors = dfSAF)
     cat("Parsing results... ")
     names(result) <- dbs
     cat("Done.\n")
-  } 
-  else { # no genes provided
-    result <- data.frame(Term=character(),
-                         Overlap=character(),
-                         P.value=double(),
-                         Adjusted.P.value=double(),
-                         Old.P.value=double(),
-                         Old.Adjusted.P.value=double(),
-                         Odds.Ratio=double(),
-                         Combined.Score=double(),
-                         Genes=character())
+  } else {
+    result <- data.frame(Term = character(),
+                         Overlap = character(),
+                         P.value = double(),
+                         Adjusted.P.value = double(),
+                         Old.P.value = double(),
+                         Old.Adjusted.P.value = double(),
+                         Odds.Ratio = double(),
+                         Combined.Score = double(),
+                         Genes = character())
   }
   return(result)
 }
